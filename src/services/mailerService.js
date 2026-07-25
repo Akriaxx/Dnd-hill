@@ -190,3 +190,15 @@ export const sendAccountSuspended = ({ to, username, unlockUrl }) =>
       dim('Si vous n\'êtes pas à l\'origine de ces tentatives, ignorez cet email et contactez votre Maître du Jeu.')
     ),
   });
+
+export const sendUnlockCode = ({ to, username, code }) =>
+  send({
+    to,
+    subject: 'Code de déblocage — Eindhill',
+    html: BASE(
+      label(`Déblocage du compte, ${username}.`) +
+      p('Saisissez le code ci-dessous pour confirmer le déblocage de votre compte.') +
+      codeBlock(code) +
+      dim('Ce code expire dans 15 minutes. Ne le partagez avec personne.')
+    ),
+  });
