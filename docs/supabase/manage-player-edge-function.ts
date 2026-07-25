@@ -12,7 +12,27 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
+// Deno Edge Functions don't add CORS headers on their own — without these,
+// the browser's preflight OPTIONS request gets blocked before the actual
+// POST ever leaves, and supabase-js just reports a generic
+// "Failed to send a request to the Edge Function".
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
+const json = (body, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   const authHeader = req.headers.get('Authorization') ?? '';
 
   // Scoped to the caller's session — used only to verify permission.
@@ -26,7 +46,7 @@ Deno.serve(async (req) => {
     permission: 'managePlayers',
   });
   if (permError || !allowed) {
-    return new Response(JSON.stringify({ error: 'Non autorisé.' }), { status: 403 });
+    return json({ error: 'Non autorisé.' }, 403);
   }
 
   // Full-power client for the actual auth.admin operations.
@@ -40,7 +60,7 @@ Deno.serve(async (req) => {
   if (body.action === 'create') {
     const { email, password, username, displayName, role, permissions, redirectTo } = body;
     if (!email || !password || !username) {
-      return new Response(JSON.stringify({ error: 'Champs manquants.' }), { status: 400 });
+      return json({ error: 'Champs manquants.' }, 400);
     }
 
     // generateLink (type: signup) crée le compte ET renvoie le lien de
@@ -55,7 +75,7 @@ Deno.serve(async (req) => {
       options: { redirectTo },
     });
     if (linkError) {
-      return new Response(JSON.stringify({ error: linkError.message }), { status: 400 });
+      return json({ error: linkError.message }, 400);
     }
     const created = linkData.user;
 
@@ -69,26 +89,23 @@ Deno.serve(async (req) => {
     });
     if (profileError) {
       await adminClient.auth.admin.deleteUser(created.id);
-      return new Response(JSON.stringify({ error: profileError.message }), { status: 400 });
+      return json({ error: profileError.message }, 400);
     }
 
-    return new Response(
-      JSON.stringify({ id: created.id, confirmationUrl: linkData.properties.action_link }),
-      { status: 200 },
-    );
+    return json({ id: created.id, confirmationUrl: linkData.properties.action_link });
   }
 
   if (body.action === 'delete') {
     const { userId } = body;
     if (!userId) {
-      return new Response(JSON.stringify({ error: 'userId manquant.' }), { status: 400 });
+      return json({ error: 'userId manquant.' }, 400);
     }
     const { error } = await adminClient.auth.admin.deleteUser(userId);
     if (error) {
-      return new Response(JSON.stringify({ error: error.message }), { status: 400 });
+      return json({ error: error.message }, 400);
     }
-    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    return json({ ok: true });
   }
 
-  return new Response(JSON.stringify({ error: 'action inconnue.' }), { status: 400 });
+  return json({ error: 'action inconnue.' }, 400);
 });
