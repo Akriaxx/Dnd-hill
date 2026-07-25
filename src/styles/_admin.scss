@@ -218,6 +218,12 @@
     box-shadow: 0 0 6px $gold;
     animation: ah-dot-pulse 1.1s ease-in-out infinite;
   }
+
+  &.ah-dot--error {
+    background: #c84a4a;
+    box-shadow: 0 0 6px #c84a4a;
+    animation: ah-dot-pulse 1.1s ease-in-out infinite;
+  }
 }
 
 .ah-status-date {

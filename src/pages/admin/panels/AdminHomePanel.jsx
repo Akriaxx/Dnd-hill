@@ -147,14 +147,16 @@ function Card({ label, value, sub, onClick, index }) {
 
 // ── Status bar ────────────────────────────────────────────────
 
-function StatusBar({ pending }) {
+function StatusBar({ pending, dbStatus }) {
   const date = new Date().toLocaleDateString('fr-FR', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   });
+  const dbDotClass = dbStatus === 'error' ? 'ah-dot--error' : dbStatus === 'checking' ? 'ah-dot--warn' : 'ah-dot--ok';
+  const dbLabel = dbStatus === 'error' ? 'Base de données injoignable' : dbStatus === 'checking' ? 'Base de données…' : 'Base de données';
   return (
     <div className="ah-status">
       <span className="ah-status-item"><span className="ah-dot ah-dot--ok" />Système opérationnel</span>
-      <span className="ah-status-item"><span className="ah-dot ah-dot--ok" />Base de données</span>
+      <span className="ah-status-item"><span className={`ah-dot ${dbDotClass}`} />{dbLabel}</span>
       {pending > 0 && (
         <span className="ah-status-item">
           <span className="ah-dot ah-dot--warn" />
@@ -176,8 +178,14 @@ export default function AdminHomePanel({ onNavigate }) {
   const characters        = useCharacterStore((s) => asArray(s.characters));
 
   const [playerAccounts, setPlayerAccounts] = useState([]);
+  const [dbStatus, setDbStatus] = useState('checking');
   useEffect(() => {
-    supabase.from('profiles').select('disabled').then(({ data }) => setPlayerAccounts(data || []));
+    supabase.from('profiles').select('disabled')
+      .then(({ data, error }) => {
+        setDbStatus(error ? 'error' : 'ok');
+        setPlayerAccounts(data || []);
+      })
+      .catch(() => setDbStatus('error'));
   }, []);
   const active = playerAccounts.filter((a) => !a.disabled).length;
 
@@ -216,7 +224,7 @@ export default function AdminHomePanel({ onNavigate }) {
       <ParticleCanvas />
 
       <div className="ah-inner">
-        <StatusBar pending={0} />
+        <StatusBar pending={0} dbStatus={dbStatus} />
 
         <header className="ah-hero">
           <p className="ah-kicker">Panneau Maître du Jeu</p>
