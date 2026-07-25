@@ -38,22 +38,29 @@ Deno.serve(async (req) => {
   const body = await req.json();
 
   if (body.action === 'create') {
-    const { email, password, username, displayName, role, permissions } = body;
+    const { email, password, username, displayName, role, permissions, redirectTo } = body;
     if (!email || !password || !username) {
       return new Response(JSON.stringify({ error: 'Champs manquants.' }), { status: 400 });
     }
 
-    const { data: created, error: createError } = await adminClient.auth.admin.createUser({
+    // generateLink (type: signup) crée le compte ET renvoie le lien de
+    // confirmation SANS que Supabase envoie lui-même un email — libre à
+    // nous de l'envoyer via notre propre mailer (EmailJS côté client),
+    // ce qui évite d'avoir à configurer un SMTP perso + domaine vérifié
+    // juste pour personnaliser ce mail.
+    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+      type: 'signup',
       email,
       password,
-      email_confirm: false,
+      options: { redirectTo },
     });
-    if (createError) {
-      return new Response(JSON.stringify({ error: createError.message }), { status: 400 });
+    if (linkError) {
+      return new Response(JSON.stringify({ error: linkError.message }), { status: 400 });
     }
+    const created = linkData.user;
 
     const { error: profileError } = await adminClient.from('profiles').insert({
-      id: created.user.id,
+      id: created.id,
       username,
       email,
       display_name: displayName || username,
@@ -61,11 +68,14 @@ Deno.serve(async (req) => {
       permissions: permissions || {},
     });
     if (profileError) {
-      await adminClient.auth.admin.deleteUser(created.user.id);
+      await adminClient.auth.admin.deleteUser(created.id);
       return new Response(JSON.stringify({ error: profileError.message }), { status: 400 });
     }
 
-    return new Response(JSON.stringify({ id: created.user.id }), { status: 200 });
+    return new Response(
+      JSON.stringify({ id: created.id, confirmationUrl: linkData.properties.action_link }),
+      { status: 200 },
+    );
   }
 
   if (body.action === 'delete') {

@@ -3,6 +3,7 @@ import { useAdminStore } from '../../../store/adminStore';
 import { supabase } from '../../../lib/supabaseClient';
 import { ConfirmModal } from '../AdminShared';
 import { MODERATOR_PERMISSIONS, getRoleDefinitions } from '../../../auth/permissions';
+import { sendAccountActivation } from '../../../services/mailerService';
 
 const BLANK_PLAYER = {
   username: '',
@@ -218,6 +219,7 @@ export default function PlayersPanel() {
         displayName: form.displayName.trim() || username,
         role: form.role,
         permissions: form.permissions || {},
+        redirectTo: `${window.location.origin}/login`,
       },
       headers: sessionData?.session?.access_token
         ? { Authorization: `Bearer ${sessionData.session.access_token}` }
@@ -227,6 +229,9 @@ export default function PlayersPanel() {
       setFormError(data?.error || error.message || "Échec de la création du compte.");
       setSaving(false);
       return;
+    }
+    if (data?.confirmationUrl) {
+      sendAccountActivation({ to: emailValue, username, activationUrl: data.confirmationUrl }).catch(() => {});
     }
     await loadAccounts();
     closeForm();
