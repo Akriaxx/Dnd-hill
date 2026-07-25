@@ -1,0 +1,245 @@
+@use 'variables' as *;
+@use 'fonts' as *;
+
+// ── Loader / Splash Screen ────────────────────────────────────
+
+.loader-page {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: $bg;
+  overflow: hidden;
+  gap: clamp(30px, 4vh, 48px);
+  --loader-progress-pct: calc(var(--loader-progress, 0) * 100%);
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity 1s ease,
+    transform 1s ease,
+    filter 1s ease;
+
+  &.is-complete {
+    .loader-glow-ring {
+      opacity: 0.95;
+      transform: scale(1.08);
+    }
+
+    .loader-dots {
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+    }
+  }
+
+  &.is-settled {
+    .loader-logo-shell,
+    .loader-glow-ring {
+      animation: none;
+      transform: scale(1);
+    }
+  }
+
+  &.is-leaving {
+    opacity: 0;
+    transform: scale(1);
+    filter: blur(8px);
+    pointer-events: none;
+  }
+}
+
+// ── Scene: logo gauge ──
+.loader-scene {
+  position: relative;
+  width: clamp(320px, 52vmin, 680px);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: loader-content-enter 0.8s ease both;
+}
+
+@keyframes loader-content-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+// Soft ambient glow behind the logo
+.loader-glow-ring {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(232, 200, 106, 0.18) 0%, rgba(200, 168, 74, 0.08) 36%, transparent 72%);
+  animation: loader-breathe 2s ease-in-out infinite;
+  transition:
+    opacity 0.45s ease,
+    transform 0.45s ease;
+}
+
+@keyframes loader-breathe {
+  0%, 100% { opacity: 0.6; transform: scale(0.95); }
+  50%       { opacity: 1;   transform: scale(1.05); }
+}
+
+// Logo
+.loader-logo-shell {
+  position: relative;
+  z-index: 2;
+  width: 88%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  animation: loader-pulse 2.2s ease-in-out infinite;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 4%;
+    pointer-events: none;
+    opacity: calc(0.18 + var(--loader-progress, 0) * 0.45);
+  }
+
+  &::before {
+    border-radius: 50%;
+    border: 1px solid rgba(200, 168, 74, 0.28);
+    clip-path: inset(calc(100% - var(--loader-progress-pct)) 0 0 0);
+    filter: drop-shadow(0 0 10px rgba(232, 200, 106, 0.35));
+  }
+
+  &::after {
+    display: none;
+  }
+}
+
+.loader-logo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+}
+
+.loader-logo-base {
+  opacity: 0.24;
+  filter: grayscale(1) brightness(0.55) contrast(1.18);
+}
+
+.loader-logo-fill {
+  position: absolute;
+  inset: 0;
+  mask-image: linear-gradient(
+    to top,
+    #000 0%,
+    #000 calc(var(--loader-progress-pct) - 8%),
+    transparent calc(var(--loader-progress-pct) + 8%),
+    transparent 100%
+  );
+  filter:
+    drop-shadow(0 0 8px rgba(245, 217, 110, 0.3))
+    drop-shadow(0 0 22px rgba(200, 168, 74, calc(0.16 + var(--loader-progress, 0) * 0.28)));
+  transition: filter 0.45s ease;
+}
+
+.loader-logo-fill .loader-logo {
+  filter: saturate(1.12) contrast(1.04);
+}
+
+.loader-fill-line {
+  display: none;
+}
+
+@keyframes loader-pulse {
+  0%, 100% { transform: scale(1);    }
+  50%       { transform: scale(1.04); }
+}
+
+// ── Text ──
+.loader-text {
+  font-family: $font-caps;
+  font-size: clamp(12px, 1.35vmin, 17px);
+  letter-spacing: clamp(6px, 0.7vmin, 10px);
+  color: var(--gold);
+  opacity: 0.7;
+  text-transform: uppercase;
+  animation: loader-fade 1.6s ease-in-out infinite;
+  transform: translateY(0);
+}
+
+.loader-text {
+  animation:
+    loader-text-enter 0.45s ease both,
+    loader-fade 1.6s ease-in-out infinite;
+}
+
+.is-complete .loader-text {
+  color: var(--gold2);
+  animation: loader-text-enter 0.45s ease both;
+}
+
+@keyframes loader-text-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 0.82; transform: translateY(0); }
+}
+
+@keyframes loader-fade {
+  0%, 100% { opacity: 0.45; }
+  50%       { opacity: 0.85; }
+}
+
+// ── Animated dots ──
+.loader-dots {
+  display: flex;
+  gap: clamp(8px, 1vmin, 12px);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+
+.loader-dot {
+  display: inline-block;
+  width: clamp(4px, 0.55vmin, 7px);
+  height: clamp(4px, 0.55vmin, 7px);
+  border-radius: 50%;
+  background: $gold;
+  opacity: 0;
+  animation: loader-dot-blink 1.2s ease-in-out infinite;
+}
+
+@keyframes loader-dot-blink {
+  0%, 80%, 100% { opacity: 0;   transform: scale(0.8); }
+  40%            { opacity: 0.9; transform: scale(1.2); }
+}
+
+.select-screen,
+.app-wrapper {
+  animation: app-enter 0.7s ease both;
+}
+
+@keyframes app-enter {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}

@@ -1,0 +1,61 @@
+import {
+  Sword, Swords, Axe, Hammer, Anvil, Pickaxe, BowArrow, Target,
+  Shield, HardHat, Shirt, Footprints, Link2, Circle,
+  Gem, Crown, Key, Backpack, Coins, Package,
+  FlaskConical, FlaskRound, Droplet, Droplets, Flame,
+  Leaf, LeafyGreen, Feather, Heart, HeartPulse, Skull,
+  Star, Sparkle, Sparkles, Wand, Wand2, WandSparkles,
+  ScrollText, BookOpen, Compass, Map, Zap, Glasses,
+} from 'lucide-react';
+
+// Bibliothèque d'icônes pour les items/catégories — un sous-ensemble de
+// lucide-react (déjà une dépendance du projet, voir EquipementPanel.jsx)
+// choisi pour couvrir les usages RPG courants. `icone` sur un item stocke
+// la clé (ex: "sword"), pas un nom libre — voir ItemIconPicker.jsx.
+export const ITEM_ICONS = [
+  { key: 'sword', label: 'Épée', Icon: Sword },
+  { key: 'swords', label: 'Épées', Icon: Swords },
+  { key: 'axe', label: 'Hache', Icon: Axe },
+  { key: 'hammer', label: 'Marteau', Icon: Hammer },
+  { key: 'anvil', label: 'Enclume', Icon: Anvil },
+  { key: 'pickaxe', label: 'Pioche', Icon: Pickaxe },
+  { key: 'bow', label: 'Arc', Icon: BowArrow },
+  { key: 'target', label: 'Cible', Icon: Target },
+  { key: 'shield', label: 'Bouclier', Icon: Shield },
+  { key: 'helmet', label: 'Casque', Icon: HardHat },
+  { key: 'shirt', label: 'Torse', Icon: Shirt },
+  { key: 'boots', label: 'Bottes', Icon: Footprints },
+  { key: 'necklace', label: 'Collier', Icon: Link2 },
+  { key: 'ring', label: 'Anneau', Icon: Circle },
+  { key: 'gem', label: 'Gemme', Icon: Gem },
+  { key: 'crown', label: 'Couronne', Icon: Crown },
+  { key: 'key', label: 'Clé', Icon: Key },
+  { key: 'backpack', label: 'Sac', Icon: Backpack },
+  { key: 'coins', label: 'Pièces', Icon: Coins },
+  { key: 'package', label: 'Colis', Icon: Package },
+  { key: 'flask', label: 'Fiole', Icon: FlaskConical },
+  { key: 'flask-round', label: 'Flacon', Icon: FlaskRound },
+  { key: 'droplet', label: 'Goutte', Icon: Droplet },
+  { key: 'droplets', label: 'Gouttes', Icon: Droplets },
+  { key: 'flame', label: 'Flamme', Icon: Flame },
+  { key: 'leaf', label: 'Feuille', Icon: Leaf },
+  { key: 'leafy-green', label: 'Plante', Icon: LeafyGreen },
+  { key: 'feather', label: 'Plume', Icon: Feather },
+  { key: 'heart', label: 'Cœur', Icon: Heart },
+  { key: 'heart-pulse', label: 'Vitalité', Icon: HeartPulse },
+  { key: 'skull', label: 'Crâne', Icon: Skull },
+  { key: 'star', label: 'Étoile', Icon: Star },
+  { key: 'sparkle', label: 'Étincelle', Icon: Sparkle },
+  { key: 'sparkles', label: 'Étincelles', Icon: Sparkles },
+  { key: 'wand', label: 'Baguette', Icon: Wand },
+  { key: 'wand-2', label: 'Baguette magique', Icon: Wand2 },
+  { key: 'wand-sparkles', label: 'Baguette (magie)', Icon: WandSparkles },
+  { key: 'scroll', label: 'Parchemin', Icon: ScrollText },
+  { key: 'book', label: 'Livre', Icon: BookOpen },
+  { key: 'compass', label: 'Boussole', Icon: Compass },
+  { key: 'map', label: 'Carte', Icon: Map },
+  { key: 'zap', label: 'Éclair', Icon: Zap },
+  { key: 'glasses', label: 'Lunettes', Icon: Glasses },
+];
+
+export const getItemIcon = (key) => ITEM_ICONS.find((entry) => entry.key === key) || null;

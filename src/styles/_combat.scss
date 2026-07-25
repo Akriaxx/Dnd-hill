@@ -1,0 +1,1234 @@
+@use 'variables' as *;
+@use 'fonts' as *;
+
+// ── Footer toggle (MJ/dev) ─────────────────────────────────────
+.combat-mode-toggle {
+  font-family: $font-caps;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--dim);
+  background: transparent;
+  border: 1px solid $border2;
+  border-radius: 2px;
+  padding: 4px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  opacity: 0.6;
+
+  &:hover {
+    opacity: 1;
+    border-color: $gold;
+    color: var(--gold);
+    background: rgba(200, 168, 74, 0.07);
+  }
+
+  &.active {
+    opacity: 1;
+    border-color: #e87e6b;
+    color: #e87e6b;
+    background: rgba(232, 126, 107, 0.1);
+  }
+}
+
+// ── Sélecteur de personnage (réutilisé dans l'écran de combat) ──
+.combat-char-picker {
+  position: relative;
+}
+
+.combat-char-picker-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: $font-caps;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  padding: 6px 12px;
+  border: 1px solid $border2;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.25);
+  color: $white-text;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: $gold;
+  }
+}
+
+.combat-char-picker-caret {
+  color: var(--dim);
+  font-size: 9px;
+}
+
+.combat-char-picker-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 80;
+  min-width: 180px;
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid rgba(200, 168, 74, 0.4);
+  border-radius: 3px;
+  background: #0e0d0a;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.combat-char-picker-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: $white-text;
+  font-family: $font-caps;
+  font-size: 11px;
+  letter-spacing: 1px;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(200, 168, 74, 0.1);
+  }
+
+  &.is-selected {
+    color: var(--gold);
+  }
+}
+
+.combat-char-picker-empty {
+  padding: 10px 12px;
+  color: var(--dim);
+  font-size: 12px;
+}
+
+// ── Page combat ─────────────────────────────────────────────────
+.combat-page-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 24px 56px;
+  width: 100%;
+  // L'écran de combat occupe tout l'espace disponible (plus de route /combat
+  // partageant la largeur avec autre chose) — on utilise cette place en plus
+  // pour élargir les cadres et leur contenu plutôt que de les laisser étroits.
+  max-width: 1700px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+// Même style que le titre de la cinématique (.combat-overlay-center h2),
+// mais ici un élément de flux normal, pas un bloc fixe indépendant du
+// scroll — il défile avec le reste du contenu, comme n'importe quel titre
+// de page (voir CombatActivationOverlay.jsx : à la phase "active", le titre
+// flottant de la cinématique cède la place à celui-ci).
+.combat-page-title {
+  font-family: $font-display;
+  font-size: 34px;
+  letter-spacing: 3px;
+  color: $white-text;
+  text-align: center;
+  margin: 0;
+  text-shadow: 0 0 30px rgba(200, 30, 30, 0.5);
+}
+
+// Barre unique (picker + bouton quitter), même poids visuel pour les deux.
+.combat-page-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid $border2;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.combat-page-toolbar-sep {
+  width: 1px;
+  height: 20px;
+  background: $border2;
+}
+
+// Contrôle MJ (terminer le combat pour tout le monde) : distinct de "Quitter
+// le combat" (qui ne fait sortir que le joueur courant) — repoussé à droite
+// de la barre pour ne pas être confondu avec les actions joueur à gauche.
+.combat-page-toolbar .combat-mode-toggle {
+  margin-left: auto;
+}
+
+// Même style neutre que .combat-char-picker-trigger (juste à côté dans la
+// même barre) — les deux doivent avoir le même poids visuel, pas un bouton
+// doré appuyé à côté d'un sélecteur terne.
+.combat-page-toolbar-quit {
+  font-family: $font-caps;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  padding: 6px 12px;
+  border: 1px solid $border2;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.25);
+  color: $white-text;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    border-color: #e87e6b;
+    color: #e87e6b;
+  }
+}
+
+.combat-page-placeholder {
+  width: min(480px, 92vw);
+  padding: 28px;
+  border: 1px solid rgba(200, 168, 74, 0.25);
+  border-radius: 4px;
+  background: rgba(200, 168, 74, 0.04);
+  text-align: center;
+  color: var(--dim);
+}
+
+// ── Ressources / Stats de combat ────────────────────────────────
+// Colonnes volontairement inégales (pas un simple auto-fit à parts égales) :
+// Stats de combat porte deux fois plus de figures Base/Mod./Total par ligne
+// que Ressources, elle a besoin de plus de largeur pour rester lisible.
+.combat-page-blocks {
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) minmax(420px, 1.5fr);
+  gap: 20px;
+  width: 100%;
+  // `stretch` (par défaut) plutôt que `start` : les deux cadrans doivent
+  // faire la même hauteur, pas chacun la hauteur de son propre contenu.
+  align-items: stretch;
+
+  @media (max-width: 800px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.combat-block {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(200, 168, 74, 0.3);
+  border-radius: 6px;
+  background: rgba(200, 168, 74, 0.04);
+  padding: 16px 22px 20px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.combat-block-title {
+  font-family: $font-caps;
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  text-align: center;
+  margin: -16px -22px 16px;
+  padding: 10px 0;
+  background: rgba(200, 168, 74, 0.07);
+  border-bottom: 1px solid $border2;
+  border-radius: 6px 6px 0 0;
+}
+
+// Style partagé par TOUS les champs éditables du mode combat (actuel,
+// temporaire, stats) — un seul langage visuel plutôt que des bordures/
+// couleurs légèrement différentes d'un champ à l'autre.
+%combat-edit-field {
+  text-align: center;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(200, 168, 74, 0.28);
+  border-radius: 3px;
+  font-family: $font-caps;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &:hover { border-color: rgba(200, 168, 74, 0.5); }
+  &:focus { border-color: $gold; background: rgba(200, 168, 74, 0.09); }
+}
+
+// ── Ressources : Points de Vie / Mana / Endurance ──
+.combat-resource-cols {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  // Centre les 3 colonnes verticalement si ce cadran se retrouve moins
+  // haut que son voisin (Stats) une fois les deux étirés à la même taille.
+  align-content: center;
+}
+
+.combat-resource-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 0 20px;
+
+  & + & {
+    border-left: 1px solid $border2;
+  }
+}
+
+.combat-resource-label {
+  font-family: $font-caps;
+  font-size: 13px;
+  letter-spacing: 1px;
+  line-height: 1.4;
+  color: var(--gold);
+  opacity: 0.85;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  text-align: center;
+}
+
+// Lecture rapide en un coup d'œil, en plus des valeurs exactes en dessous :
+// remplissage coloré = actuel/max, surcouche jaune hachurée = temporaire
+// ajouté par-dessus (clampée à 100% de la barre, jamais au-delà du bord).
+.combat-resource-bar {
+  position: relative;
+  width: 100%;
+  height: 16px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(200, 168, 74, 0.2);
+  overflow: hidden;
+}
+
+.combat-resource-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+  border-radius: 3px 0 0 3px;
+  transition: width 0.3s ease;
+}
+
+.combat-resource-bar-temp {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 50%;
+  border-radius: 2px;
+  border: 1px solid rgba(20, 16, 6, 0.4);
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(230, 190, 60, 0.85),
+    rgba(230, 190, 60, 0.85) 6px,
+    rgba(230, 190, 60, 0.5) 6px,
+    rgba(230, 190, 60, 0.5) 12px
+  );
+  box-shadow: 0 0 6px rgba(230, 190, 60, 0.4);
+  transition: width 0.3s ease;
+}
+
+.combat-resource-bar--vie .combat-resource-bar-fill {
+  background: linear-gradient(90deg, #2f8f4e, #4fc774);
+}
+
+.combat-resource-bar--mana .combat-resource-bar-fill {
+  background: linear-gradient(90deg, #23649c, #3f97e0);
+}
+
+.combat-resource-bar--endu .combat-resource-bar-fill {
+  background: linear-gradient(90deg, #6b8a2e, #9bcb4a);
+}
+
+.combat-resource-value {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  font-family: $font-caps;
+}
+
+// Le "/max" reste discret : c'est l'actuel qu'on regarde et qu'on modifie.
+.combat-resource-max {
+  font-size: 17px;
+  color: var(--dim);
+}
+
+.combat-resource-actuel {
+  @extend %combat-edit-field;
+  width: 64px;
+  color: $white-text;
+  font-size: 27px;
+  font-weight: 700;
+  padding: 5px 2px;
+}
+
+.combat-resource-temp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+
+  span {
+    font-family: $font-caps;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+}
+
+.combat-resource-temp-input {
+  @extend %combat-edit-field;
+  width: 50px;
+  color: var(--gold);
+  font-size: 15px;
+  padding: 5px 2px;
+}
+
+// ── Stats de combat : attaque à gauche, défense à droite, 3 rangées ──
+// UNE SEULE grille pour tout le bloc (8 colonnes fixes) : les figures
+// Base/Bonus/Total s'alignent verticalement d'une ligne à l'autre, peu
+// importe la longueur du nom de stat à côté — chaque .combat-stat-name /
+// .combat-stat-figure est un enfant direct de cette grille, pas d'une
+// grille imbriquée par cellule (qui recalait chaque ligne indépendamment).
+.combat-stat-grid {
+  position: relative;
+  flex: 1;
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr) auto auto auto
+    minmax(0, 1fr) auto auto auto;
+  column-gap: 10px;
+  row-gap: 14px;
+  align-items: center;
+  // Centre le tableau verticalement si ce cadran se retrouve moins haut
+  // que son voisin (Ressources) une fois les deux étirés à la même taille.
+  align-content: center;
+
+  // Séparateur vertical marqué entre le groupe attaque (colonnes 1-4) et le
+  // groupe défense (colonnes 5-8) — les deux colonnes minmax(0,1fr) portent
+  // le même poids, donc se partagent l'espace à parts égales : le milieu du
+  // conteneur (50%) coïncide avec leur frontière réelle.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 50%;
+    width: 3px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(200, 168, 74, 0.55) 15%,
+      rgba(200, 168, 74, 0.55) 85%,
+      transparent
+    );
+    transform: translateX(-50%);
+  }
+}
+
+// Le column-gap (10px) suffit entre Base/Mod./Total, mais colle le texte au
+// séparateur vertical juste au-dessus : chaque cycle de rangée compte 8
+// enfants (+ 1 séparateur horizontal entre les rangées, sauf la dernière),
+// donc la figure "Total" côté attaque tombe toujours en position 9n+4, et
+// le nom côté défense juste après en 9n+5 — on leur donne de l'air de
+// chaque côté du trait plutôt que de dépendre du seul column-gap uniforme.
+.combat-stat-figure:nth-child(9n + 4) {
+  padding-right: 18px;
+}
+
+.combat-stat-name:nth-child(9n + 5) {
+  padding-left: 18px;
+}
+
+// Ligne pleine largeur entre chaque rangée de stats.
+.combat-stat-divider {
+  grid-column: 1 / -1;
+  height: 1px;
+  background: rgba(58, 46, 24, 0.6);
+}
+
+.combat-stat-name {
+  font-family: $font-caps;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+  color: $white-text;
+}
+
+// Chaque figure (Base, Bonus, Total) porte sa propre étiquette au-dessus —
+// sans ça, trois chiffres dorés à la suite ne veulent rien dire de précis.
+.combat-stat-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.combat-stat-figure-label {
+  font-family: $font-caps;
+  font-size: 10px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.combat-stat-base {
+  text-align: center;
+  color: $white-text;
+  font-family: $font-caps;
+  font-size: 16px;
+  min-width: 20px;
+}
+
+.combat-stat-total {
+  text-align: center;
+  color: var(--gold);
+  font-family: $font-caps;
+  font-weight: 700;
+  font-size: 17px;
+  min-width: 22px;
+}
+
+.combat-stat-bonus {
+  @extend %combat-edit-field;
+  width: 46px;
+  color: var(--gold);
+  font-size: 15px;
+  padding: 4px 2px;
+}
+
+// ── Initiative : seule stat à occuper toute la largeur du cadran, pas la
+// grille attaque/défense — nom à gauche, figures à droite, sur toute la
+// largeur disponible (bleed jusqu'aux bords du cadran).
+.combat-stat-initiative {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 14px -22px -20px;
+  padding: 12px 22px;
+  border-top: 1px solid $border2;
+
+  .combat-stat-name {
+    font-size: 15px;
+  }
+}
+
+.combat-stat-initiative-figures {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+// ── Panneaux P1/P2/P3 ───────────────────────────────────────────
+.combat-page-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+  width: 100%;
+  // Resserre spécifiquement l'espace avec les cadrans Ressources/Stats
+  // juste au-dessus, sans toucher au reste de l'espacement de la page
+  // (géré par le `gap` de .combat-page-main).
+  margin-top: -4px;
+}
+
+.combat-panel {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid $border2;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  min-height: 320px;
+  max-height: 620px;
+  overflow: hidden;
+}
+
+.combat-panel-header {
+  flex-shrink: 0;
+  padding: 10px 12px;
+  border-bottom: 1px solid $border2;
+  background: rgba(200, 168, 74, 0.06);
+}
+
+// ── Dropdown générique (voir CombatSelect.jsx) ──────────────────
+// Même habillage que .combat-char-picker-* (trigger + liste de boutons),
+// utilisé partout où un <select> natif servait avant (ex: en-tête des
+// panneaux P1/P2/P3) : la popup d'un <select> natif est dessinée par l'OS
+// et ne peut pas reprendre le style du site.
+.combat-select {
+  position: relative;
+  width: 100%;
+}
+
+.combat-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid $border2;
+  border-radius: 2px;
+  color: $white-text;
+  font-family: $font-caps;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+
+  &:hover { border-color: $gold; }
+}
+
+.combat-select.is-open .combat-select-trigger { border-color: $gold; }
+
+.combat-select-caret {
+  color: var(--dim);
+  font-size: 9px;
+  flex-shrink: 0;
+}
+
+// Portée dans <body> (voir CombatSelect.jsx) : position fixed, coordonnées
+// calculées en JS depuis le trigger. z-index au-dessus de .combat-overlay
+// (999999) puisque, une fois portée à la racine du document, la liste
+// devient une simple SOEUR de l'overlay — pas une descendante — et doit
+// donc gagner explicitement l'empilement au lieu d'en hériter.
+.combat-select-dropdown {
+  position: fixed;
+  z-index: 1000000;
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid rgba(200, 168, 74, 0.4);
+  border-radius: 3px;
+  background: #0e0d0a;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.combat-select-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: $white-text;
+  font-family: $font-caps;
+  font-size: 12px;
+  letter-spacing: 1px;
+  cursor: pointer;
+
+  &:hover { background: rgba(200, 168, 74, 0.1); }
+
+  &.is-selected { color: var(--gold); }
+}
+
+.combat-panel-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.combat-panel-section + .combat-panel-section {
+  margin-top: 20px;
+}
+
+.combat-panel-section h4 {
+  font-family: $font-caps;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  opacity: 0.75;
+  margin: 0 0 10px;
+}
+
+.combat-panel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid $border2;
+    border-radius: 2px;
+    background: rgba(0, 0, 0, 0.2);
+  }
+}
+
+.combat-panel-item-name {
+  font-family: $font-body;
+  font-size: 15px;
+  color: $white-text;
+}
+
+.combat-panel-item-meta {
+  font-family: $font-caps;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: var(--dim);
+  white-space: nowrap;
+}
+
+.combat-panel-item-action {
+  font-family: $font-caps;
+  font-size: 13px;
+  letter-spacing: 1px;
+  padding: 7px 14px;
+  border: 1px solid $gold;
+  border-radius: 2px;
+  background: rgba(200, 168, 74, 0.12);
+  color: var(--gold);
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover { background: rgba(200, 168, 74, 0.22); }
+}
+
+// Lignes de stats : nom, puis l'équation Base + Bonus = Total en dessous —
+// les colonnes P1/P2/P3 sont trop étroites pour tout tenir sur une ligne.
+.combat-panel-list--stats li {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+// Grille (et non un simple flex justifié à droite) : les 3 colonnes
+// Base/Bonus/Total occupent des largeurs fixes (1fr chacune) identiques
+// d'une ligne à l'autre, ce qui garantit leur alignement vertical peu
+// importe la longueur du nom de la carac juste au-dessus — même logique
+// que .combat-stat-grid pour le bloc "Stats de combat".
+.combat-panel-item-equation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: end;
+  column-gap: 10px;
+}
+
+.combat-panel-item-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.combat-panel-item-figure-label {
+  font-family: $font-caps;
+  font-size: 10px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.combat-panel-item-op {
+  color: var(--dim);
+  font-family: $font-caps;
+  font-size: 15px;
+  padding-bottom: 6px;
+}
+
+.combat-panel-item-base {
+  color: $white-text;
+  font-family: $font-caps;
+  font-size: 16px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.combat-panel-item-total {
+  color: var(--gold);
+  font-family: $font-caps;
+  font-weight: 700;
+  font-size: 17px;
+  min-width: 22px;
+  text-align: center;
+}
+
+.combat-panel-item-value {
+  @extend %combat-edit-field;
+  width: 50px;
+  color: var(--gold);
+  font-size: 15px;
+  padding: 4px 2px;
+}
+
+.combat-panel-text {
+  color: $text;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.combat-panel-empty {
+  color: var(--dim);
+  font-size: 14px;
+  font-style: italic;
+}
+
+// ── Équipement condensé (panneau P1/P2/P3) ──────────────────────
+// Emplacements affichés à la suite, sans glisser-déposer (pas la place
+// dans une colonne de panneau) : cliquer un emplacement ouvre plutôt un
+// inventaire filtré aux objets compatibles (voir .combat-equip-picker).
+.combat-equip-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.combat-equip-slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid $border2;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.2);
+  color: $white-text;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    border-color: $gold;
+    background: rgba(200, 168, 74, 0.08);
+  }
+
+  &.is-filled {
+    border-color: rgba(200, 168, 74, 0.3);
+  }
+
+  svg { flex-shrink: 0; }
+}
+
+.combat-equip-slot-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.combat-equip-slot-label {
+  font-family: $font-caps;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--dim);
+}
+
+.combat-equip-slot-item {
+  font-family: $font-body;
+  font-size: 14px;
+  color: $white-text;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  .combat-equip-slot:not(.is-filled) & {
+    color: var(--dim);
+    font-style: italic;
+  }
+}
+
+// Popup d'équipement — mêmes classes de modale que le popup "useText" de
+// CombatInventoryPanel (.index-modal-backdrop/.index-confirm-modal),
+// position: fixed donc jamais rognée par l'overflow: hidden des panneaux.
+.combat-equip-picker-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.combat-equip-picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid $border2;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.2);
+  color: $white-text;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    border-color: $gold;
+    background: rgba(200, 168, 74, 0.1);
+  }
+
+  &.is-equipped {
+    border-color: rgba(232, 126, 107, 0.5);
+  }
+}
+
+.combat-equip-picker-item-name {
+  font-family: $font-body;
+  font-size: 15px;
+  color: $white-text;
+}
+
+.combat-equip-picker-item-action {
+  font-family: $font-caps;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--gold);
+  white-space: nowrap;
+
+  .combat-equip-picker-item.is-equipped & {
+    color: #e87e6b;
+  }
+}
+
+// ── Séquence d'activation plein écran ───────────────────────────
+// Rejoue à chaque nouvelle activation du mode combat (voir
+// CombatActivationOverlay.jsx). Strictement séquentiel : l'écran
+// s'assombrit seul (darken) → le texte "Activation" apparaît (textIn) →
+// le liseré rouge grandit de l'extérieur vers l'intérieur (loading) →
+// "Activation" s'efface pendant qu'"Activé" apparaît, fondu croisé
+// (crossfade) → une fois stabilisé, le bloc de texte remonte (rising) →
+// le sélecteur de personnage apparaît en fondu (picker) → une fois un
+// personnage choisi et confirmé, le sélecteur disparaît (pickerOut) → le
+// titre "Mode Combat" remonte tout en haut de l'écran pendant qu'"Activé"
+// s'efface (headerRise) → l'écran de combat complet apparaît (active) et
+// reste affiché, plein écran et bloquant, tant que le combat est actif —
+// il n'y a plus de route /combat séparée : tout se joue ici, par-dessus la
+// page en dessous, pour ne montrer QUE ce qui est lié au combat.
+.combat-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  opacity: 0;
+  transition: opacity 0.1s linear;
+  pointer-events: none;
+
+  &--darken,
+  &--textIn,
+  &--loading,
+  &--crossfade,
+  &--rising,
+  &--picker,
+  &--pickerOut,
+  &--headerRise,
+  &--active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  &--leaving {
+    opacity: 0;
+    pointer-events: none;
+    transition-duration: 0.6s;
+  }
+}
+
+// Le fond (assombrissement, 0 → 95%) et le liseré rouge (0 → 60%, de
+// l'extérieur vers l'intérieur) ont chacun leur propre durée de transition,
+// déclenchée par un changement de valeur à des moments différents : le fond
+// change dès "darken", le rouge seulement à partir de "loading" — d'où deux
+// propriétés distinctes plutôt qu'une transition globale. L'overlay reste
+// monté en permanence (voir CombatActivationOverlay.jsx) pour que ce
+// changement de valeur soit un vrai changement transitionnable, pas déjà
+// la valeur finale dès le premier paint.
+.combat-overlay-vignette {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 2, 2, 0);
+  box-shadow: inset 0 0 0 0 rgba(120, 12, 12, 0);
+  transition: background 2.5s ease-in-out, box-shadow 3s ease;
+}
+
+.combat-overlay--darken .combat-overlay-vignette,
+.combat-overlay--textIn .combat-overlay-vignette,
+.combat-overlay--loading .combat-overlay-vignette,
+.combat-overlay--crossfade .combat-overlay-vignette,
+.combat-overlay--rising .combat-overlay-vignette,
+.combat-overlay--picker .combat-overlay-vignette,
+.combat-overlay--pickerOut .combat-overlay-vignette,
+.combat-overlay--headerRise .combat-overlay-vignette {
+  background: rgba(4, 2, 2, 0.95);
+}
+
+.combat-overlay--loading .combat-overlay-vignette,
+.combat-overlay--crossfade .combat-overlay-vignette,
+.combat-overlay--rising .combat-overlay-vignette,
+.combat-overlay--picker .combat-overlay-vignette,
+.combat-overlay--pickerOut .combat-overlay-vignette,
+.combat-overlay--headerRise .combat-overlay-vignette {
+  box-shadow: inset 0 0 16vw 4vw rgba(120, 12, 12, 0.6);
+}
+
+// Écran de combat plein écran : même fond que le reste du site (pas
+// l'assombrissement rouge dramatique de la cinématique), pour rester
+// lisible pendant toute la durée du combat. Un liseré rouge discret
+// persiste comme seul rappel que le mode combat est actif.
+.combat-overlay--active .combat-overlay-vignette {
+  background: var(--bg);
+  box-shadow: inset 0 0 10vw 2vw rgba(120, 12, 12, 0.3);
+  transition: background 0.9s ease, box-shadow 0.9s ease;
+}
+
+.combat-overlay--leaving .combat-overlay-vignette {
+  transition-duration: 0.6s;
+}
+
+// Positionné en absolute (plus en flex centré par le parent) : ça permet
+// d'animer sa position avec `top` en px plutôt qu'avec un `translateY` en
+// vh, pour que sa position d'atterrissage finale (headerRise/active) soit
+// un nombre de pixels exact — le MÊME que celui du vrai titre de page
+// .combat-page-title qui prend le relais (voir plus bas) — au lieu d'une
+// estimation en vh qui ne coïncide jamais pile avec un offset en px et
+// donnait deux titres visiblement décalés pendant le fondu enchaîné.
+.combat-overlay-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.6s ease, transform 1s ease, top 1s ease;
+
+  &.is-visible {
+    opacity: 1;
+  }
+
+  h2 {
+    font-family: $font-display;
+    font-size: 34px;
+    letter-spacing: 3px;
+    color: $white-text;
+    margin: 0;
+    text-shadow: 0 0 30px rgba(200, 30, 30, 0.5);
+  }
+}
+
+.combat-overlay--rising .combat-overlay-center,
+.combat-overlay--picker .combat-overlay-center,
+.combat-overlay--pickerOut .combat-overlay-center {
+  transform: translate(-50%, calc(-50% - 14px));
+}
+
+// Deuxième remontée, bien plus marquée : le titre quitte le centre de
+// l'écran pour se poser en haut, exactement là où .combat-page-title
+// (premier élément du contenu défilable, voir .combat-page-main) va
+// apparaître à la phase "active" — même offset de 24px que le padding-top
+// de .combat-page-main, pour un raccord pile au même endroit, sans saut.
+// --leaving part toujours de "active" en pratique (seul le bouton "⚔ Mode
+// Combat ON" affiché à cette phase appelle endCombat) : on garde donc le
+// titre à la même position (top:24px) pendant qu'il s'efface, plutôt que de
+// le laisser retomber sur le top:50% par défaut de .combat-overlay-center
+// (voir plus haut) — sinon il glisse visiblement vers le centre de l'écran
+// avant de disparaître au lieu de s'effacer net, sur place.
+.combat-overlay--headerRise .combat-overlay-center,
+.combat-overlay--active .combat-overlay-center,
+.combat-overlay--leaving .combat-overlay-center {
+  top: 24px;
+  transform: translate(-50%, 0);
+}
+
+// À l'instant précis où "active" démarre, .combat-page-title (le vrai
+// titre, dans .combat-overlay-page) apparaît EXACTEMENT à la même position
+// que .combat-overlay-center (même top:24px, même texte "Mode Combat") —
+// un fondu de 0.6s sur les deux en même temps superpose alors, le temps du
+// fondu, deux copies quasi identiques du même texte : un flou de double
+// exposition plutôt qu'un vrai crossfade perceptible. Puisqu'il n'y a de
+// toute façon rien à "voir" transitionner (c'est pile le même texte au
+// même endroit), on coupe le titre cinématique net à cet instant précis —
+// seul le fondu d'entrée de .combat-page-title (voir .combat-overlay-page)
+// reste visible, sans doublon derrière.
+.combat-overlay--active .combat-overlay-center {
+  transition: opacity 0s, transform 1s ease, top 1s ease;
+}
+
+// Les deux textes sont toujours montés, empilés au même endroit, et ne
+// changent que d'opacité — ça permet un vrai fondu croisé (l'un s'efface
+// pendant que l'autre apparaît) plutôt qu'un remplacement brutal.
+.combat-overlay-status-stack {
+  position: relative;
+  display: grid;
+}
+
+.combat-overlay-status {
+  grid-area: 1 / 1;
+  font-family: $font-caps;
+  font-size: 16px;
+  letter-spacing: 5px;
+  color: #e87e6b;
+  margin: 0;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+
+  &.is-visible {
+    opacity: 1;
+  }
+}
+
+// Positionné en absolute (hors du flux de .combat-overlay-center), même
+// logique que .combat-overlay-picker plus bas : son apparition/disparition
+// (via l'opacité, jamais un montage/démontage) ne modifie jamais la hauteur
+// du bloc centré par flexbox au-dessus, donc ne provoque aucune
+// micro-téléportation du texte quand le curseur rouge disparaît.
+.combat-overlay-loader {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  margin-top: 10px;
+  // Centrage horizontal via margin-left (pas translateX) : la rotation du
+  // spinner utilise déjà `transform` (voir @keyframes plus bas), et une
+  // animation CSS remplace toute la propriété transform à chaque frame —
+  // combiner translateX(-50%) et rotate(360deg) sur `transform` fait
+  // interpoler le navigateur entre deux matrices incompatibles, ce qui donne
+  // des micro-sauts horizontaux au lieu d'une rotation propre.
+  margin-left: -11px;
+  border: 2px solid rgba(232, 126, 107, 0.25);
+  border-top-color: #e87e6b;
+  border-radius: 50%;
+  opacity: 0;
+  animation: combat-loader-spin 0.8s linear infinite;
+  transition: opacity 0.3s ease;
+
+  &.is-visible {
+    opacity: 1;
+  }
+}
+
+@keyframes combat-loader-spin {
+  to { transform: rotate(360deg); }
+}
+
+// Positionné en absolute (hors du flux de .combat-overlay-center) : son
+// apparition/disparition ne modifie jamais la hauteur du bloc centré par
+// flexbox au-dessus, donc ne provoque aucun recentrage brutal une fois la
+// remontée (--rising) terminée. Toujours monté (voir showPicker →
+// pickerVisible dans CombatActivationOverlay.jsx), seule l'opacité change,
+// pour une vraie transition douce plutôt qu'un pop au montage.
+.combat-overlay-picker {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  min-width: 380px;
+  margin-top: 26px;
+  padding: 30px 40px;
+  border: 1px solid rgba(200, 168, 74, 0.4);
+  border-radius: 6px;
+  background: rgba(10, 8, 4, 0.92);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+
+  &.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  h3 {
+    font-family: $font-caps;
+    font-size: 20px;
+    letter-spacing: 2.5px;
+    color: var(--gold);
+    margin: 0 0 18px;
+  }
+
+  p {
+    color: var(--dim);
+    font-size: 16px;
+    margin: 0 0 16px;
+  }
+}
+
+// Même rangée sélecteur + bouton que la barre d'outils de l'écran de
+// combat complet (.combat-page-toolbar) — cohérence visuelle entre les deux.
+.combat-overlay-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.combat-overlay-picker-confirm,
+.combat-overlay-picker > button {
+  font-family: $font-caps;
+  font-size: 15px;
+  letter-spacing: 1.5px;
+  padding: 13px 22px;
+  border: 1px solid $gold;
+  border-radius: 3px;
+  background: rgba(200, 168, 74, 0.12);
+  color: var(--gold);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+
+  &:hover:not(:disabled) { background: rgba(200, 168, 74, 0.22); }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+// Le sélecteur de personnage partage ses classes avec la barre d'outils de
+// l'écran de combat complet (.combat-page-toolbar, plus compacte) — on
+// agrandit uniquement dans ce contexte pour rester lisible à cette échelle.
+.combat-overlay-picker .combat-char-picker-trigger {
+  font-size: 15px;
+  padding: 11px 18px;
+}
+
+.combat-overlay-picker .combat-char-picker-caret {
+  font-size: 12px;
+}
+
+.combat-overlay-picker .combat-char-picker-dropdown {
+  min-width: 240px;
+}
+
+.combat-overlay-picker .combat-char-picker-option {
+  font-size: 14px;
+  padding: 11px 14px;
+}
+
+// ── Écran de combat complet (dans l'overlay, plus de route /combat) ──
+// Positionné en absolute, indépendant du flex qui centre .combat-overlay-
+// center : son apparition/disparition ne modifie jamais la mise en page du
+// titre au-dessus, même logique que .combat-overlay-picker plus haut.
+//
+// Le titre "Mode Combat" n'est PAS réservé en haut de cette zone : il fait
+// partie du contenu normal (voir .combat-page-title, premier enfant de
+// .combat-page-main) et défile AVEC le reste — il doit rester en haut de la
+// PAGE, pas plaqué en haut de l'ÉCRAN. Un titre fixe indépendant du scroll
+// finit tôt ou tard recouvert par le contenu qui glisse dessous ; un titre
+// qui fait partie du flux n'a pas ce problème, il scrolle avec tout le reste.
+.combat-overlay-page {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  // Pas de padding-top ici : .combat-page-main porte déjà son propre
+  // padding-top (24px) — une seule source de vérité pour cet offset,
+  // puisque .combat-overlay-center doit atterrir exactement à cette même
+  // valeur pour un raccord pile au même endroit (voir plus haut).
+  padding: 0 16px 56px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+
+  &.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}

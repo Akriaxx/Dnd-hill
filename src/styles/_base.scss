@@ -1,0 +1,45 @@
+@use 'variables' as *;
+@use 'fonts' as *;
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+  background: var(--bg);
+  color: var(--text);
+  font-family: $font-body;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+a { color: inherit; text-decoration: none; }
+
+button { cursor: pointer; }
+
+// Smart tags rendus dynamiquement (dangerouslySetInnerHTML)
+.smart-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 3px;
+  border: 1px solid;
+  font-size: 12px;
+  letter-spacing: 1px;
+  font-weight: 700;
+  vertical-align: middle;
+  margin: 0 2px;
+  line-height: 1.5;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}

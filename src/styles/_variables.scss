@@ -1,0 +1,20 @@
+// ── Design tokens ──────────────────────────────────────────
+:root {
+  --bg:          #0e0d0a;
+  --gold:        #c8a84a;
+  --gold2:       #e8c86a;
+  --text:        #e0d4b8;
+  --dim:         #8a7a5a;
+  --border-main: #2a2318;
+}
+
+// SCSS mirrors for use in calculations / mixins
+$bg:          #0e0d0a;
+$gold:        #c8a84a;
+$gold2:       #e8c86a;
+$text:        #e0d4b8;
+$dim:         #8a7a5a;
+$border:      #2a2318;
+$border2:     #3a2e18;
+$surface:     #1a1608;
+$white-text:  #f0ead8;

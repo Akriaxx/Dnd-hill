@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+.claude
+.codex-remote-attachments
+*.log
+*.png
+test-preview.png
+inventory-screen.png

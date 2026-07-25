@@ -1,0 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Alegreya+Sans+SC:wght@700;900&family=Bebas+Neue&family=Sen:wght@400;700&family=Patrick+Hand&display=swap');
+
+// Map the original font-family names used in the CSS reference
+// so existing classes work without changes
+body {
+  --font-body:    'Sen', Georgia, serif;
+  --font-display: 'Alegreya Sans SC', 'Georgia', serif;
+  --font-caps:    'Bebas Neue', 'Arial Narrow', sans-serif;
+  // Manuscrite mais très lisible — utilisée pour le contenu du Grimoire.
+  --font-hand:    'Patrick Hand', 'Segoe Print', cursive;
+}
+
+// Utility aliases matching the original @font-face names
+$font-body:    'Sen', Georgia, serif;
+$font-display: 'Alegreya Sans SC', Georgia, serif;
+$font-caps:    'Bebas Neue', 'Arial Narrow', sans-serif;
+$font-hand:    'Patrick Hand', 'Segoe Print', cursive;
