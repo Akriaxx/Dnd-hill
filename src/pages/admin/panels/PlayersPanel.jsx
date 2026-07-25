@@ -72,8 +72,8 @@ function PlayerCard({ account, roleLabel, onEdit, onDelete, onToggleDisabled }) 
     ? new Date(account.created_at).toLocaleDateString('fr-FR')
     : null;
 
-  const statusClass = account.disabled ? 'is-suspended' : 'is-active';
-  const statusLabel = account.disabled ? 'Suspendu' : 'Actif';
+  const statusClass = account.disabled ? 'is-suspended' : account.email_confirmed ? 'is-active' : 'is-pending';
+  const statusLabel = account.disabled ? 'Suspendu' : account.email_confirmed ? 'Actif' : 'En attente';
 
   return (
     <div className={`player-card${account.disabled ? ' is-suspended' : ''}`}>
@@ -126,7 +126,7 @@ export default function PlayersPanel() {
   const loadAccounts = async () => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, username, display_name, email, role_key, permissions, disabled, created_at')
+      .select('id, username, display_name, email, role_key, permissions, disabled, email_confirmed, created_at')
       .order('created_at', { ascending: true });
     if (error) setLoadError(error.message);
     else { setLoadError(''); setAccounts(data || []); }
