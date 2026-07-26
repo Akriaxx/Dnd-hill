@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
 import { useCharacterStore } from './store/characterStore';
-import { isDevServerNoise, useAdminStore, hydrateGameData, hydrateRoles } from './store/adminStore';
+import { isDevServerNoise, useAdminStore, hydrateGameData, hydrateRoles, hydrateStates } from './store/adminStore';
 import { canAccessAdmin } from './auth/permissions';
 import LoginPage from './pages/LoginPage';
 import LoaderPage from './pages/LoaderPage';
@@ -38,6 +38,7 @@ function CharacterDataBridge() {
     fetchPendingCharacterCreations();
     hydrateGameData();
     hydrateRoles();
+    hydrateStates();
   }, [userId, fetchCharacters, fetchPendingCharacterCreations]);
 
   return null;

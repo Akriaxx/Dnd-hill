@@ -934,6 +934,89 @@ export const useAdminStore = create(
           customMaitriseEntries: (state.customMaitriseEntries || []).filter((e) => e.id !== id),
         })),
 
+      // États — contrairement au reste du contenu de référence (races,
+      // compétences…) qui vit dans le blob game_data, les États ont leurs
+      // propres tables Supabase dédiées (state_categories/states, voir
+      // docs/supabase/010_states.sql), chargées via hydrateStates().
+      customEtatCategories: [],
+      customEtats: [],
+
+      addEtatCategory: (category) => {
+        const newCategory = { ...category, custom: true, createdAt: new Date().toISOString() };
+        set((state) => ({ customEtatCategories: [...(state.customEtatCategories || []), newCategory] }));
+        supabase.from('state_categories')
+          .upsert({ key: newCategory.key, nom: newCategory.nom, couleur: newCategory.couleur, sous_classes: newCategory.sousClasses || [] })
+          .then(({ error }) => { if (error) console.error('state_categories upsert failed', error); });
+      },
+
+      updateEtatCategory: (key, patch) => {
+        let nextCategory = null;
+        set((state) => ({
+          customEtatCategories: (state.customEtatCategories || []).map((category) => {
+            if (category.key !== key) return category;
+            nextCategory = { ...category, ...patch, updatedAt: new Date().toISOString() };
+            return nextCategory;
+          }),
+        }));
+        if (nextCategory) {
+          supabase.from('state_categories')
+            .upsert({ key: nextCategory.key, nom: nextCategory.nom, couleur: nextCategory.couleur, sous_classes: nextCategory.sousClasses || [] })
+            .then(({ error }) => { if (error) console.error('state_categories upsert failed', error); });
+        }
+      },
+
+      deleteEtatCategory: (key) => {
+        set((state) => ({
+          customEtatCategories: (state.customEtatCategories || []).filter((category) => category.key !== key),
+          customEtats: (state.customEtats || []).filter((etat) => etat.categoryKey !== key),
+        }));
+        supabase.from('state_categories').delete().eq('key', key)
+          .then(({ error }) => { if (error) console.error('state_categories delete failed', error); });
+      },
+
+      addEtat: (etat) => {
+        const newEtat = { ...etat, id: crypto.randomUUID(), custom: true, createdAt: new Date().toISOString() };
+        set((state) => ({ customEtats: [...(state.customEtats || []), newEtat] }));
+        supabase.from('states').insert({
+          id: newEtat.id,
+          category_key: newEtat.categoryKey,
+          nom: newEtat.nom,
+          tag_color: newEtat.tagColor,
+          description: newEtat.description || '',
+          effects: newEtat.effects || '',
+          maitrise_keys: newEtat.maitriseKeys || [],
+          removal_conditions: newEtat.removalConditions || [],
+        }).then(({ error }) => { if (error) console.error('states insert failed', error); });
+      },
+
+      updateEtat: (id, patch) => {
+        let nextEtat = null;
+        set((state) => ({
+          customEtats: (state.customEtats || []).map((etat) => {
+            if (etat.id !== id) return etat;
+            nextEtat = { ...etat, ...patch, updatedAt: new Date().toISOString() };
+            return nextEtat;
+          }),
+        }));
+        if (nextEtat) {
+          supabase.from('states').update({
+            category_key: nextEtat.categoryKey,
+            nom: nextEtat.nom,
+            tag_color: nextEtat.tagColor,
+            description: nextEtat.description || '',
+            effects: nextEtat.effects || '',
+            maitrise_keys: nextEtat.maitriseKeys || [],
+            removal_conditions: nextEtat.removalConditions || [],
+          }).eq('id', id).then(({ error }) => { if (error) console.error('states update failed', error); });
+        }
+      },
+
+      deleteEtat: (id) => {
+        set((state) => ({ customEtats: (state.customEtats || []).filter((etat) => etat.id !== id) }));
+        supabase.from('states').delete().eq('id', id)
+          .then(({ error }) => { if (error) console.error('states delete failed', error); });
+      },
+
       // Catégories d'objets (économie)
       customItemCategories: [],
 
@@ -1304,6 +1387,38 @@ export const hydrateRoles = async () => {
   });
 
   useAdminStore.setState({ systemRoleOverrides, customRoles });
+};
+
+// Charge les catégories et entrées d'états depuis leurs tables Supabase
+// dédiées (state_categories/states) — à appeler une fois qu'un
+// utilisateur est authentifié.
+export const hydrateStates = async () => {
+  const [{ data: categoryRows, error: categoryError }, { data: stateRows, error: stateError }] = await Promise.all([
+    supabase.from('state_categories').select('key, nom, couleur, sous_classes'),
+    supabase.from('states').select('id, category_key, nom, tag_color, description, effects, maitrise_keys, removal_conditions'),
+  ]);
+  if (categoryError || stateError) { console.error('states hydrate failed', categoryError || stateError); return; }
+
+  useAdminStore.setState({
+    customEtatCategories: (categoryRows || []).map((row) => ({
+      key: row.key,
+      nom: row.nom,
+      couleur: row.couleur,
+      sousClasses: row.sous_classes || [],
+      custom: true,
+    })),
+    customEtats: (stateRows || []).map((row) => ({
+      id: row.id,
+      categoryKey: row.category_key,
+      nom: row.nom,
+      tagColor: row.tag_color,
+      description: row.description || '',
+      effects: row.effects || '',
+      maitriseKeys: row.maitrise_keys || [],
+      removalConditions: row.removal_conditions || [],
+      custom: true,
+    })),
+  });
 };
 
 // Repousse le blob game_data vers Supabase à chaque changement effectif

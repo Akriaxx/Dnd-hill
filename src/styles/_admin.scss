@@ -5281,6 +5281,29 @@
   }
 }
 
+.removal-conditions-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .race-lock-head {
+    span { font-size: 12px; }
+  }
+}
+
+.removal-condition-row {
+  border: 1px solid rgba(58,46,24,0.82);
+  background:
+    linear-gradient(180deg, rgba(188,236,255,0.035), transparent),
+    rgba(0,0,0,0.2);
+  padding: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  box-sizing: border-box;
+
+  .comp-form-field { min-width: 140px; }
+}
+
 .comp-form-field > .admin-btn {
   align-self: flex-start;
 }

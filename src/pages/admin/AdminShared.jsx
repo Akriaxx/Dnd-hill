@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { APT_CATEGORIES, APTITUDES } from '../../data/gameData';
 import SmartDescEditor from '../../components/admin/SmartDescEditor';
 import { useAdminStore } from '../../store/adminStore';
-import { clamp, isHexColor, hexToHsv, hsvToHex, asArray, RESOURCE_DICE_KEYS, normalizeResourceDice, slugifyKey, BLANK_KNOWLEDGE_CATEGORY_FORM } from './adminUtils';
+import { clamp, isHexColor, hexToHsv, hsvToHex, asArray, RESOURCE_DICE_KEYS, normalizeResourceDice, slugifyKey, includesText, BLANK_KNOWLEDGE_CATEGORY_FORM } from './adminUtils';
 import { useGameplayEffectsPanel, useMatchedHeight } from './adminEffectsPanelHooks';
 
 export function ConfirmModal({ title, message, dangerLabel = 'Supprimer', onCancel, onConfirm }) {
@@ -152,6 +152,128 @@ export function RaceLockFields({ value = [], races = [], onChange }) {
             <span>{race.nom}</span>
           </label>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// Sélecteur pour rattacher une entrée à ses sous-classes parentes (ex:
+// une maîtrise, une catégorie d'état). Choisir une par une parmi des
+// dizaines/centaines de sous-classes au clic serait trop lent — le vrai
+// gain vient des actions groupées : "tout" par classe et "tout" sur les
+// résultats filtrés. La liste reste visible en permanence pour qu'on
+// voie d'un coup d'œil ce qui est déjà coché en parcourant/filtrant.
+export function SubclassPicker({ subclasses, classes, selected, onToggle, onToggleMany, label = 'Sous-classe(s) parente(s)', hint = 'Laissez vide pour rendre disponible pour toutes les sous-classes.' }) {
+  const [query, setQuery] = useState('');
+  const selectedSet = new Set(selected);
+  const keyOf = (item) => item.key || slugifyKey(item.nom);
+
+  const filtered = query
+    ? subclasses.filter((sc) => includesText(sc.nom, query) || includesText(sc.classe, query))
+    : subclasses;
+  const filteredKeys = filtered.map(keyOf);
+  const allFilteredSelected = filteredKeys.length > 0 && filteredKeys.every((k) => selectedSet.has(k));
+
+  const groups = classes
+    .filter((cls) => filtered.some((sc) => sc.classe === keyOf(cls) || sc.classe === cls.nom))
+    .map((cls) => {
+      const items = filtered.filter((sc) => sc.classe === keyOf(cls) || sc.classe === cls.nom);
+      const itemKeys = items.map(keyOf);
+      return {
+        key: keyOf(cls),
+        nom: cls.nom,
+        items,
+        allSelected: itemKeys.length > 0 && itemKeys.every((k) => selectedSet.has(k)),
+      };
+    });
+
+  return (
+    <div className="race-lock-panel">
+      <div className="race-lock-head">
+        <span>{label}</span>
+        <small>{selected.length === 0 ? 'Toutes les sous-classes' : `${selected.length} sélectionnée(s)`}</small>
+      </div>
+      <p className="race-form-hint">{hint}</p>
+
+      <input
+        className="subclass-picker-search"
+        type="text"
+        placeholder="Filtrer par nom de sous-classe ou de classe…"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+
+      {filteredKeys.length > 0 && (
+        <button
+          type="button"
+          className="subclass-picker-bulk"
+          onClick={() => onToggleMany(filteredKeys, !allFilteredSelected)}
+        >
+          {allFilteredSelected ? '✕ Tout retirer' : '✓ Tout ajouter'} ({filteredKeys.length} résultat{filteredKeys.length > 1 ? 's' : ''})
+        </button>
+      )}
+
+      <div className="subclass-picker-list">
+        {groups.length === 0 ? (
+          <p className="subclass-picker-empty">Aucune sous-classe correspondante.</p>
+        ) : groups.map((group) => (
+          <div key={group.key} className="subclass-picker-group">
+            <button
+              type="button"
+              className="subclass-picker-group-label"
+              onClick={() => onToggleMany(group.items.map(keyOf), !group.allSelected)}
+            >
+              <span>{group.nom}</span>
+              <em>{group.allSelected ? 'Tout retirer' : 'Tout ajouter'}</em>
+            </button>
+            <div className="subclass-picker-group-items">
+              {group.items.map((sc) => {
+                const scKey = keyOf(sc);
+                const isSelected = selectedSet.has(scKey);
+                return (
+                  <button
+                    type="button"
+                    key={scKey}
+                    className={`subclass-picker-option${isSelected ? ' is-selected' : ''}`}
+                    onClick={() => onToggle(scKey)}
+                  >
+                    {isSelected && <b>✓</b>}
+                    <span>{sc.nom}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Sélecteur plat pour rattacher une entrée à un ou plusieurs domaines de
+// maîtrise (liste non hiérarchique, contrairement aux sous-classes).
+export function MaitriseLockFields({ value = [], maitrises = [], onChange, label = 'Domaine(s) de maîtrise', hint = 'Laissez vide pour ne lier cet état à aucun domaine de maîtrise en particulier.' }) {
+  const selected = new Set(asArray(value));
+  const toggle = (maitriseKey) => {
+    const next = new Set(selected);
+    if (next.has(maitriseKey)) next.delete(maitriseKey); else next.add(maitriseKey);
+    onChange([...next]);
+  };
+  return (
+    <div className="race-lock-panel">
+      <div className="race-lock-head">
+        <span>{label}</span>
+        <small>{selected.size === 0 ? 'Aucun domaine lié' : `${selected.size} domaine(s)`}</small>
+      </div>
+      <p className="race-form-hint">{hint}</p>
+      <div className="race-lock-grid">
+        {maitrises.map((maitrise) => (
+          <label key={maitrise.key} className={`race-lock-choice${selected.has(maitrise.key) ? ' active' : ''}`} style={{ '--race-lock-color': maitrise.couleur || '#c8a84a' }}>
+            <input type="checkbox" checked={selected.has(maitrise.key)} onChange={() => toggle(maitrise.key)} />
+            <span>{maitrise.label || maitrise.nom}</span>
+          </label>
+        ))}
+        {maitrises.length === 0 && <p className="subclass-picker-empty">Aucun domaine de maîtrise créé pour l'instant.</p>}
       </div>
     </div>
   );

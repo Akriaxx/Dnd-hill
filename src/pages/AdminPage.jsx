@@ -34,6 +34,7 @@ import CharacterCreationReviewPanel from './admin/panels/CharacterCreationReview
 import SpellTypesPanel from './admin/panels/SpellTypesPanel';
 import SpellZonesPanel from './admin/panels/SpellZonesPanel';
 import CompetencesPanel from './admin/panels/CompetencesPanel';
+import EtatsPanel from './admin/panels/EtatsPanel';
 import SpellRanksPanel from './admin/panels/SpellRanksPanel';
 import ActionTypesPanel from './admin/panels/ActionTypesPanel';
 import SpecialitesPanel from './admin/panels/SpecialitesPanel';
@@ -212,7 +213,7 @@ export default function AdminPage() {
       case 'competences':      return <CompetencesPanel />;
       case 'resistances':      return <ResistancesDefPanel />;
       case 'maitrise':         return <MaitriseDefPanel />;
-      case 'etats':            return <PlaceholderPanel section="États" />;
+      case 'etats':            return <EtatsPanel />;
       case 'grimoire-rangs':   return <SpellRanksPanel />;
       case 'grimoire-types':   return <SpellTypesPanel />;
       case 'grimoire-zones':   return <SpellZonesPanel />;

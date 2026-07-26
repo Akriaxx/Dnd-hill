@@ -222,6 +222,51 @@ export const BLANK_COMP = {
   restrictLevel: null,
 };
 
+// Un état n'a pas de catégorie par défaut — elles sont toutes créées
+// depuis l'admin (aucune catégorie pré-remplie, contrairement aux
+// compétences qui ont un "Général" verrouillé).
+export const BLANK_ETAT_CATEGORY = {
+  key: '',
+  nom: '',
+  couleur: '#d77ee8',
+  // Classe(s)/sous-classe(s) pouvant appliquer un état de cette
+  // catégorie — clés de sous-classe, vide = tout le monde peut l'appliquer.
+  sousClasses: [],
+};
+
+// Une condition de fin peut être combinée avec d'autres (ex: un jet de
+// sauvegarde répété ET un sort de type précis qui dissipe instantanément).
+export const REMOVAL_CONDITION_TYPES = [
+  { key: 'save', label: 'Jet de sauvegarde périodique' },
+  { key: 'spell_type', label: 'Sort d\'un type précis' },
+  { key: 'action', label: 'Action dédiée' },
+  { key: 'positional', label: 'Condition positionnelle' },
+];
+
+export const SAVE_TIMING_OPTIONS = [
+  { key: 'start_of_turn', label: 'Début de tour' },
+  { key: 'end_of_turn', label: 'Fin de tour' },
+];
+
+export const blankRemovalCondition = (type = 'save') => {
+  if (type === 'save') return { type, stat: 'Sagesse', timing: 'end_of_turn', difficulty: 'niveau du sort', durationTurns: null };
+  if (type === 'spell_type') return { type, spellTypes: [] };
+  if (type === 'action') return { type, actionType: 'Action Simple', by: 'self', description: '' };
+  return { type: 'positional', description: '' };
+};
+
+export const BLANK_ETAT = {
+  nom: '',
+  categoryKey: '',
+  tagColor: '#d77ee8',
+  description: '',
+  effects: '',
+  // Domaine(s) de maîtrise auxquels cet état est réservé — clés de
+  // maîtrise, vide = non lié à un domaine en particulier.
+  maitriseKeys: [],
+  removalConditions: [],
+};
+
 // spellRankMax retiré : la source de vérité est SpellRank.restrictLevel
 export const BLANK_LEVEL_RULE = {
   level: 0,
