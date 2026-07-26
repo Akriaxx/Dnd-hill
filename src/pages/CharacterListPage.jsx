@@ -2503,12 +2503,17 @@ function getLevelUpRewards(char, classDef, subclassDef, levelRule, customCompete
     { delay: 340, icon: '⚔', label: 'Sort physique', value: `+${sortsPhysiques}`, color: '#ff9b4a' },
     { delay: 680, icon: '✧', label: 'Sort magique', value: `+${sortsMagiques}`, color: '#8a7cff' },
     { delay: 1020, icon: '◆', label: 'Compétence disponible', value: `+${competences}`, color: '#64e0d0' },
+    // Regroupé sous une seule ligne "Autres" cliquable plutôt qu'étalé —
+    // à mesure que d'autres types de contenu (aptitudes, items…) auront
+    // leur propre niveau minimum un jour, cette ligne reste unique au
+    // lieu de faire grandir la modale indéfiniment.
     ...(newlyUnlockedCompetences.length > 0 ? [{
       delay: 1360,
       icon: '★',
-      label: 'Nouvelles compétences débloquées',
-      value: newlyUnlockedCompetences.map((c) => c.nom).join(', '),
+      label: 'Autres',
+      value: `${newlyUnlockedCompetences.length} déblocage${newlyUnlockedCompetences.length > 1 ? 's' : ''}`,
       color: '#e8c85a',
+      expandable: true,
     }] : []),
   ];
   return { list, dice, diceSource: source, pointsCarac: pts, sortsPhysiques, sortsMagiques, competences, newlyUnlockedCompetences };
@@ -2553,6 +2558,7 @@ function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customS
     ? getCombinedSubclassDefinitionByName(selectedClass || char.classe, selectedSubclass, customSubclasses)
     : subclassDef;
   const data = getLevelUpRewards(char, effectiveClassDef, effectiveSubclassDef, levelRule, customCompetences);
+  const [showOthers, setShowOthers] = useState(false);
   const [selectedResource, setSelectedResource] = useState(savedDraft?.selectedResource || '');
   const [rollResult, setRollResult] = useState(savedDraft?.rollResult || null);
   const [previousRoll, setPreviousRoll] = useState(savedDraft?.previousRoll || null);
@@ -2816,13 +2822,30 @@ function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customS
 
         <div className="levelup-rewards">
           {data.list.map((r, i) => (
-            <div key={i} className={`levelup-reward${visible.includes(i) ? ' levelup-reward--in' : ''}`}>
+            <div
+              key={i}
+              className={`levelup-reward${visible.includes(i) ? ' levelup-reward--in' : ''}${r.expandable ? ' levelup-reward--expandable' : ''}`}
+              onClick={r.expandable ? () => setShowOthers((v) => !v) : undefined}
+              role={r.expandable ? 'button' : undefined}
+              tabIndex={r.expandable ? 0 : undefined}
+            >
               <span className="levelup-reward-icon" style={{ color: r.color }}>{r.icon}</span>
               <span className="levelup-reward-label">{r.label}</span>
-              <span className="levelup-reward-value" style={{ color: r.color }}>{r.value}</span>
+              <span className="levelup-reward-value" style={{ color: r.color }}>{r.value}{r.expandable ? (showOthers ? ' ▲' : ' ▾') : ''}</span>
             </div>
           ))}
         </div>
+
+        {showOthers && data.newlyUnlockedCompetences.length > 0 && (
+          <div className="levelup-others-panel">
+            {data.newlyUnlockedCompetences.map((comp) => (
+              <div key={comp.id} className="levelup-others-item">
+                <strong>{comp.nom}</strong>
+                {comp.description && <SmartText text={comp.description} />}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Bouton avec sa propre animation d'apparition */}
         <div className={`levelup-btn-wrap${btnVisible ? ' levelup-btn-wrap--in' : ''}`}>

@@ -8546,6 +8546,45 @@ tr {
   text-shadow: 0 0 10px currentColor;
 }
 
+// Ligne "Autres" — regroupe les déblocages secondaires (compétences, et
+// demain aptitudes/items…) derrière un simple compte cliquable plutôt que
+// de tout étaler et faire grandir la modale de level-up sans limite.
+.levelup-reward--expandable {
+  cursor: pointer;
+
+  &:hover {
+    border-color: rgba(200,168,74,0.5);
+    background: rgba(200,168,74,0.06);
+  }
+}
+
+.levelup-others-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin: -14px 0 28px;
+  padding: 14px 18px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(58,46,24,0.5);
+  border-radius: 3px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.levelup-others-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+
+  strong {
+    font-family: $font-caps;
+    letter-spacing: 1px;
+    color: var(--gold);
+  }
+}
+
 // Wrapper du bouton — apparaît en slide-up
 .levelup-btn-wrap {
   width: 100%;
