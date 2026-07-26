@@ -3,10 +3,6 @@ import { useAdminStore } from '../../../store/adminStore';
 import { useCharacterStore } from '../../../store/characterStore';
 import { supabase } from '../../../lib/supabaseClient';
 import { asArray } from '../adminUtils';
-import {
-  RACE_DATA, ASCENDANCE_DATA, CLASS_DATA, SUBCLASS_DATA,
-  ORIGIN_DATA, HISTORIQUE_DATA,
-} from '../../../data/gameData';
 
 // ── Constellation canvas ──────────────────────────────────────
 
@@ -171,11 +167,9 @@ function StatusBar({ pending, dbStatus }) {
 // ── Main ──────────────────────────────────────────────────────
 
 export default function AdminHomePanel({ onNavigate }) {
-  const customRaces       = useAdminStore((s) => asArray(s.customRaces));
-  const customClasses     = useAdminStore((s) => asArray(s.customClasses));
-  const customItems       = useAdminStore((s) => asArray(s.customItems));
-  const customCompetences = useAdminStore((s) => asArray(s.customCompetences));
-  const characters        = useCharacterStore((s) => asArray(s.characters));
+  const admin = useAdminStore();
+  const n = (key) => asArray(admin[key]).length;
+  const characters = useCharacterStore((s) => asArray(s.characters));
 
   const [playerAccounts, setPlayerAccounts] = useState([]);
   const [dbStatus, setDbStatus] = useState('checking');
@@ -191,21 +185,55 @@ export default function AdminHomePanel({ onNavigate }) {
 
   const GROUPS = [
     {
-      key: 'univers', label: 'Univers',
+      key: 'identites', label: 'Origines & Identités',
       cards: [
-        { label: 'Races',        value: RACE_DATA.length + customRaces.length,    sub: `${customRaces.length} personnalisées`,  nav: 'races' },
-        { label: 'Ascendances',  value: ASCENDANCE_DATA.length,                    sub: 'données de base',                       nav: 'ascendances' },
-        { label: 'Origines',     value: ORIGIN_DATA.length,                        sub: 'données de base',                       nav: 'origines' },
-        { label: 'Historiques',  value: HISTORIQUE_DATA.length,                    sub: 'données de base',                       nav: 'historiques' },
+        { label: 'Races',        value: n('customRaces'),        sub: 'créées', nav: 'races' },
+        { label: 'Ascendances',  value: n('customAscendances'),  sub: 'créées', nav: 'ascendances' },
+        { label: 'Origines',     value: n('customOrigins'),      sub: 'créées', nav: 'origines' },
+        { label: 'Historiques',  value: n('customHistoriques'),  sub: 'créés',  nav: 'historiques' },
+        { label: 'Provenances',  value: n('customProvenances'),  sub: 'créées', nav: 'provenances' },
+      ],
+    },
+    {
+      key: 'references', label: 'Références & Savoirs',
+      cards: [
+        { label: 'Connaissances', value: n('customKnowledge'),  sub: 'créées', nav: 'connaissances' },
+        { label: 'Aptitudes',     value: n('customAptitudes'),  sub: 'créées', nav: 'aptitudes' },
+        { label: 'Langues',       value: n('customLanguages'),  sub: 'créées', nav: 'langues' },
       ],
     },
     {
       key: 'gameplay', label: 'Gameplay',
       cards: [
-        { label: 'Classes',      value: CLASS_DATA.length + customClasses.length,  sub: `${customClasses.length} personnalisées`, nav: 'classes' },
-        { label: 'Sous-classes', value: SUBCLASS_DATA.length,                       sub: 'données de base',                       nav: 'sous-classes' },
-        { label: 'Compétences',  value: customCompetences.length,                   sub: 'créées',                                nav: 'competences' },
-        { label: 'Items',        value: customItems.length,                         sub: 'créés',                                 nav: 'item' },
+        { label: 'Caractéristiques', value: n('customCaracteristiques'), sub: 'créées', nav: 'caracteristiques' },
+        { label: 'Index',            value: n('gameplayIndex'),          sub: 'créées', nav: 'index' },
+        { label: 'Leveling',         value: n('customLevelRules'),       sub: 'paliers', nav: 'leveling' },
+        { label: 'Archétypes',       value: n('customArchetypes'),       sub: 'créés',  nav: 'archetypes' },
+        { label: 'Classes',          value: n('customClasses'),          sub: 'créées', nav: 'classes' },
+        { label: 'Sous-classes',     value: n('customSubclasses'),       sub: 'créées', nav: 'sous-classes' },
+        { label: 'Compétences',      value: n('customCompetences'),      sub: 'créées', nav: 'competences' },
+        { label: 'Résistances',      value: n('customResistanceEntries'), sub: 'créées', nav: 'resistances' },
+        { label: 'Maîtrise',         value: n('customMaitriseEntries'),  sub: 'créées', nav: 'maitrise' },
+        { label: 'États',            value: n('customEtats'),            sub: 'créés',  nav: 'etats' },
+      ],
+    },
+    {
+      key: 'grimoire', label: 'Grimoire',
+      cards: [
+        { label: 'Rangs',            value: n('customSpellRanks'),   sub: 'créés', nav: 'grimoire-rangs' },
+        { label: 'Types',            value: n('customSpellTypes'),   sub: 'créés', nav: 'grimoire-types' },
+        { label: 'Zones',            value: n('customSpellZones'),   sub: 'créées', nav: 'grimoire-zones' },
+        { label: "Types d'action",   value: n('customActionTypes'),  sub: 'créés', nav: 'grimoire-actions' },
+        { label: 'Spécialités',      value: n('customSpecialites'),  sub: 'créées', nav: 'grimoire-specialites' },
+      ],
+    },
+    {
+      key: 'items', label: 'Économie & Équipement',
+      cards: [
+        { label: "Catégories d'objet", value: n('customItemCategories'), sub: 'créées', nav: 'item-categorie' },
+        { label: 'Classes',            value: n('customItemClasses'),    sub: 'créées', nav: 'item-classe' },
+        { label: 'Raretés',            value: n('customItemRarities'),   sub: 'créées', nav: 'item-rarete' },
+        { label: 'Items',              value: n('customItems'),          sub: 'créés',  nav: 'item' },
       ],
     },
     {
