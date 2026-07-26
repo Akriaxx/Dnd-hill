@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAdminStore } from '../../../store/adminStore';
 import SmartDescEditor from '../../../components/admin/SmartDescEditor';
+import ItemIconPicker from '../../../components/admin/ItemIconPicker';
 import { ConfirmModal, AdminFilterPanel, SectionGrid, AdminCard, DetailLine, TagColorPicker } from '../AdminShared';
 import { asArray, includesText, mergeTemporaryRows, slugifyKey } from '../adminUtils';
 import {
@@ -104,8 +105,8 @@ export default function ItemCategoriePanel() {
                 <SmartDescEditor value={categoryForm.description} onChange={(value) => setCategory('description', value)} placeholder="Description de la catégorie..." />
               </div>
               <div className="comp-form-field">
-                <label>Icone (nom ou URL)</label>
-                <input value={categoryForm.icone} onChange={(e) => setCategory('icone', e.target.value)} placeholder="Ex: potion, shield, sword..." />
+                <label>Icône</label>
+                <ItemIconPicker value={categoryForm.icone} onChange={(next) => setCategory('icone', next)} />
               </div>
               <div className="comp-form-footer">
                 <button className="admin-btn" onClick={cancelCategoryForm}>Annuler</button>
