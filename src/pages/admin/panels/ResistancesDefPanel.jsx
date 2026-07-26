@@ -247,20 +247,21 @@ export default function ResistancesDefPanel() {
                 </div>
               </div>
               <div className={`index-category-content${isOpen ? ' is-open' : ''}`} aria-hidden={!isOpen}>
-                <div className="admin-panel-grid compact-entry-grid">
+                <div className="entry-card-grid">
                   {categoryEntries.map((entry) => (
                     <div
                       key={entry.id}
-                      className="admin-card admin-card--custom index-card compact-entry-card"
-                      style={{ '--index-color': category.couleur || '#bcecff' }}
+                      className="entry-card"
+                      style={{ '--entry-color': category.couleur || '#bcecff' }}
                     >
-                      <div className="admin-card-header">
-                        <div className="admin-card-title">
-                          <span className="index-card-color" />
-                          {entry.label}
+                      <div className="entry-card-top">
+                        <div className="entry-card-badge">{(entry.label || '?').trim().charAt(0).toUpperCase()}</div>
+                        <div className="entry-card-body">
+                          <span className="entry-card-kicker">Résistance</span>
+                          <h3 className="entry-card-title">{entry.label}</h3>
                         </div>
                       </div>
-                      <div className="admin-card-actions">
+                      <div className="entry-card-actions">
                         <button className="admin-btn" onClick={() => startEntryEdit(entry)}>Modifier</button>
                         <button
                           className="admin-btn admin-btn--danger"

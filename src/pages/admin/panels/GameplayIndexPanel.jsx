@@ -353,28 +353,26 @@ export default function GameplayIndexPanel() {
                 </div>
               </div>
               <div className={`index-category-content${isOpen ? ' is-open' : ''}`} aria-hidden={!isOpen}>
-                <div className="admin-panel-grid">
-                  {categoryEntries.map((entry, entryIndex) => (
+                <div className="entry-card-grid">
+                  {categoryEntries.map((entry) => (
                     <div
                       key={entry.id}
-                      className="admin-card admin-card--custom index-card"
-                      style={{
-                        '--index-color': entry.couleur || category.couleur || '#bcecff',
-                        '--index-card-delay': `${entryIndex * 34}ms`,
-                      }}
+                      className="entry-card"
+                      style={{ '--entry-color': entry.couleur || category.couleur || '#bcecff' }}
                     >
-                      <div className="admin-card-header">
-                        <div className="admin-card-title">
-                          <span className="index-card-color" />
-                          {entry.titre}
+                      <div className="entry-card-top">
+                        <div className="entry-card-badge">{(entry.titre || '?').trim().charAt(0).toUpperCase()}</div>
+                        <div className="entry-card-body">
+                          <span className="entry-card-kicker">Entrée d'index</span>
+                          <h3 className="entry-card-title">{entry.titre}</h3>
                         </div>
                       </div>
                       {entry.description && (
-                        <div className="admin-card-desc admin-card-desc--smart">
+                        <div className="entry-card-desc">
                           <SmartText text={entry.description} />
                         </div>
                       )}
-                      <div className="admin-card-actions">
+                      <div className="entry-card-actions">
                         <button className="admin-btn" onClick={() => startEdit(entry)}>Modifier</button>
                         <button className="admin-btn admin-btn--danger" onClick={() => confirmDeleteEntry(entry)}>Supprimer</button>
                       </div>

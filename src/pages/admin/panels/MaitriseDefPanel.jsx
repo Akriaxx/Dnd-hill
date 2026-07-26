@@ -242,26 +242,29 @@ export default function MaitriseDefPanel() {
                 </div>
               </div>
               <div className={`index-category-content${isOpen ? ' is-open' : ''}`} aria-hidden={!isOpen}>
-                <div className="admin-panel-grid compact-entry-grid">
+                <div className="entry-card-grid">
                   {categoryEntries.map((entry) => (
-                    <div key={entry.id} className="admin-card admin-card--custom index-card compact-entry-card" style={{ '--index-color': entry.couleur || '#c8a84a' }}>
-                      <div className="admin-card-header">
-                        <div className="admin-card-title">
-                          <span className="index-card-color" />
-                          {entry.label}
+                    <div key={entry.id} className="entry-card" style={{ '--entry-color': entry.couleur || '#c8a84a' }}>
+                      <div className="entry-card-top">
+                        <div className="entry-card-badge">{(entry.label || '?').trim().charAt(0).toUpperCase()}</div>
+                        <div className="entry-card-body">
+                          <span className="entry-card-kicker">Domaine de maîtrise</span>
+                          <h3 className="entry-card-title">{entry.label}</h3>
                         </div>
                       </div>
                       {entry.description && (
-                        <div className="admin-card-desc admin-card-desc--smart">
+                        <div className="entry-card-desc">
                           <SmartText text={entry.description} />
                         </div>
                       )}
-                      <div className="admin-card-meta">
-                        {asArray(entry.sousClasses).length === 0
-                          ? 'Toutes les sous-classes'
-                          : asArray(entry.sousClasses).map((key) => subclasses.find((sc) => (sc.key || slugifyKey(sc.nom)) === key)?.nom || key).join(' · ')}
+                      <div className="entry-card-meta">
+                        <span>
+                          {asArray(entry.sousClasses).length === 0
+                            ? 'Toutes les sous-classes'
+                            : asArray(entry.sousClasses).map((key) => subclasses.find((sc) => (sc.key || slugifyKey(sc.nom)) === key)?.nom || key).join(', ')}
+                        </span>
                       </div>
-                      <div className="admin-card-actions">
+                      <div className="entry-card-actions">
                         <button className="admin-btn" onClick={() => openEdit(entry)}>Modifier</button>
                         <button
                           className="admin-btn admin-btn--danger"

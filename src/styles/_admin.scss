@@ -480,30 +480,6 @@
   }
 }
 
-// Cartes d'entrées courtes (résistances, domaines de maîtrise…) : pas de
-// description systématique, donc pas de raison de les étirer à la hauteur
-// de leurs voisines comme le fait le grid par défaut (align-items: stretch)
-// — ça laissait un grand vide. Utilisé par ResistancesDefPanel et
-// MaitriseDefPanel.
-.compact-entry-grid {
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  align-items: start;
-}
-
-.compact-entry-card {
-  padding: 10px 14px;
-  gap: 0;
-
-  .admin-card-actions {
-    margin-top: 10px;
-  }
-
-  .admin-card-desc,
-  .admin-card-meta {
-    margin: 6px 0 0;
-  }
-}
-
 // ── Card ──
 .admin-card {
   background: $surface;
@@ -3398,6 +3374,193 @@
     font-size: 28px;
     color: $gold;
   }
+}
+
+// ── Universal entry card — "Rang de sort" model ───────────────
+// Card grammar shared by every admin catalog panel: accent bar,
+// optional round badge (number/icon/letter), kicker, title, meta
+// line, footer actions row separated by a top border. Panels pick
+// the modifiers they need (--badge, --wide, --compact…).
+.entry-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.entry-card-grid--wide {
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+}
+
+.entry-card {
+  --entry-color: #c8a84a;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(58,46,24,0.9);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--entry-color) 12%, transparent), transparent 45%),
+    rgba(7,7,5,0.82);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.16s ease, background 0.16s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--entry-color);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--entry-color) 44%, transparent);
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--entry-color) 55%, rgba(200,168,74,0.3));
+  }
+}
+
+.entry-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.entry-card-badge {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--entry-color) 62%, rgba(200,168,74,0.35));
+  background: rgba(0,0,0,0.34);
+  color: var(--entry-color);
+  display: grid;
+  place-items: center;
+  font-family: $font-display;
+  font-size: 18px;
+  font-weight: 900;
+  box-shadow: 0 0 22px color-mix(in srgb, var(--entry-color) 18%, transparent);
+  overflow: hidden;
+
+  img { width: 22px; height: 22px; object-fit: contain; }
+}
+
+.entry-card-body {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.entry-card-kicker {
+  display: block;
+  font-family: $font-caps;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--entry-color);
+}
+
+.entry-card-title {
+  margin: 0;
+  font-family: $font-display;
+  font-size: 17px;
+  letter-spacing: 0.8px;
+  color: $white-text;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.entry-card-sub {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(244,240,231,0.55);
+}
+
+.entry-card-desc {
+  margin: 0;
+  font-family: $font-body;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: rgba(244,240,231,0.72);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.entry-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 0;
+  font-family: $font-body;
+  font-size: 11.5px;
+  color: rgba(244,240,231,0.5);
+
+  span {
+    white-space: nowrap;
+
+    &:not(:last-child)::after {
+      content: '·';
+      margin: 0 8px;
+      opacity: 0.5;
+    }
+  }
+}
+
+.entry-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.entry-card-tag {
+  padding: 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--entry-color) 40%, transparent);
+  background: color-mix(in srgb, var(--entry-color) 8%, transparent);
+  font-family: $font-caps;
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  color: var(--entry-color);
+  white-space: nowrap;
+}
+
+.entry-card-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  span {
+    font-family: $font-body;
+    font-size: 11.5px;
+    line-height: 1.4;
+    color: rgba(244,240,231,0.58);
+
+    b { color: rgba(244,240,231,0.82); font-weight: 700; }
+  }
+}
+
+.entry-card-actions {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(200,168,74,0.12);
+
+  .admin-btn {
+    min-height: 30px;
+    padding: 7px 11px;
+    font-size: 10px;
+  }
+}
+
+.entry-card--empty {
+  align-items: center;
+  justify-content: center;
+  color: rgba(244,240,231,0.4);
+  font-family: $font-body;
+  font-size: 12.5px;
+  border-style: dashed;
 }
 
 // ── Grimoire spell zones ─────────────────────────────────────
