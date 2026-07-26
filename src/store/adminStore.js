@@ -2,6 +2,25 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { DEFAULT_SPELL_RANKS, DEFAULT_ACTION_TYPES, DEFAULT_SPECIALITES } from '../pages/admin/spellDefaults';
 import { supabase } from '../lib/supabaseClient';
+import { PERMISSIONS, DEFAULT_ACCOUNT_ROLES } from '../auth/permissions';
+
+// Écrit un rôle (système ou personnalisé) et l'intégralité de ses droits
+// vers Supabase (source de vérité pour la RLS via has_permission()).
+const syncRoleToSupabase = async ({ key, label, power, system = false, permissions = {} }) => {
+  const { error: roleError } = await supabase
+    .from('roles')
+    .upsert({ key, label, power: power ?? 0, system }, { onConflict: 'key' });
+  if (roleError) { console.error('roles upsert failed', roleError); return; }
+  const rows = Object.keys(PERMISSIONS).map((permission_key) => ({
+    role_key: key,
+    permission_key,
+    enabled: Boolean(permissions?.[permission_key]),
+  }));
+  const { error: permError } = await supabase
+    .from('role_permissions')
+    .upsert(rows, { onConflict: 'role_key,permission_key' });
+  if (permError) console.error('role_permissions upsert failed', permError);
+};
 
 const TICKET_DEDUPE_WINDOW_MS = 5 * 60 * 1000;
 const ADMIN_STORE_VERSION = 3;
@@ -1023,23 +1042,27 @@ export const useAdminStore = create(
       customRoles: [],
       systemRoleOverrides: {},
 
-      addCustomRole: (role) =>
+      addCustomRole: (role) => {
+        const power = Object.values(role.permissions || {}).filter(Boolean).length * 5;
+        const newRole = {
+          ...role,
+          power,
+          id: Date.now(),
+          custom: true,
+          createdAt: new Date().toISOString(),
+        };
         set((state) => ({
-          customRoles: [
-            ...(state.customRoles || []),
-            {
-              ...role,
-              id: Date.now(),
-              custom: true,
-              createdAt: new Date().toISOString(),
-            },
-          ],
-        })),
+          customRoles: [...(state.customRoles || []), newRole],
+        }));
+        syncRoleToSupabase({ key: newRole.key, label: newRole.label, power: newRole.power, system: false, permissions: newRole.permissions });
+      },
 
-      updateCustomRole: (id, patch) =>
+      updateCustomRole: (id, patch) => {
+        let updatedRole = null;
         set((state) => {
           const currentRole = (state.customRoles || []).find((role) => role.id === id);
           const nextRole = currentRole ? { ...currentRole, ...patch, updatedAt: new Date().toISOString() } : null;
+          updatedRole = nextRole;
           return {
             customRoles: (state.customRoles || []).map((role) =>
               role.id === id ? nextRole : role
@@ -1050,22 +1073,30 @@ export const useAdminStore = create(
                 : account
             ),
           };
-        }),
+        });
+        if (updatedRole) {
+          syncRoleToSupabase({ key: updatedRole.key, label: updatedRole.label, power: updatedRole.power, system: false, permissions: updatedRole.permissions });
+        }
+      },
 
-      deleteCustomRole: (id) =>
-        set((state) => {
-          const role = (state.customRoles || []).find((item) => item.id === id);
-          return {
-            customRoles: (state.customRoles || []).filter((item) => item.id !== id),
-            playerAccounts: (state.playerAccounts || []).map((account) =>
-              account.role === role?.key ? { ...account, role: 'player', permissions: {} } : account
-            ),
-          };
-        }),
+      deleteCustomRole: (id) => {
+        const role = (get().customRoles || []).find((item) => item.id === id);
+        set((state) => ({
+          customRoles: (state.customRoles || []).filter((item) => item.id !== id),
+          playerAccounts: (state.playerAccounts || []).map((account) =>
+            account.role === role?.key ? { ...account, role: 'player', permissions: {} } : account
+          ),
+        }));
+        if (role?.key) {
+          supabase.from('roles').delete().eq('key', role.key)
+            .then(({ error }) => { if (error) console.error('roles delete failed', error); });
+        }
+      },
 
-      updateSystemRoleOverride: (key, patch) =>
+      updateSystemRoleOverride: (key, patch) => {
+        let nextOverride = null;
         set((state) => {
-          const nextOverride = {
+          nextOverride = {
             ...(state.systemRoleOverrides?.[key] || {}),
             ...patch,
             updatedAt: new Date().toISOString(),
@@ -1081,14 +1112,34 @@ export const useAdminStore = create(
                 : account
             ),
           };
-        }),
+        });
+        const defaultRole = DEFAULT_ACCOUNT_ROLES.find((role) => role.key === key);
+        syncRoleToSupabase({
+          key,
+          label: nextOverride.label || defaultRole?.label || key,
+          power: nextOverride.power ?? defaultRole?.power ?? 0,
+          system: true,
+          permissions: nextOverride.permissions || {},
+        });
+      },
 
-      resetSystemRoleOverride: (key) =>
+      resetSystemRoleOverride: (key) => {
         set((state) => {
           const nextOverrides = { ...(state.systemRoleOverrides || {}) };
           delete nextOverrides[key];
           return { systemRoleOverrides: nextOverrides };
-        }),
+        });
+        const defaultRole = DEFAULT_ACCOUNT_ROLES.find((role) => role.key === key);
+        if (defaultRole) {
+          syncRoleToSupabase({
+            key: defaultRole.key,
+            label: defaultRole.label,
+            power: defaultRole.power,
+            system: true,
+            permissions: defaultRole.permissions,
+          });
+        }
+      },
 
       appTickets: [],
       terminalLogs: [],
@@ -1217,6 +1268,36 @@ export const hydrateGameData = async () => {
       return next;
     }, {}),
   );
+};
+
+// Charge les rôles et leurs droits depuis Supabase (tables roles /
+// role_permissions) dans le store — à appeler une fois qu'un utilisateur
+// est authentifié (RLS: lecture réservée aux comptes avec manageRoles).
+export const hydrateRoles = async () => {
+  const [{ data: rolesRows, error: rolesError }, { data: permRows, error: permError }] = await Promise.all([
+    supabase.from('roles').select('key, label, power, system'),
+    supabase.from('role_permissions').select('role_key, permission_key, enabled'),
+  ]);
+  if (rolesError || permError) { console.error('roles hydrate failed', rolesError || permError); return; }
+
+  const permsByRole = {};
+  (permRows || []).forEach(({ role_key, permission_key, enabled }) => {
+    if (!permsByRole[role_key]) permsByRole[role_key] = {};
+    permsByRole[role_key][permission_key] = enabled;
+  });
+
+  const systemRoleOverrides = {};
+  const customRoles = [];
+  (rolesRows || []).forEach((row) => {
+    const permissions = permsByRole[row.key] || {};
+    if (row.system) {
+      systemRoleOverrides[row.key] = { label: row.label, power: row.power, permissions };
+    } else {
+      customRoles.push({ id: row.key, key: row.key, label: row.label, power: row.power, custom: true, permissions });
+    }
+  });
+
+  useAdminStore.setState({ systemRoleOverrides, customRoles });
 };
 
 // Repousse le blob game_data vers Supabase à chaque changement effectif
