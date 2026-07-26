@@ -4,14 +4,15 @@ import SmartDescEditor from '../../../components/admin/SmartDescEditor';
 import {
   ConfirmModal, AdminFilterPanel, TagColorPicker,
   CategoryAccordionList, ResourceDiceFields, RaceLockFields,
+  KnowledgeCategoryModal,
 } from '../AdminShared';
 import {
-  asArray, slugifyKey, includesText, uniqueOptions,
-  TYPE_COLORS, BLANK_CLASS_FORM, STAT_KEYS,
+  asArray, slugifyKey, includesText,
+  BLANK_CLASS_FORM,
   normalizeResourceDice, resourceDiceSummary, getRaceOptionsForLocks,
 } from '../adminUtils';
 
-function ClassFormModal({ initial, races, onClose, onSave }) {
+function ClassFormModal({ initial, races, classCategories, caracteristiques, onClose, onSave }) {
   const [form, setForm] = useState(() => ({
     ...BLANK_CLASS_FORM,
     ...(initial || {}),
@@ -53,7 +54,8 @@ function ClassFormModal({ initial, races, onClose, onSave }) {
                 <div className="race-form-field race-form-field--grow">
                   <label>Type</label>
                   <select value={form.type} onChange={(e) => set('type', e.target.value)}>
-                    {Object.keys(TYPE_COLORS).map((t) => <option key={t} value={t}>{t}</option>)}
+                    <option value="">— Choisir une catégorie —</option>
+                    {classCategories.map((c) => <option key={c.key} value={c.key}>{c.nom}</option>)}
                   </select>
                 </div>
                 <div className="race-form-field race-form-field--grow">
@@ -64,14 +66,18 @@ function ClassFormModal({ initial, races, onClose, onSave }) {
               <div className="race-form-row">
                 <div className="race-form-field race-form-field--grow">
                   <label>Stat physique</label>
-                  <select value={form.physique || 'FOR'} onChange={(e) => set('physique', e.target.value)}>
-                    {[...STAT_KEYS, 'VAR'].map((s) => <option key={s} value={s}>{s}</option>)}
+                  <select value={form.physique || ''} onChange={(e) => set('physique', e.target.value)}>
+                    <option value="">—</option>
+                    {caracteristiques.map((c) => <option key={c.cle} value={c.cle}>{c.cle}</option>)}
+                    <option value="VAR">VAR</option>
                   </select>
                 </div>
                 <div className="race-form-field race-form-field--grow">
                   <label>Stat magique</label>
-                  <select value={form.magique || 'CHA'} onChange={(e) => set('magique', e.target.value)}>
-                    {[...STAT_KEYS, 'VAR'].map((s) => <option key={s} value={s}>{s}</option>)}
+                  <select value={form.magique || ''} onChange={(e) => set('magique', e.target.value)}>
+                    <option value="">—</option>
+                    {caracteristiques.map((c) => <option key={c.cle} value={c.cle}>{c.cle}</option>)}
+                    <option value="VAR">VAR</option>
                   </select>
                 </div>
                 <div className="race-form-field race-form-field--grow">
@@ -116,18 +122,22 @@ function ClassFormModal({ initial, races, onClose, onSave }) {
 
 export default function ClassesPanel() {
   const {
-    customClasses, customRaces,
+    customClasses, customRaces, customClassCategories, customCaracteristiques,
     hiddenClassKeys: storedHiddenClassKeys,
     addClass, updateClass, deleteClass, hideDefaultClass,
+    addClassCategory,
   } = useAdminStore();
 
   const [search, setSearch] = useState('');
   const [type, setType] = useState('all');
   const [showForm, setShowForm] = useState(false);
+  const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   const raceLockOptions = getRaceOptionsForLocks(customRaces);
+  const classCategories = asArray(customClassCategories);
+  const caracteristiques = asArray(customCaracteristiques);
   const hiddenClassKeys = new Set(asArray(storedHiddenClassKeys));
   const customClassKeys = new Set(asArray(customClasses).map((c) => c.key || slugifyKey(c.nom)));
   const entries = asArray(customClasses).filter((c) => !hiddenClassKeys.has(c.key || slugifyKey(c.nom)));
@@ -154,13 +164,14 @@ export default function ClassesPanel() {
   };
 
   const renderClassCard = (cls, entryIndex) => {
-    const color = TYPE_COLORS[cls.type] || '#c8a84a';
+    const category = classCategories.find((c) => c.key === cls.type);
+    const color = category?.couleur || '#c8a84a';
     return (
       <article key={`${cls.nom}-${entryIndex}`} className="ascendance-row-card class-row-card" style={{ '--ascendance-color': color }}>
         <div className="ascendance-row-marker" />
         <div className="ascendance-row-main">
           <div className="ascendance-row-head">
-            <div><h3>{cls.nom}</h3><span>{cls.type}</span></div>
+            <div><h3>{cls.nom}</h3><span>{category?.nom || cls.type}</span></div>
             <b>Classe</b>
           </div>
           <div className="ascendance-row-stats">Dés : {resourceDiceSummary(cls)}</div>
@@ -183,13 +194,23 @@ export default function ClassesPanel() {
     );
   };
 
-  const typeOptions = [...new Set(entries.map((c) => c.type).filter(Boolean))];
-
   return (
     <div className="admin-panel">
       <div className="admin-panel-actions">
-        <button className="admin-btn admin-btn--add" onClick={() => { setEditingClass(null); setShowForm(true); }}>+ Nouvelle classe</button>
+        <button className="admin-btn" onClick={() => setShowCategoryForm(true)}>+ Catégorie</button>
+        <button className="admin-btn admin-btn--add" onClick={() => { setEditingClass(null); setShowForm(true); }} disabled={classCategories.length === 0}>+ Nouvelle classe</button>
       </div>
+      {classCategories.length === 0 && (
+        <div className="index-empty">Créez d'abord une catégorie de classe (Combattante, Héroïque…) avant d'ajouter des classes.</div>
+      )}
+      {showCategoryForm && (
+        <KnowledgeCategoryModal
+          title="Nouvelle catégorie de classe"
+          existingKeys={new Set(classCategories.map((c) => c.key))}
+          onClose={() => setShowCategoryForm(false)}
+          onSave={(payload) => { addClassCategory(payload); setShowCategoryForm(false); }}
+        />
+      )}
       {confirmDelete && (
         <ConfirmModal
           title={confirmDelete.title}
@@ -203,6 +224,8 @@ export default function ClassesPanel() {
         <ClassFormModal
           initial={editingClass}
           races={raceLockOptions}
+          classCategories={classCategories}
+          caracteristiques={caracteristiques}
           onClose={() => { setShowForm(false); setEditingClass(null); }}
           onSave={handleSave}
         />
@@ -212,16 +235,18 @@ export default function ClassesPanel() {
         onSearch={setSearch}
         count={filtered.length}
         total={entries.length}
-        fields={[{ key: 'type', label: 'Type', value: type, onChange: setType, options: uniqueOptions(typeOptions) }]}
+        fields={[{ key: 'type', label: 'Type', value: type, onChange: setType, options: [
+          { value: 'all', label: 'Tous' },
+          ...classCategories.map((c) => ({ value: c.key, label: c.nom })),
+        ] }]}
       />
       {entries.length === 0 ? (
         <div className="index-empty">Aucune classe créée. Les classes définissent les dés de ressource et les sous-classes disponibles.</div>
       ) : (
         <CategoryAccordionList
-          categories={typeOptions
-            .filter((t) => type === 'all' || t === type)
-            .map((t) => ({ key: t, nom: t, couleur: TYPE_COLORS[t] || '#c8a84a' }))
-            .filter((t) => filtered.some((c) => c.type === t.key))}
+          categories={classCategories
+            .filter((c) => type === 'all' || c.key === type)
+            .filter((c) => filtered.some((cls) => cls.type === c.key))}
           entriesForCategory={(category) => filtered.filter((c) => c.type === category.key)}
           renderContent={(category, categoryEntries) => (
             <div className="ascendance-row-grid class-row-grid">

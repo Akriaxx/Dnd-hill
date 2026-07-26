@@ -58,6 +58,7 @@ export const GAME_DATA_STATE_KEYS = [
   'customAptitudeCategories',
   'customAptitudes',
   'hiddenAptitudeKeys',
+  'customClassCategories',
   'customClasses',
   'hiddenClassKeys',
   'customSubclasses',
@@ -105,6 +106,7 @@ const EMPTY_GAME_DATA_STATE = {
   customAptitudeCategories: [],
   customAptitudes: [],
   hiddenAptitudeKeys: [],
+  customClassCategories: [],
   customClasses: [],
   hiddenClassKeys: [],
   customSubclasses: [],
@@ -594,6 +596,29 @@ export const useAdminStore = create(
       hideDefaultAptitude: (key) =>
         set((state) => ({
           hiddenAptitudeKeys: [...new Set([...(state.hiddenAptitudeKeys || []), key])],
+        })),
+
+      // Catégories de classes (ex: Combattante, Héroïque…) créées par le MJ
+      customClassCategories: [],
+
+      addClassCategory: (category) =>
+        set((state) => ({
+          customClassCategories: [
+            ...(state.customClassCategories || []),
+            { ...category, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+          ],
+        })),
+
+      updateClassCategory: (id, patch) =>
+        set((state) => ({
+          customClassCategories: (state.customClassCategories || []).map((category) =>
+            category.id === id ? { ...category, ...patch, updatedAt: new Date().toISOString() } : category
+          ),
+        })),
+
+      deleteClassCategory: (id) =>
+        set((state) => ({
+          customClassCategories: (state.customClassCategories || []).filter((category) => category.id !== id),
         })),
 
       // Classes et sous-classes créées/modifiées par le MJ

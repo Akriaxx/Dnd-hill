@@ -96,11 +96,9 @@ export const getRanksAtLevel = (ranks, level) => {
 
 // ── Classes ────────────────────────────────────────────────────
 
-export const TYPE_COLORS = { Combattante: '#c84a4a', Héroique: '#4a7ac8', Maîtrise: '#c8a84a', Ordre: '#4ac87a' };
-
 export const BLANK_CLASS_FORM = {
-  nom: '', type: 'Combattante', description: '', allowedRaces: [],
-  armures: '', physique: 'FOR', magique: 'CHA',
+  nom: '', type: '', description: '', allowedRaces: [],
+  armures: '', physique: '', magique: '',
   resourceDice: { vie: '', mana: '', endu: '' },
   nombreSortsMagiques: 0, nombreSortsPhysiques: 0, nombreCompetences: 0,
 };

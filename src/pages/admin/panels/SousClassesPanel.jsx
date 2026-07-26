@@ -7,11 +7,11 @@ import {
 } from '../AdminShared';
 import {
   asArray, slugifyKey, includesText, uniqueOptions,
-  BLANK_SUBCLASS_FORM, TYPE_COLORS,
+  BLANK_SUBCLASS_FORM,
   normalizeResourceDice, resourceDiceSummary, getRaceOptionsForLocks,
 } from '../adminUtils';
 
-function SubclassFormModal({ initial, classes, races, onClose, onSave }) {
+function SubclassFormModal({ initial, classes, classCategories, races, onClose, onSave }) {
   const [form, setForm] = useState(() => ({
     ...BLANK_SUBCLASS_FORM,
     ...(initial || {}),
@@ -35,7 +35,7 @@ function SubclassFormModal({ initial, classes, races, onClose, onSave }) {
   };
 
   const parentClass = classes.find((c) => (c.key || slugifyKey(c.nom)) === form.classe || c.nom === form.classe);
-  const classColor = parentClass ? (TYPE_COLORS[parentClass.type] || '#c8a84a') : '#888';
+  const classColor = parentClass ? (classCategories.find((c) => c.key === parentClass.type)?.couleur || '#c8a84a') : '#888';
 
   return (
     <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -140,7 +140,7 @@ function SubclassFormModal({ initial, classes, races, onClose, onSave }) {
 
 export default function SousClassesPanel() {
   const {
-    customSubclasses, customClasses, customRaces, customMaitriseEntries,
+    customSubclasses, customClasses, customClassCategories, customRaces, customMaitriseEntries,
     addSubclass, updateSubclass, deleteSubclass,
   } = useAdminStore();
 
@@ -152,6 +152,7 @@ export default function SousClassesPanel() {
 
   const raceLockOptions = getRaceOptionsForLocks(customRaces);
   const classes = asArray(customClasses);
+  const classCategories = asArray(customClassCategories);
   const maitrises = asArray(customMaitriseEntries);
   const entries = asArray(customSubclasses);
 
@@ -178,7 +179,7 @@ export default function SousClassesPanel() {
 
   const renderSubclassCard = (sc, entryIndex) => {
     const parentClass = classes.find((c) => (c.key || slugifyKey(c.nom)) === sc.classe || c.nom === sc.classe);
-    const color = TYPE_COLORS[parentClass?.type] || '#8888aa';
+    const color = classCategories.find((c) => c.key === parentClass?.type)?.couleur || '#8888aa';
     // La maîtrise se déclare enfant d'une sous-classe à sa propre création
     // (voir MaitriseDefPanel, champ sousClasses) — ici on ne fait que
     // dériver l'affichage inverse, pas de champ à part sur la sous-classe.
@@ -228,7 +229,7 @@ export default function SousClassesPanel() {
     .map((cls) => ({
       key: cls.key || slugifyKey(cls.nom),
       nom: cls.nom,
-      couleur: TYPE_COLORS[cls.type] || '#8888aa',
+      couleur: classCategories.find((c) => c.key === cls.type)?.couleur || '#8888aa',
     }));
 
   return (
@@ -255,6 +256,7 @@ export default function SousClassesPanel() {
         <SubclassFormModal
           initial={editingSubclass}
           classes={classes}
+          classCategories={classCategories}
           races={raceLockOptions}
           onClose={() => { setShowForm(false); setEditingSubclass(null); }}
           onSave={handleSave}
