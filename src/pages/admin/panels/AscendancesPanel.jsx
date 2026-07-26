@@ -695,34 +695,38 @@ export default function AscendancesPanel() {
   const replacePrefix = (enabled) => enabled ? 'Remplace race : ' : '';
 
   const renderAscendanceCard = (asc) => (
-    <article key={asc.id || `${asc.race}-${asc.nom}`} className={`ascendance-row-card${asc.custom ? ' is-custom' : ''}`} style={{ '--ascendance-color': asc.tagColor || '#bcecff' }}>
-      <div className="ascendance-row-marker" />
-      <div className="ascendance-row-main">
-        <div className="ascendance-row-head">
-          <div><h3>{asc.nom}</h3><span>{asc.race}</span></div>
-          {asc.custom && <b>Personnalisée</b>}
-        </div>
-        {statsDisplay(asc) && <div className="ascendance-row-stats">{statsDisplay(asc)}</div>}
-        {resourceDisplay(asc) && <div className="ascendance-row-stats">{resourceDisplay(asc)}</div>}
-        {asc.description && <p>{asc.description}</p>}
-        <div className="ascendance-row-details">
-          {asc.competenceAscendance && <span>Compétence : {asc.competenceAscendance}</span>}
-          {asArray(asc.resistanceBonuses).length > 0 && (
-            <span>Résistances : {replacePrefix(asc.replaceRaceResistances)}{asArray(asc.resistanceBonuses).map((r) => `${r.type === 'malus' ? 'Malus' : 'Bonus'} ${r.resistance || r.resistanceKey} ${r.value > 0 ? '+' : ''}${r.value}`).join(' · ')}</span>
-          )}
-          {asArray(asc.aptitudes).length > 0 && (
-            <span>Aptitudes : {replacePrefix(asc.replaceRaceAptitudes)}{asArray(asc.aptitudes).map((a) => a.nom).join(' · ')}</span>
-          )}
-          {asc.aptitudeChoices && <span>Choix aptitudes : +1 x{asc.aptitudeChoices.plusOne ?? 1} · +2 x{asc.aptitudeChoices.plusTwo ?? 1}</span>}
-          {asArray(asc.langues).length > 0 && (
-            <span>Langues : {replacePrefix(asc.replaceRaceLanguages)}{asArray(asc.langues).map((l) => l.nom).join(' · ')}</span>
-          )}
-          {asArray(asc.provenanceKeys).length > 0 && (
-            <span>Provenances : {asArray(asc.provenanceKeys).map((k) => provenanceOptions.find((p) => p.key === k)?.nom || k).join(' · ')}</span>
-          )}
+    <div key={asc.id || `${asc.race}-${asc.nom}`} className="entry-card" style={{ '--entry-color': asc.tagColor || '#bcecff' }}>
+      <div className="entry-card-top">
+        <div className="entry-card-badge">{(asc.nom || '?').trim().charAt(0).toUpperCase()}</div>
+        <div className="entry-card-body">
+          <span className="entry-card-kicker">{asc.custom ? 'Ascendance personnalisée' : asc.race}</span>
+          <h3 className="entry-card-title">{asc.nom}</h3>
         </div>
       </div>
-      <div className="ascendance-row-actions">
+      {(statsDisplay(asc) || resourceDisplay(asc)) && (
+        <div className="entry-card-meta">
+          {statsDisplay(asc) && <span>{statsDisplay(asc)}</span>}
+          {resourceDisplay(asc) && <span>{resourceDisplay(asc)}</span>}
+        </div>
+      )}
+      {asc.description && <div className="entry-card-desc">{asc.description}</div>}
+      <div className="entry-card-detail">
+        {asc.competenceAscendance && <span>Compétence : <b>{asc.competenceAscendance}</b></span>}
+        {asArray(asc.resistanceBonuses).length > 0 && (
+          <span>Résistances : <b>{replacePrefix(asc.replaceRaceResistances)}{asArray(asc.resistanceBonuses).map((r) => `${r.type === 'malus' ? 'Malus' : 'Bonus'} ${r.resistance || r.resistanceKey} ${r.value > 0 ? '+' : ''}${r.value}`).join(', ')}</b></span>
+        )}
+        {asArray(asc.aptitudes).length > 0 && (
+          <span>Aptitudes : <b>{replacePrefix(asc.replaceRaceAptitudes)}{asArray(asc.aptitudes).map((a) => a.nom).join(', ')}</b></span>
+        )}
+        {asc.aptitudeChoices && <span>Choix aptitudes : <b>+1 x{asc.aptitudeChoices.plusOne ?? 1} · +2 x{asc.aptitudeChoices.plusTwo ?? 1}</b></span>}
+        {asArray(asc.langues).length > 0 && (
+          <span>Langues : <b>{replacePrefix(asc.replaceRaceLanguages)}{asArray(asc.langues).map((l) => l.nom).join(', ')}</b></span>
+        )}
+        {asArray(asc.provenanceKeys).length > 0 && (
+          <span>Provenances : <b>{asArray(asc.provenanceKeys).map((k) => provenanceOptions.find((p) => p.key === k)?.nom || k).join(', ')}</b></span>
+        )}
+      </div>
+      <div className="entry-card-actions">
         <button className="admin-btn" onClick={() => { setEditingAscendance(asc); setShowForm(true); }}>Modifier</button>
         <button className="admin-btn admin-btn--danger" onClick={() => setConfirmDelete({
           title: "Supprimer l'ascendance",
@@ -730,7 +734,7 @@ export default function AscendancesPanel() {
           onConfirm: () => asc.custom ? deleteAscendance(asc.id) : hideDefaultAscendance(asc.key),
         })}>Supprimer</button>
       </div>
-    </article>
+    </div>
   );
 
   const handleSave = (form) => {
@@ -780,7 +784,7 @@ export default function AscendancesPanel() {
           .filter((race) => filtered.some((a) => a.race === race.key))}
         entriesForCategory={(category) => filtered.filter((a) => a.race === category.key)}
         renderContent={(category, categoryEntries) => (
-          <div className="ascendance-row-grid">
+          <div className="entry-card-grid entry-card-grid--wide">
             {categoryEntries.length > 0 ? categoryEntries.map(renderAscendanceCard) : (
               <div className="index-empty">Aucune ascendance dans cette race.</div>
             )}

@@ -139,7 +139,7 @@ export default function ItemCategoriePanel() {
       {filteredRoots.length === 0 ? (
         <p style={{ opacity: 0.5, textAlign: 'center', marginTop: '2rem' }}>Aucune catégorie d'objet.</p>
       ) : (
-        <div className="ascendance-row-grid">
+        <div className="entry-card-grid entry-card-grid--wide">
           {filteredRoots.map((category) => {
             const linkedItems = itemCountFor(category.id);
             const iconEntry = getItemIcon(category.icone);
@@ -152,39 +152,38 @@ export default function ItemCategoriePanel() {
               onConfirm: () => deleteItemCategory(target.id),
             });
             return (
-              <article key={category.id} className="ascendance-row-card" style={{ '--ascendance-color': category.couleur || '#c8a84a' }}>
-                <div className="ascendance-row-marker" />
-                <div className="ascendance-row-main">
-                  <div className="ascendance-row-head">
-                    <div>
-                      <h3>{iconEntry && <iconEntry.Icon size={16} strokeWidth={1.6} className="item-card-title-icon" />} {category.nom}</h3>
-                      <span>{linkedItems} item{linkedItems > 1 ? 's' : ''}</span>
-                    </div>
-                    <b>Section</b>
+              <div key={category.id} className="entry-card" style={{ '--entry-color': category.couleur || '#c8a84a' }}>
+                <div className="entry-card-top">
+                  <div className="entry-card-badge">
+                    {iconEntry ? <iconEntry.Icon size={20} strokeWidth={1.6} /> : category.nom.trim().charAt(0).toUpperCase()}
                   </div>
-                  {category.description && <p>{category.description}</p>}
-                  <div className="ascendance-row-stats ascendance-row-stats--subcategories">
-                    <span>Sous-catégories :</span>
-                    {childrenOf(category.id).length > 0 ? (
-                      <div className="item-icon-picker-grid item-icon-picker-grid--inline">
-                        {childrenOf(category.id).map((child) => {
-                          const childIcon = getItemIcon(child.icone);
-                          return (
-                            <button key={child.id} type="button" className="item-icon-picker-option" onClick={() => startCategoryEdit(child)}>
-                              {childIcon ? <childIcon.Icon size={22} strokeWidth={1.5} /> : <span className="item-icon-picker-plus">?</span>}
-                              <span>{child.nom}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : <em>Aucune</em>}
+                  <div className="entry-card-body">
+                    <span className="entry-card-kicker">Section — {linkedItems} item{linkedItems > 1 ? 's' : ''}</span>
+                    <h3 className="entry-card-title">{category.nom}</h3>
                   </div>
                 </div>
-                <div className="ascendance-row-actions">
+                {category.description && <div className="entry-card-desc">{category.description}</div>}
+                <div className="entry-card-detail">
+                  <span>Sous-catégories :</span>
+                  {childrenOf(category.id).length > 0 ? (
+                    <div className="item-icon-picker-grid item-icon-picker-grid--inline">
+                      {childrenOf(category.id).map((child) => {
+                        const childIcon = getItemIcon(child.icone);
+                        return (
+                          <button key={child.id} type="button" className="item-icon-picker-option" onClick={() => startCategoryEdit(child)}>
+                            {childIcon ? <childIcon.Icon size={22} strokeWidth={1.5} /> : <span className="item-icon-picker-plus">?</span>}
+                            <span>{child.nom}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : <em>Aucune</em>}
+                </div>
+                <div className="entry-card-actions">
                   <button className="admin-btn" onClick={() => startCategoryEdit(category)}>Modifier</button>
                   <button className="admin-btn admin-btn--danger" onClick={() => requestDeleteCategory(category, linkedItems)}>Supprimer</button>
                 </div>
-              </article>
+              </div>
             );
           })}
         </div>

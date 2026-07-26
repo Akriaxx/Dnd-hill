@@ -205,43 +205,41 @@ export default function SousClassesPanel() {
     const scKey = sc.key || slugifyKey(sc.nom);
     const linkedMaitrises = maitrises.filter((m) => asArray(m.sousClasses).includes(scKey));
     return (
-      <article key={`${sc.nom}-${entryIndex}`} className="ascendance-row-card" style={{ '--ascendance-color': color }}>
-        <div className="ascendance-row-marker" />
-        <div className="ascendance-row-main">
-          <div className="ascendance-row-head">
-            <div><h3>{sc.nom}</h3><span>{parentClass?.nom || sc.classe || '—'}</span></div>
-            <b>Sous-classe</b>
+      <div key={`${sc.nom}-${entryIndex}`} className="entry-card" style={{ '--entry-color': color }}>
+        <div className="entry-card-top">
+          <div className="entry-card-badge">{sc.nom.trim().charAt(0).toUpperCase()}</div>
+          <div className="entry-card-body">
+            <span className="entry-card-kicker">Sous-classe — {parentClass?.nom || sc.classe || '—'}</span>
+            <h3 className="entry-card-title">{sc.nom}</h3>
           </div>
-          <div className="ascendance-row-stats">
-            Archétype : {sc.archetypeId != null
+        </div>
+        <div className="entry-card-detail">
+          <span>
+            Archétype : <b>{sc.archetypeId != null
               ? (archetypes.find((a) => String(a.id) === String(sc.archetypeId))?.nom || '—')
-              : `Hérite de ${parentClass?.nom || 'la classe'}`}
-          </div>
-          <div className="ascendance-row-stats">
-            Dés : {sc.replaceClassResourceDice ? resourceDiceSummary(sc) : `Hérite de ${parentClass?.nom || 'la classe'}`}
-          </div>
-          <div className="ascendance-row-stats">
-            Par niveau : {sc.replaceClassSpellCounts
+              : `Hérite de ${parentClass?.nom || 'la classe'}`}</b>
+          </span>
+          <span>
+            Dés : <b>{sc.replaceClassResourceDice ? resourceDiceSummary(sc) : `Hérite de ${parentClass?.nom || 'la classe'}`}</b>
+          </span>
+          <span>
+            Par niveau : <b>{sc.replaceClassSpellCounts
               ? `${sc.nombreSortsMagiques ?? 0} sort(s) magique(s) · ${sc.nombreSortsPhysiques ?? 0} sort(s) physique(s)`
-              : `Hérite de ${parentClass?.nom || 'la classe'}`} · {sc.nombreCompetences ?? 0} compétence(s)
-          </div>
+              : `Hérite de ${parentClass?.nom || 'la classe'}`} · {sc.nombreCompetences ?? 0} compétence(s)</b>
+          </span>
           {linkedMaitrises.length > 0 && (
-            <div className="ascendance-row-stats">
-              Maîtrises : {linkedMaitrises.map((m) => m.label || m.nom).join(' · ')}
-            </div>
+            <span>Maîtrises : <b>{linkedMaitrises.map((m) => m.label || m.nom).join(', ')}</b></span>
           )}
           {asArray(sc.allowedRaces).length > 0 && (
-            <div className="ascendance-row-stats">
-              Races : {asArray(sc.allowedRaces).map((k) => raceLockOptions.find((r) => r.key === k)?.nom || k).join(' · ')}
-            </div>
+            <span>Races : <b>{asArray(sc.allowedRaces).map((k) => raceLockOptions.find((r) => r.key === k)?.nom || k).join(', ')}</b></span>
           )}
-          {sc.description && <p>{sc.description}</p>}
         </div>
-        <div className="ascendance-row-actions">
+        {sc.description && <div className="entry-card-desc">{sc.description}</div>}
+        <div className="entry-card-actions">
           <button className="admin-btn" onClick={() => { setEditingSubclass(sc); setShowForm(true); }}>Modifier</button>
           <button className="admin-btn admin-btn--danger" onClick={() => handleDelete(sc)}>Supprimer</button>
         </div>
-      </article>
+      </div>
     );
   };
 
@@ -312,7 +310,7 @@ export default function SousClassesPanel() {
             filtered.filter((sc) => sc.classe === category.key || sc.classe === category.nom)
           }
           renderContent={(category, categoryEntries) => (
-            <div className="ascendance-row-grid">
+            <div className="entry-card-grid entry-card-grid--wide">
               {categoryEntries.length > 0 ? categoryEntries.map(renderSubclassCard) : (
                 <div className="index-empty">Aucune sous-classe dans cette classe.</div>
               )}

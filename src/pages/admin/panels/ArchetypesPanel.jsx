@@ -115,47 +115,46 @@ export default function ArchetypesPanel() {
       {filteredRoots.length === 0 ? (
         <p style={{ opacity: 0.5, textAlign: 'center', marginTop: '2rem' }}>Aucun archétype créé.</p>
       ) : (
-        <div className="ascendance-row-grid">
+        <div className="entry-card-grid entry-card-grid--wide">
           {filteredRoots.map((root) => {
             const iconEntry = getItemIcon(root.icone);
             const children = childrenOf(root.id);
             return (
-              <article key={root.id} className="ascendance-row-card" style={{ '--ascendance-color': '#c8a84a' }}>
-                <div className="ascendance-row-marker" />
-                <div className="ascendance-row-main">
-                  <div className="ascendance-row-head">
-                    <div>
-                      <h3>{iconEntry && <iconEntry.Icon size={16} strokeWidth={1.6} className="item-card-title-icon" />} {root.nom}</h3>
-                      <span>Principal</span>
-                    </div>
-                    <b>Archétype</b>
+              <div key={root.id} className="entry-card" style={{ '--entry-color': '#c8a84a' }}>
+                <div className="entry-card-top">
+                  <div className="entry-card-badge">
+                    {iconEntry ? <iconEntry.Icon size={20} strokeWidth={1.6} /> : root.nom.trim().charAt(0).toUpperCase()}
                   </div>
-                  {root.description && (
-                    <div className="ascendance-row-stats"><SmartText text={root.description} /></div>
-                  )}
-                  <div className="ascendance-row-stats ascendance-row-stats--subcategories">
-                    <span>Second :</span>
-                    {children.length > 0 ? (
-                      <div className="item-icon-picker-grid item-icon-picker-grid--inline">
-                        {children.map((child) => {
-                          const childIcon = getItemIcon(child.icone);
-                          return (
-                            <button key={child.id} type="button" className="item-icon-picker-option" onClick={() => startEdit(child)}>
-                              {childIcon ? <childIcon.Icon size={22} strokeWidth={1.5} /> : <span className="item-icon-picker-plus">?</span>}
-                              <span>{child.nom}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : <em>Aucun</em>}
+                  <div className="entry-card-body">
+                    <span className="entry-card-kicker">Archétype Principal</span>
+                    <h3 className="entry-card-title">{root.nom}</h3>
                   </div>
                 </div>
-                <div className="ascendance-row-actions">
+                {root.description && (
+                  <div className="entry-card-desc"><SmartText text={root.description} /></div>
+                )}
+                <div className="entry-card-detail">
+                  <span>Second :</span>
+                  {children.length > 0 ? (
+                    <div className="item-icon-picker-grid item-icon-picker-grid--inline">
+                      {children.map((child) => {
+                        const childIcon = getItemIcon(child.icone);
+                        return (
+                          <button key={child.id} type="button" className="item-icon-picker-option" onClick={() => startEdit(child)}>
+                            {childIcon ? <childIcon.Icon size={22} strokeWidth={1.5} /> : <span className="item-icon-picker-plus">?</span>}
+                            <span>{child.nom}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : <em>Aucun</em>}
+                </div>
+                <div className="entry-card-actions">
                   <button className="admin-btn" onClick={() => startCreateSecond(root.id)}>+ Second</button>
                   <button className="admin-btn" onClick={() => startEdit(root)}>Modifier</button>
                   <button className="admin-btn admin-btn--danger" onClick={() => requestDelete(root)}>Supprimer</button>
                 </div>
-              </article>
+              </div>
             );
           })}
         </div>

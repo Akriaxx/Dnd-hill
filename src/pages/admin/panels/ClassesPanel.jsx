@@ -207,39 +207,37 @@ export default function ClassesPanel() {
     const category = classCategories.find((c) => c.key === cls.type);
     const color = category?.couleur || '#c8a84a';
     return (
-      <article key={`${cls.nom}-${entryIndex}`} className="ascendance-row-card class-row-card" style={{ '--ascendance-color': color }}>
-        <div className="ascendance-row-marker" />
-        <div className="ascendance-row-main">
-          <div className="ascendance-row-head">
-            <div><h3>{cls.nom}</h3><span>{category?.nom || cls.type}</span></div>
-            <b>Classe</b>
+      <div key={`${cls.nom}-${entryIndex}`} className="entry-card" style={{ '--entry-color': color }}>
+        <div className="entry-card-top">
+          <div className="entry-card-badge">{cls.nom.trim().charAt(0).toUpperCase()}</div>
+          <div className="entry-card-body">
+            <span className="entry-card-kicker">Classe — {category?.nom || cls.type}</span>
+            <h3 className="entry-card-title">{cls.nom}</h3>
           </div>
-          {cls.archetypeId != null && (
-            <div className="ascendance-row-stats">
-              Archétype : {archetypes.find((a) => String(a.id) === String(cls.archetypeId))?.nom || '—'}
-            </div>
-          )}
-          <div className="ascendance-row-stats">Dés : {resourceDiceSummary(cls)}</div>
-          {asArray(cls.allowedItemClasses).length > 0 && (
-            <div className="ascendance-row-stats">
-              Classes d'équipement : {cls.allowedItemClasses.map((id) => itemClasses.find((c) => c.id === id)?.nom).filter(Boolean).join(' · ')}
-            </div>
-          )}
-          <div className="ascendance-row-stats">
-            Par niveau : {cls.nombreSortsMagiques ?? 0} sort(s) magique(s) · {cls.nombreSortsPhysiques ?? 0} sort(s) physique(s) · {cls.nombreCompetences ?? 0} compétence(s)
-          </div>
-          <div className="ascendance-row-stats">
-            Races : {asArray(cls.allowedRaces).length > 0
-              ? asArray(cls.allowedRaces).map((k) => raceLockOptions.find((r) => r.key === k)?.nom || k).join(' · ')
-              : 'Toutes'}
-          </div>
-          {cls.description && <p>{cls.description}</p>}
         </div>
-        <div className="ascendance-row-actions">
+        <div className="entry-card-detail">
+          {cls.archetypeId != null && (
+            <span>Archétype : <b>{archetypes.find((a) => String(a.id) === String(cls.archetypeId))?.nom || '—'}</b></span>
+          )}
+          <span>Dés : <b>{resourceDiceSummary(cls)}</b></span>
+          {asArray(cls.allowedItemClasses).length > 0 && (
+            <span>Équipement : <b>{cls.allowedItemClasses.map((id) => itemClasses.find((c) => c.id === id)?.nom).filter(Boolean).join(', ')}</b></span>
+          )}
+          <span>
+            Par niveau : <b>{cls.nombreSortsMagiques ?? 0} sort(s) magique(s) · {cls.nombreSortsPhysiques ?? 0} sort(s) physique(s) · {cls.nombreCompetences ?? 0} compétence(s)</b>
+          </span>
+          <span>
+            Races : <b>{asArray(cls.allowedRaces).length > 0
+              ? asArray(cls.allowedRaces).map((k) => raceLockOptions.find((r) => r.key === k)?.nom || k).join(', ')
+              : 'Toutes'}</b>
+          </span>
+        </div>
+        {cls.description && <div className="entry-card-desc">{cls.description}</div>}
+        <div className="entry-card-actions">
           <button className="admin-btn" onClick={() => { setEditingClass(cls); setShowForm(true); }}>Modifier</button>
           <button className="admin-btn admin-btn--danger" onClick={() => handleDelete(cls)}>Supprimer</button>
         </div>
-      </article>
+      </div>
     );
   };
 
@@ -301,7 +299,7 @@ export default function ClassesPanel() {
             .filter((c) => filtered.some((cls) => cls.type === c.key))}
           entriesForCategory={(category) => filtered.filter((c) => c.type === category.key)}
           renderContent={(category, categoryEntries) => (
-            <div className="ascendance-row-grid class-row-grid">
+            <div className="entry-card-grid entry-card-grid--wide">
               {categoryEntries.length > 0 ? categoryEntries.map(renderClassCard) : (
                 <div className="index-empty">Aucune classe dans cette catégorie.</div>
               )}

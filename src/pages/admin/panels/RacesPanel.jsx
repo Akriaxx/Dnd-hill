@@ -619,27 +619,35 @@ export default function RacesPanel() {
       .join(' · ') || null;
     const languages = asArray(race.langues).map((l) => l.nom).join(' · ') || null;
     return (
-      <article key={race.id || `${race.nom}-${entryIndex}`} className={`ascendance-row-card race-row-card${race.custom ? ' is-custom' : ''}`} style={{ '--ascendance-color': color }}>
-        <div className="ascendance-row-marker" />
-        <div className="ascendance-row-main">
-          <div className="ascendance-row-head">
-            <div><h3>{race.nom}</h3><span>{race.custom ? 'Race personnalisée' : 'Race de base'}</span></div>
-            <b>Déplacement {race.deplacement ?? '-'}</b>
-          </div>
-          {(statsDisplay || race.bonusRaciaux) && <div className="ascendance-row-stats">{statsDisplay || race.bonusRaciaux}</div>}
-          {resourceDisplay && <div className="ascendance-row-stats">{resourceDisplay}</div>}
-          {race.description && <p>{race.description}</p>}
-          <div className="ascendance-row-details">
-            {race.competenceRaciale && <span>Compétence raciale : {race.competenceRaciale}</span>}
-            {resistances && <span>Résistances : {resistances}</span>}
-            {languages && <span>Langues : {languages}</span>}
+      <div key={race.id || `${race.nom}-${entryIndex}`} className="entry-card" style={{ '--entry-color': color }}>
+        <div className="entry-card-top">
+          <div className="entry-card-badge">{race.nom.trim().charAt(0).toUpperCase()}</div>
+          <div className="entry-card-body">
+            <span className="entry-card-kicker">
+              {race.custom ? 'Race personnalisée' : 'Race de base'} — Déplacement {race.deplacement ?? '-'}
+            </span>
+            <h3 className="entry-card-title">{race.nom}</h3>
           </div>
         </div>
-        <div className="ascendance-row-actions">
+        {(statsDisplay || race.bonusRaciaux || resourceDisplay) && (
+          <div className="entry-card-meta">
+            {(statsDisplay || race.bonusRaciaux) && <span>{statsDisplay || race.bonusRaciaux}</span>}
+            {resourceDisplay && <span>{resourceDisplay}</span>}
+          </div>
+        )}
+        {race.description && <div className="entry-card-desc">{race.description}</div>}
+        {(race.competenceRaciale || resistances || languages) && (
+          <div className="entry-card-detail">
+            {race.competenceRaciale && <span>Compétence raciale : <b>{race.competenceRaciale}</b></span>}
+            {resistances && <span>Résistances : <b>{resistances}</b></span>}
+            {languages && <span>Langues : <b>{languages}</b></span>}
+          </div>
+        )}
+        <div className="entry-card-actions">
           <button className="admin-btn" onClick={() => { setEditingRace(race); setShowForm(true); }}>Modifier</button>
           <button className="admin-btn admin-btn--danger" onClick={() => handleDelete(race)}>Supprimer</button>
         </div>
-      </article>
+      </div>
     );
   };
 
@@ -687,7 +695,7 @@ export default function RacesPanel() {
               : customRaces.filter((r) => (r.categoryKey || 'custom') === category.key)
           )}
           renderContent={(category, categoryEntries) => (
-            <div className="ascendance-row-grid race-row-grid">
+            <div className="entry-card-grid entry-card-grid--wide">
               {categoryEntries.length > 0 ? categoryEntries.map((race, i) => renderRaceCard(race, i, category)) : (
                 <div className="index-empty">Aucune race dans cette catégorie.</div>
               )}
