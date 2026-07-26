@@ -2491,13 +2491,19 @@ function rollLevelDieFormula(formula) {
   };
 }
 
-function getLevelUpRewards(char, classDef, subclassDef, levelRule, customCompetences = []) {
+function getLevelUpRewards(char, classDef, subclassDef, levelRule, customCompetences = [], customSpellRanks = []) {
   const newLevel = (char.niveau ?? 0) + 1;
+  const oldLevel = char.niveau ?? 0;
   const pts = Number(levelRule?.characterPoints ?? (newLevel % 4 === 0 ? 2 : 1)) || 0;
   const { dice, source } = getLevelUpDice(classDef, subclassDef);
   const { sortsMagiques, sortsPhysiques } = getLevelUpSpellCounts(classDef, subclassDef);
   const competences = getLevelGainNumber(classDef.nombreCompetences) + getLevelGainNumber(subclassDef?.nombreCompetences);
-  const newlyUnlockedCompetences = getNewlyUnlockedCompetences(char, customCompetences, char.niveau ?? 0, newLevel);
+  const newlyUnlockedCompetences = getNewlyUnlockedCompetences(char, customCompetences, oldLevel, newLevel);
+  const newlyUnlockedSpellRanks = getNewlyUnlockedSpellRanks(customSpellRanks, oldLevel, newLevel);
+  const otherUnlocks = [
+    ...newlyUnlockedCompetences.map((comp) => ({ id: `comp-${comp.id}`, nom: comp.nom, description: comp.description })),
+    ...newlyUnlockedSpellRanks.map((rank) => ({ id: `rank-${rank.id}`, nom: `Rang de sort : ${rank.label}`, description: 'Nouveau palier de rang accessible dans le Grimoire.' })),
+  ];
   const list = [
     { delay: 0, icon: '⬆', label: `Point${pts > 1 ? 's' : ''} de caractéristique`, value: `+${pts}`, color: '#c8a84a' },
     { delay: 340, icon: '⚔', label: 'Sort physique', value: `+${sortsPhysiques}`, color: '#ff9b4a' },
@@ -2507,19 +2513,19 @@ function getLevelUpRewards(char, classDef, subclassDef, levelRule, customCompete
     // à mesure que d'autres types de contenu (aptitudes, items…) auront
     // leur propre niveau minimum un jour, cette ligne reste unique au
     // lieu de faire grandir la modale indéfiniment.
-    ...(newlyUnlockedCompetences.length > 0 ? [{
+    ...(otherUnlocks.length > 0 ? [{
       delay: 1360,
       icon: '★',
       label: 'Autres',
-      value: `${newlyUnlockedCompetences.length} déblocage${newlyUnlockedCompetences.length > 1 ? 's' : ''}`,
+      value: `${otherUnlocks.length} déblocage${otherUnlocks.length > 1 ? 's' : ''}`,
       color: '#e8c85a',
       expandable: true,
     }] : []),
   ];
-  return { list, dice, diceSource: source, pointsCarac: pts, sortsPhysiques, sortsMagiques, competences, newlyUnlockedCompetences };
+  return { list, dice, diceSource: source, pointsCarac: pts, sortsPhysiques, sortsMagiques, competences, otherUnlocks };
 }
 
-function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customSubclasses = [], customMaitriseEntries = [], customCompetences = [], levelRules = [], onClose, onConfirm, onDraftChange }) {
+function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customSubclasses = [], customMaitriseEntries = [], customCompetences = [], customSpellRanks = [], levelRules = [], onClose, onConfirm, onDraftChange }) {
   const newLevel = (char.niveau ?? 0) + 1;
   const levelRule = getNextLevelRule(levelRules, char.niveau ?? 0);
   const savedDraft = char.levelUpDraft?.level === newLevel ? char.levelUpDraft : null;
@@ -2557,7 +2563,7 @@ function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customS
   const effectiveSubclassDef = needsSubclassChoice
     ? getCombinedSubclassDefinitionByName(selectedClass || char.classe, selectedSubclass, customSubclasses)
     : subclassDef;
-  const data = getLevelUpRewards(char, effectiveClassDef, effectiveSubclassDef, levelRule, customCompetences);
+  const data = getLevelUpRewards(char, effectiveClassDef, effectiveSubclassDef, levelRule, customCompetences, customSpellRanks);
   const [showOthers, setShowOthers] = useState(false);
   const [selectedResource, setSelectedResource] = useState(savedDraft?.selectedResource || '');
   const [rollResult, setRollResult] = useState(savedDraft?.rollResult || null);
@@ -2836,12 +2842,12 @@ function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customS
           ))}
         </div>
 
-        {showOthers && data.newlyUnlockedCompetences.length > 0 && (
+        {showOthers && data.otherUnlocks.length > 0 && (
           <div className="levelup-others-panel">
-            {data.newlyUnlockedCompetences.map((comp) => (
-              <div key={comp.id} className="levelup-others-item">
-                <strong>{comp.nom}</strong>
-                {comp.description && <SmartText text={comp.description} />}
+            {data.otherUnlocks.map((unlock) => (
+              <div key={unlock.id} className="levelup-others-item">
+                <strong>{unlock.nom}</strong>
+                {unlock.description && <SmartText text={unlock.description} />}
               </div>
             ))}
           </div>
@@ -2880,7 +2886,7 @@ function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customS
 
 function DetailFiche({ char }) {
   const { levelUp, updateCharacter } = useCharacterStore();
-  const { customClasses, customSubclasses, customLevelRules, customMaitriseEntries, customCompetences } = useAdminStore();
+  const { customClasses, customSubclasses, customLevelRules, customMaitriseEntries, customCompetences, customSpellRanks } = useAdminStore();
   const classDef = getCombinedClassDefinition(char, customClasses);
   const subclassDef = getCombinedSubclassDefinition(char, customSubclasses);
   const masteryStat = classDef.magique || 'CHA';
@@ -2922,6 +2928,7 @@ function DetailFiche({ char }) {
                   customSubclasses={customSubclasses}
                   customMaitriseEntries={customMaitriseEntries || []}
                   customCompetences={customCompetences || []}
+                  customSpellRanks={customSpellRanks || []}
                   levelRules={customLevelRules}
                   onClose={() => setShowLevelUp(false)}
                   onConfirm={(rewards) => levelUp(char.id, rewards)}
@@ -4226,6 +4233,16 @@ function getEligibleCatalogCompetences(char, customCompetences = []) {
 function getNewlyUnlockedCompetences(char, customCompetences, oldLevel, newLevel) {
   return getEligibleCatalogCompetences({ ...char, niveau: newLevel }, customCompetences)
     .filter((comp) => comp.restrictLevel != null && Number(comp.restrictLevel) > oldLevel && Number(comp.restrictLevel) <= newLevel);
+}
+
+// Côté magique, le Grimoire ne débloque pas de sorts nommés à l'avance
+// (le joueur les crée lui-même dans ses emplacements) — ce qui se
+// débloque par niveau, ce sont les paliers de Rang (Mineur/Moyen/Fort…,
+// voir SpellRanksPanel), qui élargissent la portée/les dés accessibles.
+function getNewlyUnlockedSpellRanks(customSpellRanks = [], oldLevel, newLevel) {
+  return (customSpellRanks || []).filter((rank) => (
+    rank.restrictLevel != null && Number(rank.restrictLevel) > oldLevel && Number(rank.restrictLevel) <= newLevel
+  ));
 }
 
 function getComputedCompetenceGroups(char) {
