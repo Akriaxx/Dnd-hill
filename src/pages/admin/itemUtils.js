@@ -1,5 +1,3 @@
-import { asArray } from './adminUtils';
-
 export const BLANK_ITEM_CATEGORY = { nom: '', description: '', couleur: '#c8a84a', icone: '', parentId: null };
 
 export const BLANK_ITEM = {
@@ -17,8 +15,9 @@ export const BLANK_ITEM = {
   rareteId: null,
   effects: null,
   // Malus optionnel appliqué quand la classe du porteur n'autorise pas la
-  // classe d'équipement de cet objet (voir Class.allowedItemClasses).
-  hasCondition: false,
+  // classe d'équipement de cet objet (voir Class.allowedItemClasses). Pas
+  // de flag "activé" séparé — comme pour `effects`, on regarde juste si
+  // des valeurs non nulles ont été configurées (hasAnyItemEffect).
   conditionEffects: null,
 };
 
@@ -28,7 +27,7 @@ export const BLANK_ITEM = {
 // personnage autorisent ou non (voir ClassesPanel).
 export const BLANK_ITEM_CLASS = { nom: '', description: '', rootCategoryId: null };
 
-export const BLANK_ITEM_RARITY = { nom: '', couleur: '#c8a84a', niveau: 0, description: '' };
+export const BLANK_ITEM_RARITY = { nom: '', couleur: '#c8a84a', description: '' };
 
 export const ITEM_EQUIP_SLOTS = [
   { key: '', label: 'Aucun slot' },

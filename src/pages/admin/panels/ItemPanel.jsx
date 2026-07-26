@@ -177,7 +177,7 @@ export default function ItemPanel() {
   const categories = mergeTemporaryRows(TEMP_ITEM_CATEGORIES, customItemCategories);
   const items = mergeTemporaryRows(TEMP_ITEMS, customItems);
   const itemClasses = asArray(customItemClasses);
-  const itemRarities = asArray(customItemRarities).slice().sort((a, b) => (a.niveau ?? 0) - (b.niveau ?? 0));
+  const itemRarities = asArray(customItemRarities).slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
 
   const [showItemForm, setShowItemForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -186,8 +186,6 @@ export default function ItemPanel() {
   const [itemCategoryScopeId, setItemCategoryScopeId] = useState(null);
   const [effectsOpen, setEffectsOpen] = useState(false);
   const [conditionOpen, setConditionOpen] = useState(false);
-  const openEffectsPanel = (next) => { setEffectsOpen(next); if (next) setConditionOpen(false); };
-  const openConditionPanel = (next) => { setConditionOpen(next); if (next) setEffectsOpen(false); };
   const { mounted: effectsMounted, shrink: effectsShrink, shifted: effectsShifted, visible: effectsVisible } = useGameplayEffectsPanel(effectsOpen);
   const { mounted: conditionMounted, shrink: conditionShrink, shifted: conditionShifted, visible: conditionVisible } = useGameplayEffectsPanel(conditionOpen);
   const [modalRef, modalHeight] = useMatchedHeight();
@@ -226,8 +224,7 @@ export default function ItemPanel() {
       useText: itemForm.consumable ? itemForm.useText : '',
       equipSlot: itemForm.equipable ? itemForm.equipSlot : '',
       classeId: itemForm.equipable ? itemForm.classeId : null,
-      hasCondition: itemForm.equipable ? Boolean(itemForm.hasCondition) : false,
-      conditionEffects: itemForm.equipable && itemForm.hasCondition ? normalizeItemEffects(itemForm.conditionEffects) : null,
+      conditionEffects: itemForm.equipable ? normalizeItemEffects(itemForm.conditionEffects) : null,
     };
     if (editingItem) updateItem(editingItem.id, payload);
     else addItem(payload);
@@ -255,7 +252,7 @@ export default function ItemPanel() {
     });
     setItemCategoryScopeId(getRootItemCategoryId(categories, item.categoryId));
     setEffectsOpen(hasAnyItemEffect(item.effects));
-    setConditionOpen(false);
+    setConditionOpen(hasAnyItemEffect(item.conditionEffects));
     setShowItemForm(true);
   };
 
@@ -373,20 +370,14 @@ export default function ItemPanel() {
                   </div>
                 </div>
               )}
-              {itemForm.equipable && (
-                <label className="index-value-toggle">
-                  <input type="checkbox" checked={Boolean(itemForm.hasCondition)} onChange={(e) => setItem('hasCondition', e.target.checked)} />
-                  <span>Condition (malus si la classe du porteur n'autorise pas cette classe d'équipement)</span>
-                </label>
-              )}
               <div className="comp-form-footer">
                 <button className="admin-btn" onClick={cancelItemForm}>Annuler</button>
                 <button className="race-form-save-btn" disabled={!itemForm.nom.trim()} onClick={handleItemSave}>
                   {editingItem ? 'Enregistrer' : "Créer l'entrée"}
                 </button>
-                <GameplayEffectsToggle open={effectsOpen} onToggle={openEffectsPanel} />
-                {itemForm.equipable && itemForm.hasCondition && (
-                  <GameplayEffectsToggle open={conditionOpen} onToggle={openConditionPanel} label="Condition" />
+                <GameplayEffectsToggle open={effectsOpen} onToggle={setEffectsOpen} />
+                {itemForm.equipable && (
+                  <GameplayEffectsToggle open={conditionOpen} onToggle={setConditionOpen} label="Condition" />
                 )}
               </div>
             </div>

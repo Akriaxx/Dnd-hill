@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useAdminStore } from '../../../store/adminStore';
 import SmartDescEditor from '../../../components/admin/SmartDescEditor';
-import { ConfirmModal, AdminFilterPanel, SectionGrid, AdminCard, DetailLine, TagColorPicker } from '../AdminShared';
+import { ConfirmModal, AdminFilterPanel, SectionGrid, AdminCard, TagColorPicker } from '../AdminShared';
 import { asArray, includesText } from '../adminUtils';
 import { BLANK_ITEM_RARITY } from '../itemUtils';
 
 export default function ItemRaretePanel() {
   const { customItemRarities, addItemRarity, updateItemRarity, deleteItemRarity } = useAdminStore();
-  const rarities = asArray(customItemRarities).slice().sort((a, b) => (a.niveau ?? 0) - (b.niveau ?? 0));
+  const rarities = asArray(customItemRarities).slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
 
   const [showForm, setShowForm] = useState(false);
   const [editingRarity, setEditingRarity] = useState(null);
@@ -20,9 +20,8 @@ export default function ItemRaretePanel() {
 
   const handleSave = () => {
     if (!canSave) return;
-    const payload = { ...form, niveau: Number(form.niveau) || 0 };
-    if (editingRarity) updateItemRarity(editingRarity.id, payload);
-    else addItemRarity(payload);
+    if (editingRarity) updateItemRarity(editingRarity.id, form);
+    else addItemRarity(form);
     setForm(BLANK_ITEM_RARITY);
     setEditingRarity(null);
     setShowForm(false);
@@ -58,11 +57,6 @@ export default function ItemRaretePanel() {
                 <TagColorPicker value={form.couleur} onChange={(value) => set('couleur', value)} />
               </div>
               <div className="comp-form-field">
-                <label>Niveau</label>
-                <input type="number" min="0" value={form.niveau ?? 0} onChange={(e) => set('niveau', e.target.value)} />
-                <span style={{ fontSize: '0.8em', opacity: 0.6 }}>Sert à trier les raretés du plus commun au plus rare.</span>
-              </div>
-              <div className="comp-form-field">
                 <label>Description</label>
                 <SmartDescEditor value={form.description} onChange={(value) => set('description', value)} placeholder="Description de la rareté..." />
               </div>
@@ -90,7 +84,7 @@ export default function ItemRaretePanel() {
       <AdminFilterPanel search={search} onSearch={setSearch} count={filtered.length} total={rarities.length} />
 
       {rarities.length === 0 && (
-        <p style={{ opacity: 0.5, textAlign: 'center', marginTop: '2rem' }}>Aucun niveau de rareté défini.</p>
+        <p style={{ opacity: 0.5, textAlign: 'center', marginTop: '2rem' }}>Aucune rareté définie.</p>
       )}
 
       <SectionGrid>
@@ -99,13 +93,10 @@ export default function ItemRaretePanel() {
             key={rarity.id}
             title={rarity.nom}
             badgeColor={rarity.couleur}
-            badge={`Niveau ${rarity.niveau ?? 0}`}
             desc={rarity.description}
             onEdit={() => startEdit(rarity)}
             onDelete={() => setConfirmDelete({ title: 'Supprimer la rareté', message: `Supprimer "${rarity.nom}" ?`, dangerLabel: 'Supprimer', onConfirm: () => deleteItemRarity(rarity.id) })}
-          >
-            <DetailLine label="Niveau" value={rarity.niveau ?? 0} />
-          </AdminCard>
+          />
         ))}
       </SectionGrid>
     </div>
