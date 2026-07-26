@@ -1,16 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useAdminStore } from '../../../store/adminStore';
 import { supabase } from '../../../lib/supabaseClient';
-import { ConfirmModal } from '../AdminShared';
+import { ConfirmModal, VerificationGate } from '../AdminShared';
+import { useAdminVerification } from '../useAdminVerification';
 import { slugifyKey } from '../adminUtils';
 import { MODERATOR_PERMISSIONS, getRoleDefinitions } from '../../../auth/permissions';
-import { sendVerificationCode } from '../../../services/mailerService';
-
-const generateCode = (length = 18) => {
-  const array = new Uint8Array(length);
-  crypto.getRandomValues(array);
-  return Array.from(array).map((b) => b % 10).join('');
-};
 
 const BLANK_ROLE = { label: '', permissions: {} };
 
@@ -34,46 +28,13 @@ export default function RolesPanel() {
   const [form, setForm] = useState(BLANK_ROLE);
   const [formError, setFormError] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [verifyOpen, setVerifyOpen] = useState(false);
-  const [verifyCode, setVerifyCode] = useState('');
-  const [expectedCode, setExpectedCode] = useState('');
-  const [verifyError, setVerifyError] = useState('');
-  const [verifySending, setVerifySending] = useState(false);
-  const [verified, setVerified] = useState(false);
-
-  const startVerification = async () => {
-    const code = generateCode(18);
-    setExpectedCode(code);
-    setVerifyCode('');
-    setVerifyError('');
-    setVerifyOpen(true);
-    setVerifySending(true);
-    try {
-      // TODO: récupérer l'email du compte connecté depuis le contexte auth
-      const adminEmail = 'lorkkya@gmail.com';
-      await sendVerificationCode({ to: adminEmail, code });
-    } catch {
-      setVerifyError("Impossible d'envoyer le code. Vérifiez la configuration du mailer.");
-    } finally {
-      setVerifySending(false);
-    }
-  };
-
-  const submitVerification = () => {
-    if (verifyCode !== expectedCode) {
-      setVerifyError('Code incorrect. Vérifiez votre boîte mail.');
-      return;
-    }
-    setVerified(true);
-    setVerifyOpen(false);
-    setExpectedCode('');
-    setVerifyCode('');
-    setVerifyError('');
-  };
+  const verification = useAdminVerification();
+  const { verified } = verification;
 
   const startCreate = () => { setEditingRole(null); setForm(BLANK_ROLE); setFormError(''); setShowForm(true); };
 
   const startEdit = (role) => {
+    if (!verified) return;
     setEditingRole(role);
     setForm({ label: role.label || '', permissions: role.permissions || {} });
     setFormError('');
@@ -96,6 +57,7 @@ export default function RolesPanel() {
   };
 
   const requestDelete = (role) => {
+    if (!verified) return;
     if (role.system) {
       setConfirmDelete({
         title: 'Réinitialiser le rôle système',
@@ -176,55 +138,15 @@ export default function RolesPanel() {
         </div>
       )}
 
-      {verifyOpen && (
-        <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && setVerifyOpen(false)}>
-          <div className="index-modal">
-            <div className="index-modal-header">
-              <h3>Procédure de vérification</h3>
-              <button className="admin-btn" onClick={() => setVerifyOpen(false)}>✕ Fermer</button>
-            </div>
-            <div className="index-form">
-              {verifySending ? (
-                <p className="verify-sending-msg">Envoi du code en cours…</p>
-              ) : (
-                <p className="verify-sending-msg">
-                  Un code à 18 chiffres a été envoyé à l'adresse associée à votre compte. Saisissez-le ci-dessous.
-                </p>
-              )}
-              <div className="comp-form-field">
-                <label>Code de vérification</label>
-                <input
-                  value={verifyCode}
-                  onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, '').slice(0, 18))}
-                  placeholder="18 chiffres"
-                  className="verify-code-input"
-                  disabled={verifySending}
-                />
-                {verifyError && <span className="player-field-error">{verifyError}</span>}
-              </div>
-            </div>
-            <div className="comp-form-footer">
-              <button className="admin-btn" onClick={() => setVerifyOpen(false)}>Annuler</button>
-              <button
-                className="race-form-save-btn"
-                onClick={submitVerification}
-                disabled={verifyCode.length < 18 || verifySending}
-              >
-                Valider
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="admin-panel-actions">
-        <button className="admin-btn" onClick={startVerification}>
-          {verified ? '✓ Vérifié' : 'Procédure de vérification'}
-        </button>
+        <VerificationGate verification={verification} />
         <button className="admin-btn admin-btn--add" onClick={startCreate} disabled={!verified}>
           + Nouveau rôle
         </button>
       </div>
+      {!verified && (
+        <p className="race-form-hint">Lancez la procédure de vérification pour modifier ou supprimer un rôle.</p>
+      )}
 
       <div className="role-list">
         {roles.map((role) => {
@@ -245,8 +167,8 @@ export default function RolesPanel() {
                 )}
               </div>
               <div className="role-row-actions">
-                <button className="admin-btn" onClick={() => startEdit(role)}>Modifier</button>
-                <button className="admin-btn admin-btn--danger" onClick={() => requestDelete(role)}>Supprimer</button>
+                <button className="admin-btn" onClick={() => startEdit(role)} disabled={!verified} title={!verified ? 'Vérification requise' : undefined}>Modifier</button>
+                <button className="admin-btn admin-btn--danger" onClick={() => requestDelete(role)} disabled={!verified} title={!verified ? 'Vérification requise' : undefined}>Supprimer</button>
               </div>
             </article>
           );

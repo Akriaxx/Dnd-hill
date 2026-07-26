@@ -763,6 +763,61 @@ export function IdentityEntryModal({ kindLabel, categories, initial, existingKey
   );
 }
 
+// Bouton + modale de la procédure de vérification (code à 18 chiffres
+// envoyé par email), partagés entre tous les panneaux qui gardent des
+// actions sensibles derrière `verified` — voir useAdminVerification.
+export function VerificationGate({ verification }) {
+  const { verified, verifyOpen, verifyCode, verifyError, verifySending, setVerifyCode, setVerifyOpen, startVerification, submitVerification } = verification;
+  return (
+    <>
+      <button className="admin-btn" onClick={startVerification}>
+        {verified ? '✓ Vérifié' : 'Procédure de vérification'}
+      </button>
+
+      {verifyOpen && (
+        <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && setVerifyOpen(false)}>
+          <div className="index-modal">
+            <div className="index-modal-header">
+              <h3>Procédure de vérification</h3>
+              <button className="admin-btn" onClick={() => setVerifyOpen(false)}>✕ Fermer</button>
+            </div>
+            <div className="index-form">
+              {verifySending ? (
+                <p className="verify-sending-msg">Envoi du code en cours…</p>
+              ) : (
+                <p className="verify-sending-msg">
+                  Un code à 18 chiffres a été envoyé à l'adresse associée à votre compte. Saisissez-le ci-dessous.
+                </p>
+              )}
+              <div className="comp-form-field">
+                <label>Code de vérification</label>
+                <input
+                  value={verifyCode}
+                  onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, '').slice(0, 18))}
+                  placeholder="18 chiffres"
+                  className="verify-code-input"
+                  disabled={verifySending}
+                />
+                {verifyError && <span className="player-field-error">{verifyError}</span>}
+              </div>
+            </div>
+            <div className="comp-form-footer">
+              <button className="admin-btn" onClick={() => setVerifyOpen(false)}>Annuler</button>
+              <button
+                className="race-form-save-btn"
+                onClick={submitVerification}
+                disabled={verifyCode.length < 18 || verifySending}
+              >
+                Valider
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 export function TagColorPicker({ value = '#ffffff', onChange }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value.toUpperCase());

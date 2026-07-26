@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAdminStore } from '../../../store/adminStore';
 import { supabase } from '../../../lib/supabaseClient';
-import { ConfirmModal } from '../AdminShared';
+import { ConfirmModal, VerificationGate } from '../AdminShared';
+import { useAdminVerification } from '../useAdminVerification';
 import { MODERATOR_PERMISSIONS, getRoleDefinitions } from '../../../auth/permissions';
 import { sendAccountActivation } from '../../../services/mailerService';
 
@@ -65,7 +66,7 @@ const getRoleLabel = (roles, key) => roles.find((role) => role.key === key)?.lab
 
 // ── Player card ───────────────────────────────────────────────
 
-function PlayerCard({ account, roleLabel, onEdit, onDelete, onToggleDisabled }) {
+function PlayerCard({ account, roleLabel, onEdit, onDelete, onToggleDisabled, verified }) {
   const name   = account.display_name || account.username;
   const showAt = account.display_name && account.display_name !== account.username;
   const date   = account.created_at
@@ -99,8 +100,8 @@ function PlayerCard({ account, roleLabel, onEdit, onDelete, onToggleDisabled }) 
           <button className="player-card-btn player-card-btn--unlock" onClick={onToggleDisabled}>
             {account.disabled ? 'Débloquer' : 'Suspendre'}
           </button>
-          <button className="player-card-btn" onClick={onEdit}>Modifier</button>
-          <button className="player-card-btn player-card-btn--del" onClick={onDelete}>✕</button>
+          <button className="player-card-btn" onClick={onEdit} disabled={!verified} title={!verified ? 'Vérification requise' : undefined}>Modifier</button>
+          <button className="player-card-btn player-card-btn--del" onClick={onDelete} disabled={!verified} title={!verified ? 'Vérification requise' : undefined}>✕</button>
         </div>
       </div>
     </div>
@@ -122,6 +123,8 @@ export default function PlayersPanel() {
   const [formError, setFormError] = useState('');
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirmPwd, setShowConfirmPwd] = useState(false);
+  const verification = useAdminVerification();
+  const { verified } = verification;
 
   const loadAccounts = async () => {
     const { data, error } = await supabase
@@ -168,6 +171,7 @@ export default function PlayersPanel() {
   };
 
   const editPlayer = (account) => {
+    if (!verified) return;
     setEditingPlayer(account);
     setForm({
       username: account.username || '',
@@ -238,6 +242,7 @@ export default function PlayersPanel() {
   };
 
   const requestDelete = (account) => {
+    if (!verified) return;
     setConfirmDelete({
       title: 'Supprimer le joueur',
       message: `Supprimer le compte "${account.username}" ?`,
@@ -262,10 +267,14 @@ export default function PlayersPanel() {
   return (
     <div className="admin-panel players-panel">
       <div className="admin-panel-actions">
+        <VerificationGate verification={verification} />
         <button className="admin-btn admin-btn--add" onClick={() => { resetForm(); setShowForm(true); }}>
           + Nouveau joueur
         </button>
       </div>
+      {!verified && (
+        <p className="race-form-hint">Lancez la procédure de vérification pour modifier ou supprimer un compte.</p>
+      )}
 
       {loadError && <p className="comp-empty">Erreur de chargement : {loadError}</p>}
 
@@ -423,6 +432,7 @@ export default function PlayersPanel() {
             onEdit={() => editPlayer(account)}
             onDelete={() => requestDelete(account)}
             onToggleDisabled={() => toggleDisabled(account)}
+            verified={verified}
           />
         ))}
       </div>
