@@ -80,6 +80,7 @@ export const GAME_DATA_STATE_KEYS = [
   'customItemCategories',
   'customItems',
   'customItemClasses',
+  'customItemRarities',
 ];
 
 const EMPTY_GAME_DATA_STATE = {
@@ -129,6 +130,7 @@ const EMPTY_GAME_DATA_STATE = {
   customItemCategories: [],
   customItems: [],
   customItemClasses: [],
+  customItemRarities: [],
 };
 
 const pickGameDataState = (state = {}) =>
@@ -1134,6 +1136,29 @@ export const useAdminStore = create(
       deleteItemClass: (id) =>
         set((state) => ({
           customItemClasses: (state.customItemClasses || []).filter((c) => c.id !== id),
+        })),
+
+      // Niveaux de rareté d'objets (économie)
+      customItemRarities: [],
+
+      addItemRarity: (entry) =>
+        set((state) => ({
+          customItemRarities: [
+            ...(state.customItemRarities || []),
+            { ...entry, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+          ],
+        })),
+
+      updateItemRarity: (id, patch) =>
+        set((state) => ({
+          customItemRarities: (state.customItemRarities || []).map((r) =>
+            r.id === id ? { ...r, ...patch, updatedAt: new Date().toISOString() } : r
+          ),
+        })),
+
+      deleteItemRarity: (id) =>
+        set((state) => ({
+          customItemRarities: (state.customItemRarities || []).filter((r) => r.id !== id),
         })),
 
       // Comptes joueurs préparés par le MJ

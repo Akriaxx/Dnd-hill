@@ -28,6 +28,7 @@ import AptitudesPanel from './admin/panels/AptitudesPanel';
 import ItemCategoriePanel from './admin/panels/ItemCategoriePanel';
 import ItemPanel from './admin/panels/ItemPanel';
 import ItemClassePanel from './admin/panels/ItemClassePanel';
+import ItemRaretePanel from './admin/panels/ItemRaretePanel';
 import PlayersPanel from './admin/panels/PlayersPanel';
 import RolesPanel from './admin/panels/RolesPanel';
 import CharacterCreationReviewPanel from './admin/panels/CharacterCreationReviewPanel';
@@ -113,6 +114,7 @@ const NAV_GROUPS = [
     items: [
       { key: 'item-categorie', label: "Catégorie d'objet" },
       { key: 'item-classe',    label: 'Classe' },
+      { key: 'item-rarete',    label: 'Rareté' },
       { key: 'item',           label: 'Item' },
     ],
   },
@@ -146,7 +148,8 @@ function getSectionMeta(key) {
     langues: { title: 'Langues', sub: 'Langues du monde' },
     item: { title: 'Item', sub: "Items rangés par catégorie d'objet" },
     'item-categorie': { title: "Catégories d'objets", sub: 'Sections utilisées par les items' },
-    'item-classe': { title: "Classes d'objets", sub: 'Classification des objets' },
+    'item-classe': { title: "Classes d'équipement", sub: "Lourde, Intermédiaire, Finesse… rattachées à Armure/Arme, autorisées ou non par classe de personnage" },
+    'item-rarete': { title: 'Rareté', sub: "Niveaux de rareté attribuables aux objets" },
     caracteristiques: { title: 'Caractéristiques', sub: 'Stats de base des personnages' },
     resistances: { title: 'Résistances', sub: 'Catégories et entrées de résistance' },
     maitrise: { title: 'Maîtrise', sub: 'Types de maîtrise disponibles' },
@@ -225,6 +228,7 @@ export default function AdminPage() {
       case 'item':             return <ItemPanel />;
       case 'item-categorie':   return <ItemCategoriePanel />;
       case 'item-classe':      return <ItemClassePanel />;
+      case 'item-rarete':      return <ItemRaretePanel />;
       default:                 return <PlaceholderPanel section={meta.title} />;
     }
   };

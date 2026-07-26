@@ -25,6 +25,7 @@ import {
   getRootItemCategories,
   getItemCategoryBranchIds,
   getRootItemCategoryId,
+  getItemClassesForRoot,
 } from '../itemUtils';
 
 // item.icone stocke une clé (ex: "sword"), pas du texte libre — voir
@@ -166,6 +167,8 @@ function ItemEffectsPanel({ effects, onChange, aptitudeOptions, resistanceOption
 export default function ItemPanel() {
   const {
     customItemCategories,
+    customItemClasses,
+    customItemRarities,
     customItems,
     customAptitudes,
     customResistanceEntries,
@@ -173,6 +176,8 @@ export default function ItemPanel() {
   } = useAdminStore();
   const categories = mergeTemporaryRows(TEMP_ITEM_CATEGORIES, customItemCategories);
   const items = mergeTemporaryRows(TEMP_ITEMS, customItems);
+  const itemClasses = asArray(customItemClasses);
+  const itemRarities = asArray(customItemRarities).slice().sort((a, b) => (a.niveau ?? 0) - (b.niveau ?? 0));
 
   const [showItemForm, setShowItemForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -180,13 +185,20 @@ export default function ItemPanel() {
   const [itemForm, setItemForm] = useState(BLANK_ITEM);
   const [itemCategoryScopeId, setItemCategoryScopeId] = useState(null);
   const [effectsOpen, setEffectsOpen] = useState(false);
+  const [conditionOpen, setConditionOpen] = useState(false);
+  const openEffectsPanel = (next) => { setEffectsOpen(next); if (next) setConditionOpen(false); };
+  const openConditionPanel = (next) => { setConditionOpen(next); if (next) setEffectsOpen(false); };
   const { mounted: effectsMounted, shrink: effectsShrink, shifted: effectsShifted, visible: effectsVisible } = useGameplayEffectsPanel(effectsOpen);
+  const { mounted: conditionMounted, shrink: conditionShrink, shifted: conditionShifted, visible: conditionVisible } = useGameplayEffectsPanel(conditionOpen);
   const [modalRef, modalHeight] = useMatchedHeight();
   const [search, setSearch] = useState('');
 
   const setItem = (key, value) => setItemForm((c) => ({ ...c, [key]: value }));
   const setItemEffects = (nextEffects) => setItem('effects', normalizeItemEffects(nextEffects));
+  const setConditionEffects = (nextEffects) => setItem('conditionEffects', normalizeItemEffects(nextEffects));
   const rootCategories = getRootItemCategories(categories);
+  const itemRootId = getRootItemCategoryId(categories, itemForm.categoryId);
+  const relevantItemClasses = getItemClassesForRoot(itemClasses, itemRootId);
   const scopedRootId = normalizeItemCategoryId(itemCategoryScopeId);
   const categorySelectRoots = scopedRootId
     ? rootCategories.filter((section) => normalizeItemCategoryId(section.id) === scopedRootId)
@@ -213,6 +225,9 @@ export default function ItemPanel() {
       usable: Boolean(itemForm.consumable),
       useText: itemForm.consumable ? itemForm.useText : '',
       equipSlot: itemForm.equipable ? itemForm.equipSlot : '',
+      classeId: itemForm.equipable ? itemForm.classeId : null,
+      hasCondition: itemForm.equipable ? Boolean(itemForm.hasCondition) : false,
+      conditionEffects: itemForm.equipable && itemForm.hasCondition ? normalizeItemEffects(itemForm.conditionEffects) : null,
     };
     if (editingItem) updateItem(editingItem.id, payload);
     else addItem(payload);
@@ -227,13 +242,20 @@ export default function ItemPanel() {
     setItemForm({ ...BLANK_ITEM, categoryId, effects: createBlankItemEffects() });
     setItemCategoryScopeId(scoped ? rootId : null);
     setEffectsOpen(false);
+    setConditionOpen(false);
     setShowItemForm(true);
   };
   const startItemEdit = (item) => {
     setEditingItem(item);
-    setItemForm({ ...BLANK_ITEM, ...item, effects: normalizeItemEffects(item.effects) });
+    setItemForm({
+      ...BLANK_ITEM,
+      ...item,
+      effects: normalizeItemEffects(item.effects),
+      conditionEffects: normalizeItemEffects(item.conditionEffects),
+    });
     setItemCategoryScopeId(getRootItemCategoryId(categories, item.categoryId));
     setEffectsOpen(hasAnyItemEffect(item.effects));
+    setConditionOpen(false);
     setShowItemForm(true);
   };
 
@@ -242,6 +264,7 @@ export default function ItemPanel() {
     setEditingItem(null);
     setItemForm(BLANK_ITEM);
     setItemCategoryScopeId(null);
+    setConditionOpen(false);
   };
 
   const filtered = items.filter((i) => includesText(i.nom, search) || includesText(i.description, search));
@@ -255,7 +278,7 @@ export default function ItemPanel() {
       </div>
 
       {showItemForm && (
-        <div className={`index-modal-backdrop${effectsShrink ? ' has-effects-panel' : ''}`} onClick={(e) => e.target === e.currentTarget && cancelItemForm()}>
+        <div className={`index-modal-backdrop${(effectsShrink || conditionShrink) ? ' has-effects-panel' : ''}`} onClick={(e) => e.target === e.currentTarget && cancelItemForm()}>
           <div className="index-modal index-modal--wide" ref={modalRef}>
             <div className="index-modal-header">
               <h3>{editingItem ? "Modifier l'entrée" : 'Nouvelle entrée'}</h3>
@@ -283,6 +306,15 @@ export default function ItemPanel() {
                           </Fragment>
                         );
                       })}
+                    </select>
+                  </div>
+                )}
+                {itemRarities.length > 0 && (
+                  <div className="comp-form-field comp-form-field--grow">
+                    <label>Rareté</label>
+                    <select value={itemForm.rareteId ?? ''} onChange={(e) => setItem('rareteId', Number(e.target.value) || null)}>
+                      <option value="">— Aucune —</option>
+                      {itemRarities.map((rarity) => <option key={rarity.id} value={rarity.id}>{rarity.nom}</option>)}
                     </select>
                   </div>
                 )}
@@ -320,21 +352,42 @@ export default function ItemPanel() {
                 </div>
               )}
               {itemForm.equipable && (
-                <div className="comp-form-field">
-                  <label>Slot d'équipement</label>
-                  <select value={itemForm.equipSlot || ''} onChange={(e) => setItem('equipSlot', e.target.value)}>
-                    {ITEM_EQUIP_SLOTS.map((slot) => (
-                      <option key={slot.key || 'none'} value={slot.key}>{slot.label}</option>
-                    ))}
-                  </select>
+                <div className="comp-form-row">
+                  <div className="comp-form-field comp-form-field--grow">
+                    <label>Slot d'équipement</label>
+                    <select value={itemForm.equipSlot || ''} onChange={(e) => setItem('equipSlot', e.target.value)}>
+                      {ITEM_EQUIP_SLOTS.map((slot) => (
+                        <option key={slot.key || 'none'} value={slot.key}>{slot.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="comp-form-field comp-form-field--grow">
+                    <label>Classe d'équipement</label>
+                    <select value={itemForm.classeId ?? ''} onChange={(e) => setItem('classeId', Number(e.target.value) || null)} disabled={relevantItemClasses.length === 0}>
+                      <option value="">— Aucune —</option>
+                      {relevantItemClasses.map((cls) => <option key={cls.id} value={cls.id}>{cls.nom}</option>)}
+                    </select>
+                    {relevantItemClasses.length === 0 && (
+                      <span style={{ fontSize: '0.8em', opacity: 0.6 }}>Aucune classe d'équipement pour cette catégorie (Économie → Classe).</span>
+                    )}
+                  </div>
                 </div>
+              )}
+              {itemForm.equipable && (
+                <label className="index-value-toggle">
+                  <input type="checkbox" checked={Boolean(itemForm.hasCondition)} onChange={(e) => setItem('hasCondition', e.target.checked)} />
+                  <span>Condition (malus si la classe du porteur n'autorise pas cette classe d'équipement)</span>
+                </label>
               )}
               <div className="comp-form-footer">
                 <button className="admin-btn" onClick={cancelItemForm}>Annuler</button>
                 <button className="race-form-save-btn" disabled={!itemForm.nom.trim()} onClick={handleItemSave}>
                   {editingItem ? 'Enregistrer' : "Créer l'entrée"}
                 </button>
-                <GameplayEffectsToggle open={effectsOpen} onToggle={setEffectsOpen} />
+                <GameplayEffectsToggle open={effectsOpen} onToggle={openEffectsPanel} />
+                {itemForm.equipable && itemForm.hasCondition && (
+                  <GameplayEffectsToggle open={conditionOpen} onToggle={openConditionPanel} label="Condition" />
+                )}
               </div>
             </div>
           </div>
@@ -349,6 +402,22 @@ export default function ItemPanel() {
               <ItemEffectsPanel
                 effects={itemForm.effects}
                 onChange={setItemEffects}
+                aptitudeOptions={aptitudeOptions}
+                resistanceOptions={resistanceOptions}
+              />
+            </div>
+          )}
+          {conditionMounted && (
+            <div
+              className={`admin-effects-side-panel${conditionShifted ? ' is-shifted' : ''}${conditionVisible ? ' is-visible' : ''}`}
+              style={modalHeight ? { height: modalHeight, maxHeight: modalHeight } : undefined}
+            >
+              <div className="admin-effects-side-panel-header">
+                <span>Malus si classe non autorisée</span>
+              </div>
+              <ItemEffectsPanel
+                effects={itemForm.conditionEffects}
+                onChange={setConditionEffects}
                 aptitudeOptions={aptitudeOptions}
                 resistanceOptions={resistanceOptions}
               />

@@ -117,6 +117,7 @@ export const SECTION_PERMISSIONS = Object.freeze({
   item: PERMISSIONS.manageItems,
   'item-categorie': PERMISSIONS.manageItems,
   'item-classe': PERMISSIONS.manageItems,
+  'item-rarete': PERMISSIONS.manageItems,
 });
 
 const asArray = (value) => (Array.isArray(value) ? value : []);

@@ -3352,11 +3352,11 @@ function buildInfoDetails(defInput, kind = '', context = {}) {
   // Même piège que definitionInfoText : mergeDefinition peut renvoyer
   // `null`, que le paramètre par défaut (= {}) ne rattrape pas.
   const def = defInput || {};
-  const { classCategories = [], itemCategories = [] } = context;
+  const { classCategories = [], itemClasses = [] } = context;
   const classTypeLabel = classCategories.find((c) => c.key === def.type)?.nom || def.type;
-  const armuresLabel = Array.isArray(def.armures)
-    ? def.armures.map((id) => itemCategories.find((c) => String(c.id) === String(id))?.nom).filter(Boolean).join(', ')
-    : def.armures;
+  const armuresLabel = Array.isArray(def.allowedItemClasses)
+    ? def.allowedItemClasses.map((id) => itemClasses.find((c) => String(c.id) === String(id))?.nom).filter(Boolean).join(', ')
+    : '';
   const innate = stripIdentityLead(def.competenceRaciale || def.competenceAscendance || '');
   const resources = infoResourceValues(def.baseResources, def.resourceDice);
   const resistances = compactList(def.resistanceBonuses, infoResistanceValue);
@@ -3369,7 +3369,7 @@ function buildInfoDetails(defInput, kind = '', context = {}) {
     : [];
   const classSetup = [
     def.type ? `Type : ${classTypeLabel}` : '',
-    armuresLabel ? `Armures : ${armuresLabel}` : '',
+    armuresLabel ? `Classes d'équipement : ${armuresLabel}` : '',
     def.physique ? `Sort physique : ${def.physique}` : '',
     def.magique ? `Sort magique : ${def.magique}` : '',
     def.nombreSortsMagiques != null ? `${def.nombreSortsMagiques} sort(s) magique(s) / niveau` : '',
@@ -3442,12 +3442,12 @@ function DetailInformations({ char }) {
     customSubclasses,
     customMaitriseEntries,
     customClassCategories,
-    customItemCategories,
+    customItemClasses,
   } = useAdminStore();
   const raceDef = mergeDefinition(RACE_DATA, customRaces, char.race);
   const ascendanceDef = mergeDefinition(ASCENDANCE_DATA, customAscendances, char.ascendance);
   const classDef = getCombinedClassDefinition(char, customClasses);
-  const classInfoContext = { classCategories: customClassCategories || [], itemCategories: customItemCategories || [] };
+  const classInfoContext = { classCategories: customClassCategories || [], itemClasses: customItemClasses || [] };
   const subclassDef = getCombinedSubclassDefinition(char, customSubclasses);
   const provenanceDef = mergeDefinition(PROVENANCE_DATA, customProvenances, char.provenance);
   const originDef = mergeDefinition(ORIGIN_DATA, customOrigins, char.origine);

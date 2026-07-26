@@ -163,16 +163,21 @@ export default function ItemCategoriePanel() {
                     <b>Section</b>
                   </div>
                   {category.description && <p>{category.description}</p>}
-                  <div className="ascendance-row-stats">
-                    Sous-catégories : {childrenOf(category.id).length > 0 ? (
-                      <span className="perm-chip-grid" style={{ display: 'inline-flex' }}>
-                        {childrenOf(category.id).map((child) => (
-                          <button key={child.id} type="button" className="perm-chip perm-chip--on" onClick={() => startCategoryEdit(child)}>
-                            {child.nom}
-                          </button>
-                        ))}
-                      </span>
-                    ) : 'Aucune'}
+                  <div className="ascendance-row-stats ascendance-row-stats--subcategories">
+                    <span>Sous-catégories :</span>
+                    {childrenOf(category.id).length > 0 ? (
+                      <div className="item-icon-picker-grid item-icon-picker-grid--inline">
+                        {childrenOf(category.id).map((child) => {
+                          const childIcon = getItemIcon(child.icone);
+                          return (
+                            <button key={child.id} type="button" className="item-icon-picker-option" onClick={() => startCategoryEdit(child)}>
+                              {childIcon ? <childIcon.Icon size={22} strokeWidth={1.5} /> : <span className="item-icon-picker-plus">?</span>}
+                              <span>{child.nom}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : <em>Aucune</em>}
                   </div>
                 </div>
                 <div className="ascendance-row-actions">

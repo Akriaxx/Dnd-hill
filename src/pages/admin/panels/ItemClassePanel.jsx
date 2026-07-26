@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { useAdminStore } from '../../../store/adminStore';
 import SmartDescEditor from '../../../components/admin/SmartDescEditor';
-import { ConfirmModal, AdminFilterPanel, SectionGrid, AdminCard } from '../AdminShared';
-import { asArray, includesText } from '../adminUtils';
-import { BLANK_ITEM_CLASS } from '../itemUtils';
+import { ConfirmModal, AdminFilterPanel, SectionGrid, AdminCard, DetailLine } from '../AdminShared';
+import { asArray, includesText, mergeTemporaryRows } from '../adminUtils';
+import { BLANK_ITEM_CLASS, TEMP_ITEM_CATEGORIES, getRootItemCategories, normalizeItemCategoryId } from '../itemUtils';
 
 export default function ItemClassePanel() {
-  const { customItemClasses, addItemClass, updateItemClass, deleteItemClass } = useAdminStore();
+  const { customItemClasses, customItemCategories, addItemClass, updateItemClass, deleteItemClass } = useAdminStore();
   const classes = asArray(customItemClasses);
+  const itemCategories = mergeTemporaryRows(TEMP_ITEM_CATEGORIES, customItemCategories);
+  const rootCategories = getRootItemCategories(itemCategories);
+  const rootNameFor = (id) => rootCategories.find((c) => normalizeItemCategoryId(c.id) === normalizeItemCategoryId(id))?.nom;
 
   const [showForm, setShowForm] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
@@ -17,8 +20,10 @@ export default function ItemClassePanel() {
 
   const set = (key, value) => setForm((c) => ({ ...c, [key]: value }));
 
+  const canSave = form.nom.trim().length > 0 && Boolean(form.rootCategoryId);
+
   const handleSave = () => {
-    if (!form.nom.trim()) return;
+    if (!canSave) return;
     if (editingClass) updateItemClass(editingClass.id, form);
     else addItemClass(form);
     setForm(BLANK_ITEM_CLASS);
@@ -50,15 +55,25 @@ export default function ItemClassePanel() {
             <div className="index-form">
               <div className="comp-form-field">
                 <label>Nom *</label>
-                <input value={form.nom} onChange={(e) => set('nom', e.target.value)} placeholder="Ex: Commun, Rare, Légendaire..." />
+                <input value={form.nom} onChange={(e) => set('nom', e.target.value)} placeholder="Ex: Lourde, Intermédiaire, Finesse..." />
+              </div>
+              <div className="comp-form-field">
+                <label>Catégorie racine *</label>
+                <select value={form.rootCategoryId ?? ''} onChange={(e) => set('rootCategoryId', normalizeItemCategoryId(e.target.value))}>
+                  <option value="">— Choisir (Armure, Arme…) —</option>
+                  {rootCategories.map((cat) => <option key={cat.id} value={cat.id}>{cat.nom}</option>)}
+                </select>
+                <span style={{ fontSize: '0.8em', opacity: 0.6 }}>
+                  La catégorie d'objet équipable (Armure, Arme…) à laquelle cette classe d'équipement se rattache — c'est elle que les classes de personnage autorisent ou non.
+                </span>
               </div>
               <div className="comp-form-field">
                 <label>Description</label>
-                <SmartDescEditor value={form.description} onChange={(value) => set('description', value)} placeholder="Description de la classe..." />
+                <SmartDescEditor value={form.description} onChange={(value) => set('description', value)} placeholder="Description de la classe d'équipement..." />
               </div>
               <div className="comp-form-footer">
                 <button className="admin-btn" onClick={cancelForm}>Annuler</button>
-                <button className="race-form-save-btn" disabled={!form.nom.trim()} onClick={handleSave}>
+                <button className="race-form-save-btn" disabled={!canSave} onClick={handleSave}>
                   {editingClass ? 'Enregistrer' : 'Créer la classe'}
                 </button>
               </div>
@@ -88,10 +103,13 @@ export default function ItemClassePanel() {
           <AdminCard
             key={cls.id}
             title={cls.nom}
+            badge={rootNameFor(cls.rootCategoryId)}
             desc={cls.description}
             onEdit={() => startEdit(cls)}
             onDelete={() => setConfirmDelete({ title: 'Supprimer la classe', message: `Supprimer "${cls.nom}" ?`, dangerLabel: 'Supprimer', onConfirm: () => deleteItemClass(cls.id) })}
-          />
+          >
+            <DetailLine label="Catégorie racine" value={rootNameFor(cls.rootCategoryId) || '—'} />
+          </AdminCard>
         ))}
       </SectionGrid>
     </div>

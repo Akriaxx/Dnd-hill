@@ -13,10 +13,22 @@ export const BLANK_ITEM = {
   stackable: false,
   icone: '',
   categoryId: null,
+  classeId: null,
+  rareteId: null,
   effects: null,
+  // Malus optionnel appliqué quand la classe du porteur n'autorise pas la
+  // classe d'équipement de cet objet (voir Class.allowedItemClasses).
+  hasCondition: false,
+  conditionEffects: null,
 };
 
-export const BLANK_ITEM_CLASS = { nom: '', description: '' };
+// Une "classe d'objet" est une classe d'équipement (Lourde, Intermédiaire,
+// Finesse…), rattachée à une catégorie racine équipable (Armure, Arme…) —
+// c'est elle, pas la sous-catégorie de rangement, que les classes de
+// personnage autorisent ou non (voir ClassesPanel).
+export const BLANK_ITEM_CLASS = { nom: '', description: '', rootCategoryId: null };
+
+export const BLANK_ITEM_RARITY = { nom: '', couleur: '#c8a84a', niveau: 0, description: '' };
 
 export const ITEM_EQUIP_SLOTS = [
   { key: '', label: 'Aucun slot' },
@@ -120,3 +132,21 @@ export const getRootItemCategoryId = (categories, categoryId) => {
   if (!category) return null;
   return category.parentId ? getRootItemCategoryId(categories, category.parentId) : category.id;
 };
+
+// Classes d'équipement (customItemClasses) rattachées à une catégorie
+// racine donnée (Armure, Arme…) — voir BLANK_ITEM_CLASS.rootCategoryId.
+export const getItemClassesForRoot = (itemClasses, rootCategoryId) => {
+  const normalizedId = normalizeItemCategoryId(rootCategoryId);
+  return itemClasses.filter((cls) => normalizeItemCategoryId(cls.rootCategoryId) === normalizedId);
+};
+
+// Regroupe toutes les classes d'équipement par leur catégorie racine, pour
+// le sélecteur "Classes d'équipement autorisées" côté classe de personnage.
+export const groupItemClassesByRoot = (itemClasses, rootCategories) =>
+  rootCategories
+    .map((root) => ({
+      id: root.id,
+      nom: root.nom,
+      items: getItemClassesForRoot(itemClasses, root.id),
+    }))
+    .filter((group) => group.items.length > 0);

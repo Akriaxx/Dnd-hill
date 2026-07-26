@@ -98,7 +98,10 @@ export const getRanksAtLevel = (ranks, level) => {
 
 export const BLANK_CLASS_FORM = {
   nom: '', type: '', description: '', allowedRaces: [],
-  armures: [], physique: '', magique: '',
+  // Classes d'équipement (customItemClasses) autorisées pour cette classe
+  // de personnage — vide = toutes autorisées. Voir ClassesPanel.jsx.
+  allowedItemClasses: [],
+  physique: '', magique: '',
   resourceDice: { vie: '', mana: '', endu: '' },
   nombreSortsMagiques: 0, nombreSortsPhysiques: 0, nombreCompetences: 0,
 };

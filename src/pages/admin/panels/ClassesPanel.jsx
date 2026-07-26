@@ -4,16 +4,16 @@ import SmartDescEditor from '../../../components/admin/SmartDescEditor';
 import {
   ConfirmModal, AdminFilterPanel, TagColorPicker,
   CategoryAccordionList, ResourceDiceFields, RaceLockFields,
-  KnowledgeCategoryModal,
+  KnowledgeCategoryModal, EquipClassLockFields,
 } from '../AdminShared';
 import {
   asArray, slugifyKey, includesText,
   BLANK_CLASS_FORM,
   normalizeResourceDice, resourceDiceSummary, getRaceOptionsForLocks,
 } from '../adminUtils';
-import { getItemCategoryChildren } from '../itemUtils';
+import { groupItemClassesByRoot } from '../itemUtils';
 
-function ClassFormModal({ initial, races, classCategories, caracteristiques, armureOptions, onClose, onSave }) {
+function ClassFormModal({ initial, races, classCategories, caracteristiques, equipClassGroups, onClose, onSave }) {
   const [form, setForm] = useState(() => ({
     ...BLANK_CLASS_FORM,
     ...(initial || {}),
@@ -22,10 +22,15 @@ function ClassFormModal({ initial, races, classCategories, caracteristiques, arm
   const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   const canSave = form.nom.trim().length > 0;
 
-  const toggleArmure = (categoryId) => {
-    const current = new Set(asArray(form.armures));
-    if (current.has(categoryId)) current.delete(categoryId); else current.add(categoryId);
-    set('armures', [...current]);
+  const toggleEquipClass = (classId) => {
+    const current = new Set(asArray(form.allowedItemClasses));
+    if (current.has(classId)) current.delete(classId); else current.add(classId);
+    set('allowedItemClasses', [...current]);
+  };
+  const toggleManyEquipClasses = (ids, shouldSelect) => {
+    const current = new Set(asArray(form.allowedItemClasses));
+    ids.forEach((id) => (shouldSelect ? current.add(id) : current.delete(id)));
+    set('allowedItemClasses', [...current]);
   };
 
   const save = () => {
@@ -35,7 +40,7 @@ function ClassFormModal({ initial, races, classCategories, caracteristiques, arm
       key: form.key || slugifyKey(form.nom),
       nom: form.nom.trim(),
       allowedRaces: asArray(form.allowedRaces),
-      armures: asArray(form.armures),
+      allowedItemClasses: asArray(form.allowedItemClasses),
       resourceDice: normalizeResourceDice(form),
       nombreSortsMagiques: Number(form.nombreSortsMagiques) || 0,
       nombreSortsPhysiques: Number(form.nombreSortsPhysiques) || 0,
@@ -103,27 +108,13 @@ function ClassFormModal({ initial, races, classCategories, caracteristiques, arm
               </div>
             </div>
             <div className="race-form-section race-form-section--wide">
-              <div className="race-form-section-title">Armures</div>
-              {armureOptions.length === 0 ? (
-                <p className="race-form-hint">
-                  Aucune catégorie d'armure trouvée — crée une catégorie d'objet nommée "Armure(s)" avec des sous-catégories (Légère, Moyenne, Lourde…) dans Économie → Catégories d'objets.
-                </p>
-              ) : (
-                <div className="race-lock-panel">
-                  <div className="race-lock-head">
-                    <span>Armures autorisées</span>
-                    <small>{asArray(form.armures).length === 0 ? 'Aucune' : `${form.armures.length} sélectionnée(s)`}</small>
-                  </div>
-                  <div className="race-lock-grid">
-                    {armureOptions.map((option) => (
-                      <label key={option.id} className={`race-lock-choice${asArray(form.armures).includes(option.id) ? ' active' : ''}`}>
-                        <input type="checkbox" checked={asArray(form.armures).includes(option.id)} onChange={() => toggleArmure(option.id)} />
-                        <span>{option.nom}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <div className="race-form-section-title">Classes d'équipement</div>
+              <EquipClassLockFields
+                groups={equipClassGroups}
+                selected={asArray(form.allowedItemClasses)}
+                onToggle={toggleEquipClass}
+                onToggleMany={toggleManyEquipClasses}
+              />
             </div>
             <div className="race-form-section race-form-section--wide">
               <div className="race-form-section-title">Dés de ressource</div>
@@ -149,7 +140,8 @@ function ClassFormModal({ initial, races, classCategories, caracteristiques, arm
 
 export default function ClassesPanel() {
   const {
-    customClasses, customRaces, customClassCategories, customCaracteristiques, customItemCategories,
+    customClasses, customRaces, customClassCategories, customCaracteristiques,
+    customItemCategories, customItemClasses,
     hiddenClassKeys: storedHiddenClassKeys,
     addClass, updateClass, deleteClass, hideDefaultClass,
     addClassCategory,
@@ -166,10 +158,9 @@ export default function ClassesPanel() {
   const classCategories = asArray(customClassCategories);
   const caracteristiques = asArray(customCaracteristiques);
   const itemCategories = asArray(customItemCategories);
-  // "Armures" côté classe pointe vers les enfants de la catégorie d'objet
-  // racine dont le nom contient "armure" — pas de champ texte libre.
-  const armureRootCategory = itemCategories.find((c) => !c.parentId && /armure/i.test(c.nom));
-  const armureOptions = armureRootCategory ? getItemCategoryChildren(itemCategories, armureRootCategory.id) : [];
+  const itemClasses = asArray(customItemClasses);
+  const itemCategoryRoots = itemCategories.filter((c) => !c.parentId);
+  const equipClassGroups = groupItemClassesByRoot(itemClasses, itemCategoryRoots);
   const hiddenClassKeys = new Set(asArray(storedHiddenClassKeys));
   const customClassKeys = new Set(asArray(customClasses).map((c) => c.key || slugifyKey(c.nom)));
   const entries = asArray(customClasses).filter((c) => !hiddenClassKeys.has(c.key || slugifyKey(c.nom)));
@@ -207,9 +198,9 @@ export default function ClassesPanel() {
             <b>Classe</b>
           </div>
           <div className="ascendance-row-stats">Dés : {resourceDiceSummary(cls)}</div>
-          {asArray(cls.armures).length > 0 && (
+          {asArray(cls.allowedItemClasses).length > 0 && (
             <div className="ascendance-row-stats">
-              Armures : {cls.armures.map((id) => armureOptions.find((o) => o.id === id)?.nom || itemCategories.find((c) => c.id === id)?.nom).filter(Boolean).join(' · ')}
+              Classes d'équipement : {cls.allowedItemClasses.map((id) => itemClasses.find((c) => c.id === id)?.nom).filter(Boolean).join(' · ')}
             </div>
           )}
           <div className="ascendance-row-stats">
@@ -262,7 +253,7 @@ export default function ClassesPanel() {
           races={raceLockOptions}
           classCategories={classCategories}
           caracteristiques={caracteristiques}
-          armureOptions={armureOptions}
+          equipClassGroups={equipClassGroups}
           onClose={() => { setShowForm(false); setEditingClass(null); }}
           onSave={handleSave}
         />

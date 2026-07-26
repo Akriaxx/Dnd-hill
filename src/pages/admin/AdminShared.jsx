@@ -279,7 +279,58 @@ export function MaitriseLockFields({ value = [], maitrises = [], onChange, label
   );
 }
 
-export function GameplayEffectsToggle({ open, onToggle }) {
+// Sélecteur groupé pour autoriser une classe de personnage à utiliser
+// certaines classes d'équipement (Lourde, Intermédiaire, Finesse…),
+// groupées par catégorie racine équipable (Armure, Arme…) — `groups` est
+// déjà pré-calculé (voir groupItemClassesByRoot dans itemUtils.js). Même
+// logique de sélection en masse que SubclassPicker.
+export function EquipClassLockFields({ groups = [], selected = [], onToggle, onToggleMany }) {
+  const selectedSet = new Set(selected);
+
+  return (
+    <div className="race-lock-panel">
+      <div className="race-lock-head">
+        <span>Classes d'équipement autorisées</span>
+        <small>{selected.length === 0 ? 'Toutes les classes' : `${selected.length} sélectionnée(s)`}</small>
+      </div>
+      <p className="race-form-hint">Laissez vide pour autoriser toutes les classes d'équipement (armures, armes…). Une fois une classe sélectionnée quelque part, tout objet de cette famille non coché devient interdit pour cette classe de personnage.</p>
+      <div className="subclass-picker-list">
+        {groups.length === 0 ? (
+          <p className="subclass-picker-empty">Aucune classe d'équipement créée pour l'instant (Économie → Classe).</p>
+        ) : groups.map((group) => {
+          const itemIds = group.items.map((item) => item.id);
+          const allSelected = itemIds.length > 0 && itemIds.every((id) => selectedSet.has(id));
+          return (
+            <div key={group.id} className="subclass-picker-group">
+              <button type="button" className="subclass-picker-group-label" onClick={() => onToggleMany(itemIds, !allSelected)}>
+                <span>{group.nom}</span>
+                <em>{allSelected ? 'Tout retirer' : 'Tout ajouter'}</em>
+              </button>
+              <div className="subclass-picker-group-items">
+                {group.items.map((item) => {
+                  const isSelected = selectedSet.has(item.id);
+                  return (
+                    <button
+                      type="button"
+                      key={item.id}
+                      className={`subclass-picker-option${isSelected ? ' is-selected' : ''}`}
+                      onClick={() => onToggle(item.id)}
+                    >
+                      {isSelected && <b>✓</b>}
+                      <span>{item.nom}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function GameplayEffectsToggle({ open, onToggle, label = 'Effets gameplay' }) {
   return (
     <button
       type="button"
@@ -287,7 +338,7 @@ export function GameplayEffectsToggle({ open, onToggle }) {
       onClick={() => onToggle(!open)}
       aria-pressed={open}
     >
-      <span>Effets gameplay</span>
+      <span>{label}</span>
       <span className="admin-gameplay-toggle-track">
         <span className="admin-gameplay-toggle-thumb" />
       </span>

@@ -1492,6 +1492,25 @@
   letter-spacing: 1.4px;
 }
 
+.ascendance-row-stats--subcategories {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  em { color: var(--dim); font-style: normal; opacity: 0.6; }
+}
+
+.item-icon-picker-grid--inline {
+  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+  padding: 0;
+  overflow-y: visible;
+  max-width: 640px;
+
+  .item-icon-picker-option {
+    padding: 8px 4px;
+  }
+}
+
 .ascendance-row-details {
   display: flex;
   flex-direction: column;
