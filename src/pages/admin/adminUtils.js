@@ -257,7 +257,11 @@ export const blankRemovalCondition = (type = 'save') => {
 
 export const BLANK_ETAT = {
   nom: '',
-  categoryKey: '',
+  // Un état peut appartenir à plusieurs catégories (ex: "Aveuglement"
+  // accessible aux profanateurs via Malédiction ET aux paladins via une
+  // autre catégorie, même effet mais deux façons d'y accéder). Au moins
+  // une catégorie est requise.
+  categoryKeys: [],
   tagColor: '#d77ee8',
   description: '',
   effects: '',

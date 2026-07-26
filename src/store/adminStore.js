@@ -22,6 +22,8 @@ const syncRoleToSupabase = async ({ key, label, power, system = false, permissio
   if (permError) console.error('role_permissions upsert failed', permError);
 };
 
+const asArray = (value) => (Array.isArray(value) ? value : []);
+
 const TICKET_DEDUPE_WINDOW_MS = 5 * 60 * 1000;
 const ADMIN_STORE_VERSION = 3;
 const SECURITY_STATE_KEYS = [
@@ -965,13 +967,36 @@ export const useAdminStore = create(
         }
       },
 
+      // Un état peut appartenir à plusieurs catégories : supprimer une
+      // catégorie ne doit pas effacer les états qui restent rattachés à
+      // une autre catégorie — juste retirer la clé de leur liste. Seuls
+      // les états qui n'ont plus aucune catégorie après ça sont supprimés.
       deleteEtatCategory: (key) => {
+        const before = get().customEtats || [];
+        const toDelete = before.filter((etat) => asArray(etat.categoryKeys).length <= 1 && asArray(etat.categoryKeys).includes(key));
+        const toUpdate = before.filter((etat) => asArray(etat.categoryKeys).length > 1 && asArray(etat.categoryKeys).includes(key));
+
         set((state) => ({
           customEtatCategories: (state.customEtatCategories || []).filter((category) => category.key !== key),
-          customEtats: (state.customEtats || []).filter((etat) => etat.categoryKey !== key),
+          customEtats: (state.customEtats || [])
+            .filter((etat) => !toDelete.some((d) => d.id === etat.id))
+            .map((etat) => (
+              toUpdate.some((u) => u.id === etat.id)
+                ? { ...etat, categoryKeys: asArray(etat.categoryKeys).filter((k) => k !== key) }
+                : etat
+            )),
         }));
+
         supabase.from('state_categories').delete().eq('key', key)
           .then(({ error }) => { if (error) console.error('state_categories delete failed', error); });
+        toDelete.forEach((etat) => {
+          supabase.from('states').delete().eq('id', etat.id)
+            .then(({ error }) => { if (error) console.error('states delete failed', error); });
+        });
+        toUpdate.forEach((etat) => {
+          supabase.from('states').update({ category_keys: asArray(etat.categoryKeys).filter((k) => k !== key) }).eq('id', etat.id)
+            .then(({ error }) => { if (error) console.error('states update failed', error); });
+        });
       },
 
       addEtat: (etat) => {
@@ -979,7 +1004,7 @@ export const useAdminStore = create(
         set((state) => ({ customEtats: [...(state.customEtats || []), newEtat] }));
         supabase.from('states').insert({
           id: newEtat.id,
-          category_key: newEtat.categoryKey,
+          category_keys: newEtat.categoryKeys || [],
           nom: newEtat.nom,
           tag_color: newEtat.tagColor,
           description: newEtat.description || '',
@@ -1000,7 +1025,7 @@ export const useAdminStore = create(
         }));
         if (nextEtat) {
           supabase.from('states').update({
-            category_key: nextEtat.categoryKey,
+            category_keys: nextEtat.categoryKeys || [],
             nom: nextEtat.nom,
             tag_color: nextEtat.tagColor,
             description: nextEtat.description || '',
@@ -1395,7 +1420,7 @@ export const hydrateRoles = async () => {
 export const hydrateStates = async () => {
   const [{ data: categoryRows, error: categoryError }, { data: stateRows, error: stateError }] = await Promise.all([
     supabase.from('state_categories').select('key, nom, couleur, sous_classes'),
-    supabase.from('states').select('id, category_key, nom, tag_color, description, effects, maitrise_keys, removal_conditions'),
+    supabase.from('states').select('id, category_keys, nom, tag_color, description, effects, maitrise_keys, removal_conditions'),
   ]);
   if (categoryError || stateError) { console.error('states hydrate failed', categoryError || stateError); return; }
 
@@ -1409,7 +1434,7 @@ export const hydrateStates = async () => {
     })),
     customEtats: (stateRows || []).map((row) => ({
       id: row.id,
-      categoryKey: row.category_key,
+      categoryKeys: row.category_keys || [],
       nom: row.nom,
       tagColor: row.tag_color,
       description: row.description || '',

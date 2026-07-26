@@ -208,29 +208,36 @@ export default function EtatsPanel() {
   const etats = asArray(customEtats);
 
   const filteredEtats = etats.filter((e) => (
-    (categoryFilter === 'all' || e.categoryKey === categoryFilter)
+    (categoryFilter === 'all' || asArray(e.categoryKeys).includes(categoryFilter))
     && (includesText(e.nom, search) || includesText(e.description, search) || includesText(e.effects, search))
   ));
 
   const openCreateCategory = () => { setEditingCategory(null); setShowCategoryForm(true); };
   const openEditCategory = (category) => { setEditingCategory(category); setShowCategoryForm(true); };
   const requestDeleteCategory = (category) => {
-    const count = etats.filter((e) => e.categoryKey === category.key).length;
+    const affected = etats.filter((e) => asArray(e.categoryKeys).includes(category.key));
+    const toDeleteCount = affected.filter((e) => asArray(e.categoryKeys).length <= 1).length;
     setConfirmDelete({
       title: 'Supprimer la catégorie',
-      message: count > 0
-        ? `Supprimer "${category.nom}" ? ${count} état(s) de cette catégorie seront supprimés aussi.`
+      message: toDeleteCount > 0
+        ? `Supprimer "${category.nom}" ? ${toDeleteCount} état(s) n'ayant que cette catégorie seront supprimés aussi (les autres resteront, juste détachés de "${category.nom}").`
         : `Supprimer "${category.nom}" ?`,
       onConfirm: () => deleteEtatCategory(category.key),
     });
   };
 
-  const openCreate = () => { setEditingEtat(null); setForm({ ...BLANK_ETAT, categoryKey: categories[0]?.key || '' }); setShowForm(true); };
+  const openCreate = () => { setEditingEtat(null); setForm({ ...BLANK_ETAT, categoryKeys: categories[0] ? [categories[0].key] : [] }); setShowForm(true); };
   const openEdit = (etat) => { setEditingEtat(etat); setForm({ ...BLANK_ETAT, ...etat }); setShowForm(true); };
   const closeForm = () => { setForm(BLANK_ETAT); setEditingEtat(null); setShowForm(false); };
 
+  const toggleFormCategory = (key) => {
+    const current = new Set(asArray(form.categoryKeys));
+    if (current.has(key)) current.delete(key); else current.add(key);
+    sf('categoryKeys', [...current]);
+  };
+
   const handleSave = () => {
-    if (!form.nom.trim() || !form.categoryKey) return;
+    if (!form.nom.trim() || asArray(form.categoryKeys).length === 0) return;
     if (editingEtat) updateEtat(editingEtat.id, form);
     else addEtat(form);
     closeForm();
@@ -296,7 +303,9 @@ export default function EtatsPanel() {
             </div>
             <div className="competence-detail-body" style={{ '--competence-color': viewingEtat.tagColor || '#d77ee8' }}>
               <div className="competence-detail-meta">
-                <span>{categories.find((c) => c.key === viewingEtat.categoryKey)?.nom || '—'}</span>
+                {asArray(viewingEtat.categoryKeys).map((key) => (
+                  <span key={key}>{categories.find((c) => c.key === key)?.nom || key}</span>
+                ))}
                 {asArray(viewingEtat.maitriseKeys).map((key) => (
                   <span key={key}>{maitrises.find((m) => m.key === key)?.label || key}</span>
                 ))}
@@ -346,13 +355,25 @@ export default function EtatsPanel() {
                   <label>Nom *</label>
                   <input value={form.nom} onChange={(e) => sf('nom', e.target.value)} placeholder="Ex: Aveuglé" />
                 </div>
-                <div className="comp-form-field comp-form-field--grow">
-                  <label>Catégorie *</label>
-                  <select value={form.categoryKey} onChange={(e) => sf('categoryKey', e.target.value)}>
-                    {categories.map((c) => <option key={c.key} value={c.key}>{c.nom}</option>)}
-                  </select>
-                </div>
                 <TagColorPicker value={form.tagColor} onChange={(v) => sf('tagColor', v)} />
+              </div>
+
+              <div className="race-lock-panel">
+                <div className="race-lock-head">
+                  <span>Catégorie(s) *</span>
+                  <small>{asArray(form.categoryKeys).length === 0 ? 'Aucune sélectionnée' : `${form.categoryKeys.length} sélectionnée(s)`}</small>
+                </div>
+                <p className="race-form-hint">
+                  Un même état peut appartenir à plusieurs catégories (ex: "Aveuglé" accessible via Malédiction pour un sorcier ET via une autre catégorie pour un paladin). Au moins une catégorie requise.
+                </p>
+                <div className="race-lock-grid">
+                  {categories.map((c) => (
+                    <label key={c.key} className={`race-lock-choice${asArray(form.categoryKeys).includes(c.key) ? ' active' : ''}`} style={{ '--race-lock-color': c.couleur || '#d77ee8' }}>
+                      <input type="checkbox" checked={asArray(form.categoryKeys).includes(c.key)} onChange={() => toggleFormCategory(c.key)} />
+                      <span>{c.nom}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
 
               <div className="comp-form-field">
@@ -391,7 +412,7 @@ export default function EtatsPanel() {
             </div>
             <div className="comp-form-footer">
               <button className="admin-btn" onClick={closeForm}>Annuler</button>
-              <button className="race-form-save-btn" onClick={handleSave} disabled={!form.nom.trim() || !form.categoryKey}>
+              <button className="race-form-save-btn" onClick={handleSave} disabled={!form.nom.trim() || asArray(form.categoryKeys).length === 0}>
                 {editingEtat ? '💾 Enregistrer' : '✦ Créer l\'état'}
               </button>
             </div>
@@ -422,7 +443,7 @@ export default function EtatsPanel() {
             </span>
           ),
         }))}
-        entriesForCategory={(category) => filteredEtats.filter((e) => e.categoryKey === category.key)}
+        entriesForCategory={(category) => filteredEtats.filter((e) => asArray(e.categoryKeys).includes(category.key))}
         emptyLabel="Aucun état dans cette catégorie."
         renderEntry={(e) => (
           <article key={e.id} className="competence-row" style={{ '--competence-color': e.tagColor || '#d77ee8' }}>
