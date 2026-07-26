@@ -5,27 +5,10 @@ import { SmartText } from '../../../components/admin/SmartDescEditor';
 import { ConfirmModal, TagColorPicker } from '../AdminShared';
 import { asArray, slugifyKey } from '../adminUtils';
 
-const DEFAULT_INDEX_CATEGORIES = [
-  {
-    id: 'default-index-actions',
-    key: 'actions',
-    nom: 'Actions',
-    couleur: '#bcecff',
-    locked: true,
-  },
-];
-
-const DEFAULT_INDEX_ENTRIES = [
-  {
-    id: 'default-action-mouvement',
-    key: 'action-mouvement',
-    categoryKey: 'actions',
-    titre: 'Action de mouvement',
-    couleur: '#bcecff',
-    description: "Dans ce système de jeu, les **actions de mouvement** permettent aux personnages d'**interagir avec leur environnement** en utilisant des points de mouvement plutôt que de l'endurance. Chaque personnage dispose de **deux points de mouvement par tour**, une **action de mouvement équivaut à une action simple**.",
-    locked: true,
-  },
-];
+// Aucune catégorie/entrée par défaut : l'index gameplay démarre vide,
+// tout est créé depuis l'admin.
+const DEFAULT_INDEX_CATEGORIES = [];
+const DEFAULT_INDEX_ENTRIES = [];
 
 const BLANK_INDEX_ENTRY = {
   key: '',

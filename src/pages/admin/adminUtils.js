@@ -204,9 +204,8 @@ export const BLANK_KNOWLEDGE_CATEGORY_FORM = { nom: '', couleur: '#c8a84a' };
 
 export const STAT_KEYS = ['FOR', 'DEX', 'CON', 'INT', 'SAG', 'CHA'];
 
-export const DEFAULT_COMPETENCE_CATEGORIES = [
-  { id: 'default-competence-general', key: 'general', nom: 'Général', couleur: '#d77ee8', locked: true },
-];
+// Aucune catégorie par défaut — toutes créées depuis l'admin.
+export const DEFAULT_COMPETENCE_CATEGORIES = [];
 
 // ── Blank forms ────────────────────────────────────────────────
 

@@ -49,16 +49,9 @@ const COST_REFS = [
   { key: 'reaction', label: 'Réaction', unit: 'Réaction', description: 'Coût payé avec une réaction.' },
 ];
 
-const DEFAULT_INDEX_REFS = [
-  {
-    key: 'action-mouvement',
-    label: 'Action de mouvement',
-    title: 'Action de mouvement',
-    type: 'Index',
-    description: "Dans ce système de jeu, les **actions de mouvement** permettent aux personnages d'**interagir avec leur environnement** en utilisant des points de mouvement plutôt que de l'endurance. Chaque personnage dispose de **deux points de mouvement par tour**, une **action de mouvement équivaut à une action simple**.",
-    color: '#bcecff',
-  },
-];
+// Aucune référence d'index par défaut — uniquement celles créées depuis
+// l'admin (Gestion du Donjon → Index).
+const DEFAULT_INDEX_REFS = [];
 
 const stripBrackets = (value = '') => String(value).replace(/^\s*\[\s*/, '').replace(/\s*\]\s*$/, '');
 

@@ -5,9 +5,8 @@ import SmartDescEditor from '../../../components/admin/SmartDescEditor';
 import { ConfirmModal, AdminFilterPanel, CategoryAccordionList, KnowledgeCategoryModal, TagColorPicker } from '../AdminShared';
 import { asArray, slugifyKey, includesText } from '../adminUtils';
 
-const DEFAULT_KNOWLEDGE_CATEGORIES = [
-  { id: 'default-knowledge-general', key: 'general', nom: 'Général', couleur: '#c8a84a', locked: true },
-];
+// Aucune catégorie par défaut — toutes créées depuis l'admin.
+const DEFAULT_KNOWLEDGE_CATEGORIES = [];
 
 const BLANK_KNOWLEDGE_FORM = {
   nom: '',
