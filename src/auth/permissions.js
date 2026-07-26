@@ -105,6 +105,7 @@ export const SECTION_PERMISSIONS = Object.freeze({
   caracteristiques: PERMISSIONS.manageGameplay,
   index: PERMISSIONS.manageGameplay,
   leveling: PERMISSIONS.manageGameplay,
+  archetypes: PERMISSIONS.manageGameplay,
   classes: PERMISSIONS.manageGameplay,
   'sous-classes': PERMISSIONS.manageGameplay,
   competences: PERMISSIONS.manageGameplay,

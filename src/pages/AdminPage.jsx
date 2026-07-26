@@ -40,6 +40,7 @@ import SpellRanksPanel from './admin/panels/SpellRanksPanel';
 import ActionTypesPanel from './admin/panels/ActionTypesPanel';
 import SpecialitesPanel from './admin/panels/SpecialitesPanel';
 import LevelingPanel from './admin/panels/LevelingPanel';
+import ArchetypesPanel from './admin/panels/ArchetypesPanel';
 import ClassesPanel from './admin/panels/ClassesPanel';
 import SousClassesPanel from './admin/panels/SousClassesPanel';
 import RacesPanel from './admin/panels/RacesPanel';
@@ -89,6 +90,7 @@ const NAV_GROUPS = [
       { key: 'caracteristiques', label: 'Caractéristiques' },
       { key: 'index',            label: 'Index' },
       { key: 'leveling',         label: 'Leveling' },
+      { key: 'archetypes',       label: 'Archétypes' },
       { key: 'classes',          label: 'Classes' },
       { key: 'sous-classes',     label: 'Sous-classes' },
       { key: 'competences',      label: 'Compétences' },
@@ -134,6 +136,7 @@ function getSectionMeta(key) {
     ascendances: { title: 'Ascendances', sub: `${ASCENDANCE_DATA.length} ascendances` },
     origines: { title: 'Origines', sub: `${ORIGIN_DATA.length} origines` },
     historiques: { title: 'Historiques', sub: `${HISTORIQUE_DATA.length} historiques` },
+    archetypes: { title: 'Archétypes', sub: 'Rôle principal joué par une classe/sous-classe en jeu' },
     classes: { title: 'Classes', sub: `${CLASS_DATA.length} classes` },
     'sous-classes': { title: 'Sous-classes', sub: `${SUBCLASS_DATA.length} sous-classes` },
     competences: { title: 'Compétences', sub: 'Créateur de compétences avec tags dynamiques' },
@@ -211,6 +214,7 @@ export default function AdminPage() {
       case 'caracteristiques': return <CaracteristiquesPanel />;
       case 'index':            return <GameplayIndexPanel />;
       case 'leveling':         return <LevelingPanel />;
+      case 'archetypes':       return <ArchetypesPanel />;
       case 'classes':          return <ClassesPanel />;
       case 'sous-classes':     return <SousClassesPanel />;
       case 'competences':      return <CompetencesPanel />;

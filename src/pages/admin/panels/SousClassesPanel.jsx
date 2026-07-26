@@ -11,7 +11,7 @@ import {
   normalizeResourceDice, resourceDiceSummary, getRaceOptionsForLocks,
 } from '../adminUtils';
 
-function SubclassFormModal({ initial, classes, classCategories, races, onClose, onSave }) {
+function SubclassFormModal({ initial, classes, classCategories, races, archetypeRoots, archetypeChildrenOf, onClose, onSave }) {
   const [form, setForm] = useState(() => ({
     ...BLANK_SUBCLASS_FORM,
     ...(initial || {}),
@@ -71,6 +71,22 @@ function SubclassFormModal({ initial, classes, classCategories, races, onClose, 
                 <div className="race-form-field race-form-field--grow">
                   <label>Compétences de départ</label>
                   <input type="number" value={form.nombreCompetences ?? ''} onChange={(e) => set('nombreCompetences', e.target.value)} />
+                </div>
+              </div>
+              <div className="race-form-row">
+                <div className="race-form-field race-form-field--grow">
+                  <label>Archétype</label>
+                  <select value={form.archetypeId ?? ''} onChange={(e) => set('archetypeId', Number(e.target.value) || null)}>
+                    <option value="">— Hérite de la classe —</option>
+                    {archetypeRoots.map((root) => (
+                      <optgroup key={root.id} label={root.nom}>
+                        <option value={root.id}>{root.nom}</option>
+                        {archetypeChildrenOf(root.id).map((child) => (
+                          <option key={child.id} value={child.id}>— {child.nom}</option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div className="race-form-field">
@@ -140,7 +156,7 @@ function SubclassFormModal({ initial, classes, classCategories, races, onClose, 
 
 export default function SousClassesPanel() {
   const {
-    customSubclasses, customClasses, customClassCategories, customRaces, customMaitriseEntries,
+    customSubclasses, customClasses, customClassCategories, customRaces, customMaitriseEntries, customArchetypes,
     addSubclass, updateSubclass, deleteSubclass,
   } = useAdminStore();
 
@@ -151,6 +167,9 @@ export default function SousClassesPanel() {
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   const raceLockOptions = getRaceOptionsForLocks(customRaces);
+  const archetypes = asArray(customArchetypes);
+  const archetypeRoots = archetypes.filter((a) => !a.parentId);
+  const archetypeChildrenOf = (id) => archetypes.filter((a) => String(a.parentId) === String(id));
   const classes = asArray(customClasses);
   const classCategories = asArray(customClassCategories);
   const maitrises = asArray(customMaitriseEntries);
@@ -192,6 +211,11 @@ export default function SousClassesPanel() {
           <div className="ascendance-row-head">
             <div><h3>{sc.nom}</h3><span>{parentClass?.nom || sc.classe || '—'}</span></div>
             <b>Sous-classe</b>
+          </div>
+          <div className="ascendance-row-stats">
+            Archétype : {sc.archetypeId != null
+              ? (archetypes.find((a) => String(a.id) === String(sc.archetypeId))?.nom || '—')
+              : `Hérite de ${parentClass?.nom || 'la classe'}`}
           </div>
           <div className="ascendance-row-stats">
             Dés : {sc.replaceClassResourceDice ? resourceDiceSummary(sc) : `Hérite de ${parentClass?.nom || 'la classe'}`}
@@ -258,6 +282,8 @@ export default function SousClassesPanel() {
           classes={classes}
           classCategories={classCategories}
           races={raceLockOptions}
+          archetypeRoots={archetypeRoots}
+          archetypeChildrenOf={archetypeChildrenOf}
           onClose={() => { setShowForm(false); setEditingSubclass(null); }}
           onSave={handleSave}
         />

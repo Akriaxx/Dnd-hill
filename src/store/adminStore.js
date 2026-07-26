@@ -77,6 +77,7 @@ export const GAME_DATA_STATE_KEYS = [
   'customResistanceCategories',
   'customResistanceEntries',
   'customMaitriseEntries',
+  'customArchetypes',
   'customItemCategories',
   'customItems',
   'customItemClasses',
@@ -127,6 +128,7 @@ const EMPTY_GAME_DATA_STATE = {
   customResistanceCategories: [],
   customResistanceEntries: [],
   customMaitriseEntries: [],
+  customArchetypes: [],
   customItemCategories: [],
   customItems: [],
   customItemClasses: [],
@@ -961,6 +963,33 @@ export const useAdminStore = create(
       deleteMaitriseEntry: (id) =>
         set((state) => ({
           customMaitriseEntries: (state.customMaitriseEntries || []).filter((e) => e.id !== id),
+        })),
+
+      // Archétypes (rôle principal d'une classe/sous-classe en jeu) —
+      // liste plate avec hiérarchie par parentId (même convention que les
+      // catégories d'objets) : un archétype racine (parentId nul) est un
+      // archétype "Principal", un archétype enfant est un "Second"
+      // (sous-archétype) rattaché à son parent.
+      customArchetypes: [],
+
+      addArchetype: (entry) =>
+        set((state) => ({
+          customArchetypes: [
+            ...(state.customArchetypes || []),
+            { ...entry, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+          ],
+        })),
+
+      updateArchetype: (id, patch) =>
+        set((state) => ({
+          customArchetypes: (state.customArchetypes || []).map((e) =>
+            e.id === id ? { ...e, ...patch, updatedAt: new Date().toISOString() } : e
+          ),
+        })),
+
+      deleteArchetype: (id) =>
+        set((state) => ({
+          customArchetypes: (state.customArchetypes || []).filter((e) => e.id !== id && e.parentId !== id),
         })),
 
       // États — contrairement au reste du contenu de référence (races,
