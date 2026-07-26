@@ -452,39 +452,37 @@ export function IdentityRowCard({ title, type, meta, description, aptitudes, pro
   const provenanceList = asArray(provenances);
 
   return (
-    <article className="ascendance-row-card identity-row-card" style={{ '--ascendance-color': color }}>
-      <div className="ascendance-row-marker" />
-      <div className="ascendance-row-main">
-        <div className="ascendance-row-head">
-          <div>
-            <h3>{title}</h3>
-            <span>{type}</span>
-          </div>
+    <div className="entry-card" style={{ '--entry-color': color }}>
+      <div className="entry-card-top">
+        <div className="entry-card-badge">{(typeof title === 'string' ? title.trim().charAt(0).toUpperCase() : '') || '✦'}</div>
+        <div className="entry-card-body">
+          <span className="entry-card-kicker">{type}</span>
+          <h3 className="entry-card-title">{title}</h3>
         </div>
-        {meta && <div className="ascendance-row-stats">{meta}</div>}
-        {description && <p>{description}</p>}
-        {(aptitudeList.length > 0 || provenanceList.length > 0) && (
-          <div className="ascendance-row-details">
-            {aptitudeList.length > 0 && (
-              <span>
-                Aptitudes : {aptitudeList.map((row) => {
-                  const value = Number(row.value) || 0;
-                  const signedValue = value ? ` ${value > 0 ? '+' : ''}${value}` : '';
-                  return `${row.nom || row.key}${signedValue}`;
-                }).join(' · ')}
-              </span>
-            )}
-            {provenanceList.length > 0 && (
-              <span>Provenances : {provenanceList.join(' · ')}</span>
-            )}
-          </div>
-        )}
       </div>
-      <div className="ascendance-row-actions">
+      {meta && <div className="entry-card-meta"><span>{meta}</span></div>}
+      {description && <div className="entry-card-desc">{description}</div>}
+      {(aptitudeList.length > 0 || provenanceList.length > 0) && (
+        <div className="entry-card-detail">
+          {aptitudeList.length > 0 && (
+            <span>
+              Aptitudes : <b>{aptitudeList.map((row) => {
+                const value = Number(row.value) || 0;
+                const signedValue = value ? ` ${value > 0 ? '+' : ''}${value}` : '';
+                return `${row.nom || row.key}${signedValue}`;
+              }).join(', ')}</b>
+            </span>
+          )}
+          {provenanceList.length > 0 && (
+            <span>Provenances : <b>{provenanceList.join(', ')}</b></span>
+          )}
+        </div>
+      )}
+      <div className="entry-card-actions">
         <button className="admin-btn" onClick={onEdit}>Modifier</button>
         <button className="admin-btn admin-btn--danger" onClick={onDelete}>Supprimer</button>
       </div>
-    </article>
+    </div>
   );
 }
 

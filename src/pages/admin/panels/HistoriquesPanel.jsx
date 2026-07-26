@@ -112,7 +112,7 @@ export default function HistoriquesPanel() {
         categories={categories.filter((category) => filtered.some((historique) => (historique.categoryKey || 'base') === category.key))}
         entriesForCategory={(category) => filtered.filter((historique) => (historique.categoryKey || 'base') === category.key)}
         renderContent={(category, categoryEntries) => (
-          <div className="ascendance-row-grid identity-row-grid">
+          <div className="entry-card-grid">
             {categoryEntries.length > 0 ? categoryEntries.map(renderHistoriqueCard) : (
               <div className="index-empty">Aucun historique trouvé.</div>
             )}

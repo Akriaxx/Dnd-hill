@@ -110,7 +110,7 @@ export default function ProvenancesPanel() {
         />
       )}
       <AdminFilterPanel search={search} onSearch={setSearch} count={filtered.length} total={entries.length} />
-      <div className="ascendance-row-grid identity-row-grid">
+      <div className="entry-card-grid">
         {filtered.length > 0 ? filtered.map((provenance, index) => (
           <IdentityRowCard
             key={provenance.key || `${provenance.nom}-${index}`}

@@ -126,7 +126,7 @@ export default function OriginesPanel() {
         categories={categories.filter((category) => filtered.some((origin) => (origin.categoryKey || 'base') === category.key))}
         entriesForCategory={(category) => filtered.filter((origin) => (origin.categoryKey || 'base') === category.key)}
         renderContent={(category, categoryEntries) => (
-          <div className="ascendance-row-grid identity-row-grid">
+          <div className="entry-card-grid">
             {categoryEntries.length > 0 ? categoryEntries.map(renderOriginCard) : (
               <div className="index-empty">Aucune origine trouvée.</div>
             )}
