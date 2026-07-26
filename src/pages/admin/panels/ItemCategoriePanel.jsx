@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useAdminStore } from '../../../store/adminStore';
 import SmartDescEditor from '../../../components/admin/SmartDescEditor';
 import ItemIconPicker from '../../../components/admin/ItemIconPicker';
-import { ConfirmModal, AdminFilterPanel, SectionGrid, AdminCard, DetailLine, TagColorPicker } from '../AdminShared';
-import { asArray, includesText, mergeTemporaryRows, slugifyKey } from '../adminUtils';
+import { getItemIcon } from '../../../data/itemIcons';
+import { ConfirmModal, AdminFilterPanel, TagColorPicker } from '../AdminShared';
+import { includesText, mergeTemporaryRows } from '../adminUtils';
 import {
   BLANK_ITEM_CATEGORY,
   TEMP_ITEM_CATEGORIES,
@@ -26,14 +27,18 @@ export default function ItemCategoriePanel() {
   const [search, setSearch] = useState('');
 
   const setCategory = (key, value) => setCategoryForm((current) => ({ ...current, [key]: value }));
-  const filtered = categories.filter((category) => includesText(category.nom, search) || includesText(category.description, search));
   const rootCategories = getRootItemCategories(categories);
+  const childrenOf = (categoryId) => getItemCategoryChildren(categories, categoryId);
+  const filteredRoots = rootCategories.filter((category) => (
+    includesText(category.nom, search)
+    || includesText(category.description, search)
+    || childrenOf(category.id).some((child) => includesText(child.nom, search))
+  ));
   const parentOptions = rootCategories.filter((category) => !category.temporary && category.id !== editingCategory?.id);
   const itemCountFor = (categoryId) => {
     const branchIds = getItemCategoryBranchIds(categories, categoryId);
     return items.filter((item) => branchIds.includes(normalizeItemCategoryId(item.categoryId))).length;
   };
-  const subcategoryCountFor = (categoryId) => getItemCategoryChildren(categories, categoryId).length;
 
   const handleCategorySave = () => {
     if (!categoryForm.nom.trim()) return;
@@ -129,38 +134,55 @@ export default function ItemCategoriePanel() {
         />
       )}
 
-      <AdminFilterPanel search={search} onSearch={setSearch} count={filtered.length} total={categories.length} />
+      <AdminFilterPanel search={search} onSearch={setSearch} count={filteredRoots.length} total={rootCategories.length} />
 
-      {filtered.length === 0 ? (
+      {filteredRoots.length === 0 ? (
         <p style={{ opacity: 0.5, textAlign: 'center', marginTop: '2rem' }}>Aucune catégorie d'objet.</p>
       ) : (
-        <SectionGrid>
-          {filtered.map((category) => {
+        <div className="ascendance-row-grid">
+          {filteredRoots.map((category) => {
             const linkedItems = itemCountFor(category.id);
-            const linkedSubcategories = subcategoryCountFor(category.id);
+            const iconEntry = getItemIcon(category.icone);
+            const requestDeleteCategory = (target, count) => setConfirmDelete({
+              title: 'Supprimer une catégorie',
+              message: count > 0
+                ? `La catégorie "${target.nom}" contient ${count} item${count > 1 ? 's' : ''}. Supprimer la catégorie laissera ces items sans section. Confirmer ?`
+                : `Supprimer la catégorie "${target.nom}" ?`,
+              dangerLabel: 'Supprimer',
+              onConfirm: () => deleteItemCategory(target.id),
+            });
             return (
-              <AdminCard
-                key={category.id}
-                title={category.parentId ? `↳ ${category.nom}` : category.nom}
-                badge={`${category.temporary ? 'Brut · ' : ''}${linkedItems} item${linkedItems > 1 ? 's' : ''}`}
-                desc={category.description}
-                onEdit={category.temporary ? undefined : () => startCategoryEdit(category)}
-                onDelete={category.temporary ? undefined : () => setConfirmDelete({
-                  title: 'Supprimer une catégorie',
-                  message: linkedItems > 0
-                    ? `La catégorie "${category.nom}" contient ${linkedItems} item${linkedItems > 1 ? 's' : ''}. Supprimer la catégorie laissera ces items sans section. Confirmer ?`
-                    : `Supprimer la catégorie "${category.nom}" ?`,
-                  dangerLabel: 'Supprimer',
-                  onConfirm: () => deleteItemCategory(category.id),
-                })}
-              >
-                <DetailLine label="Type" value={category.parentId ? 'Sous-catégorie' : 'Section'} />
-                {!category.parentId && <DetailLine label="Sous-catégories" value={linkedSubcategories} />}
-                {category.icone && <DetailLine label="Icone" value={category.icone} />}
-              </AdminCard>
+              <article key={category.id} className="ascendance-row-card" style={{ '--ascendance-color': category.couleur || '#c8a84a' }}>
+                <div className="ascendance-row-marker" />
+                <div className="ascendance-row-main">
+                  <div className="ascendance-row-head">
+                    <div>
+                      <h3>{iconEntry && <iconEntry.Icon size={16} strokeWidth={1.6} className="item-card-title-icon" />} {category.nom}</h3>
+                      <span>{linkedItems} item{linkedItems > 1 ? 's' : ''}</span>
+                    </div>
+                    <b>Section</b>
+                  </div>
+                  {category.description && <p>{category.description}</p>}
+                  <div className="ascendance-row-stats">
+                    Sous-catégories : {childrenOf(category.id).length > 0 ? (
+                      <span className="perm-chip-grid" style={{ display: 'inline-flex' }}>
+                        {childrenOf(category.id).map((child) => (
+                          <button key={child.id} type="button" className="perm-chip perm-chip--on" onClick={() => startCategoryEdit(child)}>
+                            {child.nom}
+                          </button>
+                        ))}
+                      </span>
+                    ) : 'Aucune'}
+                  </div>
+                </div>
+                <div className="ascendance-row-actions">
+                  <button className="admin-btn" onClick={() => startCategoryEdit(category)}>Modifier</button>
+                  <button className="admin-btn admin-btn--danger" onClick={() => requestDeleteCategory(category, linkedItems)}>Supprimer</button>
+                </div>
+              </article>
             );
           })}
-        </SectionGrid>
+        </div>
       )}
     </div>
   );
