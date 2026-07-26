@@ -247,11 +247,11 @@ export default function ResistancesDefPanel() {
                 </div>
               </div>
               <div className={`index-category-content${isOpen ? ' is-open' : ''}`} aria-hidden={!isOpen}>
-                <div className="admin-panel-grid">
+                <div className="admin-panel-grid resistance-entry-grid">
                   {categoryEntries.map((entry) => (
                     <div
                       key={entry.id}
-                      className="admin-card admin-card--custom index-card"
+                      className="admin-card admin-card--custom index-card resistance-entry-card"
                       style={{ '--index-color': category.couleur || '#bcecff' }}
                     >
                       <div className="admin-card-header">

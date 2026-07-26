@@ -480,6 +480,23 @@
   }
 }
 
+// Cartes d'entrées de résistance : pas de description (juste un nom), donc
+// pas de raison de les étirer à la hauteur de leurs voisines comme le fait
+// le grid par défaut (align-items: stretch) — ça laissait un grand vide.
+.resistance-entry-grid {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  align-items: start;
+}
+
+.resistance-entry-card {
+  padding: 10px 14px;
+  gap: 0;
+
+  .admin-card-actions {
+    margin-top: 10px;
+  }
+}
+
 // ── Card ──
 .admin-card {
   background: $surface;
