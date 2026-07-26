@@ -1289,11 +1289,17 @@ export const hydrateRoles = async () => {
   const systemRoleOverrides = {};
   const customRoles = [];
   (rolesRows || []).forEach((row) => {
-    const permissions = permsByRole[row.key] || {};
+    const dbPermissions = permsByRole[row.key] || {};
     if (row.system) {
+      // Une permission absente en base (ex: ajoutée au code après le seed
+      // SQL initial, comme manageStorage/manageCombat pour gm) ne doit pas
+      // être perdue : on part du défaut code puis on applique ce qui a
+      // été explicitement écrit en base par-dessus.
+      const defaultRole = DEFAULT_ACCOUNT_ROLES.find((role) => role.key === row.key);
+      const permissions = { ...(defaultRole?.permissions || {}), ...dbPermissions };
       systemRoleOverrides[row.key] = { label: row.label, power: row.power, permissions };
     } else {
-      customRoles.push({ id: row.key, key: row.key, label: row.label, power: row.power, custom: true, permissions });
+      customRoles.push({ id: row.key, key: row.key, label: row.label, power: row.power, custom: true, permissions: dbPermissions });
     }
   });
 
