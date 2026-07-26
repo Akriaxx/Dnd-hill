@@ -50,6 +50,7 @@ export default function CompetencesPanel() {
     customCompetences,
     customClasses,
     customSubclasses,
+    customLevelRules,
     addCompetenceCategory,
     addCompetence,
     updateCompetence,
@@ -69,6 +70,7 @@ export default function CompetencesPanel() {
   const sf = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
   const classeOptions = asArray(customClasses).map((c) => c.nom).filter(Boolean);
+  const levelOptions = asArray(customLevelRules).slice().sort((a, b) => (Number(a.level) || 0) - (Number(b.level) || 0));
   const scOptions = form.classe
     ? asArray(customSubclasses).filter((s) => s.classe === form.classe).map((s) => s.nom)
     : [];
@@ -245,13 +247,19 @@ export default function CompetencesPanel() {
                 </div>
                 <div className="comp-form-field">
                   <label>Niveau minimum</label>
-                  <input
-                    type="number"
-                    min="0"
+                  <select
                     value={form.restrictLevel ?? ''}
                     onChange={(e) => sf('restrictLevel', e.target.value === '' ? null : Number(e.target.value))}
-                    placeholder="Aucun"
-                  />
+                    disabled={levelOptions.length === 0}
+                  >
+                    <option value="">Aucun</option>
+                    {levelOptions.map((rule) => (
+                      <option key={rule.level} value={rule.level}>{rule.title || `Niveau ${rule.level}`}</option>
+                    ))}
+                  </select>
+                  {levelOptions.length === 0 && (
+                    <span style={{ fontSize: '0.8em', opacity: 0.6 }}>Aucun niveau créé (Gameplay → Leveling).</span>
+                  )}
                 </div>
               </div>
 
