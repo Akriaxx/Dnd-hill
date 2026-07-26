@@ -2491,22 +2491,30 @@ function rollLevelDieFormula(formula) {
   };
 }
 
-function getLevelUpRewards(char, classDef, subclassDef, levelRule) {
+function getLevelUpRewards(char, classDef, subclassDef, levelRule, customCompetences = []) {
   const newLevel = (char.niveau ?? 0) + 1;
   const pts = Number(levelRule?.characterPoints ?? (newLevel % 4 === 0 ? 2 : 1)) || 0;
   const { dice, source } = getLevelUpDice(classDef, subclassDef);
   const { sortsMagiques, sortsPhysiques } = getLevelUpSpellCounts(classDef, subclassDef);
   const competences = getLevelGainNumber(classDef.nombreCompetences) + getLevelGainNumber(subclassDef?.nombreCompetences);
+  const newlyUnlockedCompetences = getNewlyUnlockedCompetences(char, customCompetences, char.niveau ?? 0, newLevel);
   const list = [
     { delay: 0, icon: '⬆', label: `Point${pts > 1 ? 's' : ''} de caractéristique`, value: `+${pts}`, color: '#c8a84a' },
     { delay: 340, icon: '⚔', label: 'Sort physique', value: `+${sortsPhysiques}`, color: '#ff9b4a' },
     { delay: 680, icon: '✧', label: 'Sort magique', value: `+${sortsMagiques}`, color: '#8a7cff' },
     { delay: 1020, icon: '◆', label: 'Compétence disponible', value: `+${competences}`, color: '#64e0d0' },
+    ...(newlyUnlockedCompetences.length > 0 ? [{
+      delay: 1360,
+      icon: '★',
+      label: 'Nouvelles compétences débloquées',
+      value: newlyUnlockedCompetences.map((c) => c.nom).join(', '),
+      color: '#e8c85a',
+    }] : []),
   ];
-  return { list, dice, diceSource: source, pointsCarac: pts, sortsPhysiques, sortsMagiques, competences };
+  return { list, dice, diceSource: source, pointsCarac: pts, sortsPhysiques, sortsMagiques, competences, newlyUnlockedCompetences };
 }
 
-function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customSubclasses = [], customMaitriseEntries = [], levelRules = [], onClose, onConfirm, onDraftChange }) {
+function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customSubclasses = [], customMaitriseEntries = [], customCompetences = [], levelRules = [], onClose, onConfirm, onDraftChange }) {
   const newLevel = (char.niveau ?? 0) + 1;
   const levelRule = getNextLevelRule(levelRules, char.niveau ?? 0);
   const savedDraft = char.levelUpDraft?.level === newLevel ? char.levelUpDraft : null;
@@ -2544,7 +2552,7 @@ function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customS
   const effectiveSubclassDef = needsSubclassChoice
     ? getCombinedSubclassDefinitionByName(selectedClass || char.classe, selectedSubclass, customSubclasses)
     : subclassDef;
-  const data = getLevelUpRewards(char, effectiveClassDef, effectiveSubclassDef, levelRule);
+  const data = getLevelUpRewards(char, effectiveClassDef, effectiveSubclassDef, levelRule, customCompetences);
   const [selectedResource, setSelectedResource] = useState(savedDraft?.selectedResource || '');
   const [rollResult, setRollResult] = useState(savedDraft?.rollResult || null);
   const [previousRoll, setPreviousRoll] = useState(savedDraft?.previousRoll || null);
@@ -2849,7 +2857,7 @@ function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customS
 
 function DetailFiche({ char }) {
   const { levelUp, updateCharacter } = useCharacterStore();
-  const { customClasses, customSubclasses, customLevelRules, customMaitriseEntries } = useAdminStore();
+  const { customClasses, customSubclasses, customLevelRules, customMaitriseEntries, customCompetences } = useAdminStore();
   const classDef = getCombinedClassDefinition(char, customClasses);
   const subclassDef = getCombinedSubclassDefinition(char, customSubclasses);
   const masteryStat = classDef.magique || 'CHA';
@@ -2890,6 +2898,7 @@ function DetailFiche({ char }) {
                   customClasses={customClasses}
                   customSubclasses={customSubclasses}
                   customMaitriseEntries={customMaitriseEntries || []}
+                  customCompetences={customCompetences || []}
                   levelRules={customLevelRules}
                   onClose={() => setShowLevelUp(false)}
                   onConfirm={(rewards) => levelUp(char.id, rewards)}
@@ -4174,6 +4183,28 @@ function getCompTags(items) {
   return new Set(items.filter(Boolean).map((item) => String(item.tag || '').trim().toLowerCase()).filter(Boolean));
 }
 
+// Compétences du catalogue admin (customCompetences) réellement débloquées
+// pour CE personnage : restreintes à sa classe/sous-classe si le catalogue
+// en précise une, et à un niveau minimum atteint — pas encore possédées
+// (comparaison par nom, insensible à la casse, contre char.competences).
+function getEligibleCatalogCompetences(char, customCompetences = []) {
+  const ownedNames = new Set((char.competences ?? []).map((item) => String(item.nom || '').trim().toLowerCase()));
+  return (customCompetences || []).filter((comp) => (
+    comp.nom
+    && !ownedNames.has(String(comp.nom).trim().toLowerCase())
+    && (!comp.classe || comp.classe === char.classe)
+    && (!comp.sousClasse || comp.sousClasse === char.sousClasse)
+    && (comp.restrictLevel == null || Number(comp.restrictLevel) <= (char.niveau ?? 0))
+  ));
+}
+
+// Sous-ensemble de getEligibleCatalogCompetences fraîchement débloqué en
+// passant de oldLevel à newLevel — sert à l'annonce de fin de level-up.
+function getNewlyUnlockedCompetences(char, customCompetences, oldLevel, newLevel) {
+  return getEligibleCatalogCompetences({ ...char, niveau: newLevel }, customCompetences)
+    .filter((comp) => comp.restrictLevel != null && Number(comp.restrictLevel) > oldLevel && Number(comp.restrictLevel) <= newLevel);
+}
+
 function getComputedCompetenceGroups(char) {
   const race = getRaceDefinition(char);
   const ascendance = getAscendanceDefinition(char);
@@ -4212,7 +4243,50 @@ function ActionCard({ action }) {
   );
 }
 
+function CompetenceUnlockModal({ eligible, onClose, onPick }) {
+  return (
+    <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="index-modal">
+        <div className="index-modal-header">
+          <h3>Débloquer une compétence</h3>
+          <button className="admin-btn" onClick={onClose}>✕ Fermer</button>
+        </div>
+        <div className="index-form">
+          {eligible.length === 0 ? (
+            <p className="comp-empty">Aucune compétence disponible pour ta classe/sous-classe et ton niveau actuel.</p>
+          ) : (
+            <div className="competence-list">
+              {eligible.map((comp) => (
+                <article key={comp.id} className="competence-row" style={{ '--competence-color': comp.tagColor || '#d77ee8' }}>
+                  <div className="competence-row-main">
+                    <div className="competence-row-title">
+                      <span className="index-card-color" />
+                      <strong>{comp.nom}</strong>
+                      {comp.restrictLevel != null && <span className="competence-row-level">Niv. {comp.restrictLevel}+</span>}
+                    </div>
+                    {comp.description && (
+                      <div className="competence-row-desc">
+                        <SmartText text={comp.description} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="competence-row-actions">
+                    <button className="admin-btn admin-btn--add" onClick={() => onPick(comp)}>Débloquer</button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DetailCompetences({ char }) {
+  const { updateCharacter } = useCharacterStore();
+  const { customCompetences } = useAdminStore();
+  const [showUnlock, setShowUnlock] = useState(false);
   const ci = char.competencesInnees ?? {};
   const computed = getComputedCompetenceGroups(char);
   const sc = mergeCompEntries(computed.sousClasse, char.competencesSousClasse ?? []);
@@ -4227,11 +4301,33 @@ function DetailCompetences({ char }) {
     .map((item) => ({ tag: item.nom, desc: item.desc }))
     .filter((item) => !computedTags.has(String(item.tag || '').trim().toLowerCase()));
   const actions = [...(char.actions ?? []), ...(char.actionsRapide ?? [])].filter((action) => action?.nom || action?.desc);
+  const competencesDisponibles = char.competencesDisponibles || 0;
+  const eligibleCatalogCompetences = getEligibleCatalogCompetences(char, customCompetences);
+
+  const unlockCompetence = (comp) => {
+    updateCharacter(char.id, {
+      competencesDisponibles: Math.max(0, competencesDisponibles - 1),
+      competences: [...(char.competences ?? []), { nom: comp.nom, desc: comp.description || '' }],
+    });
+    setShowUnlock(false);
+  };
 
   return (
     <div className="detail-content comp-content">
+      {showUnlock && (
+        <CompetenceUnlockModal
+          eligible={eligibleCatalogCompetences}
+          onClose={() => setShowUnlock(false)}
+          onPick={unlockCompetence}
+        />
+      )}
       <div className="comp-page-head">
         <h2>Compétences & Actions</h2>
+        {competencesDisponibles > 0 && (
+          <button className="admin-btn admin-btn--add" onClick={() => setShowUnlock(true)}>
+            ◆ {competencesDisponibles} compétence{competencesDisponibles > 1 ? 's' : ''} disponible{competencesDisponibles > 1 ? 's' : ''} — Débloquer
+          </button>
+        )}
       </div>
 
       <div className="comp-groups">
