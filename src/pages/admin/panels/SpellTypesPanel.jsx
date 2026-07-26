@@ -52,7 +52,7 @@ export default function SpellTypesPanel() {
   const deleteSpellType = useAdminStore((state) => state.deleteSpellType);
 
   const [search, setSearch] = useState('');
-  const [openType, setOpenType] = useState(DEFAULT_SPELL_TYPES[0].key);
+  const [openType, setOpenType] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingType, setEditingType] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
