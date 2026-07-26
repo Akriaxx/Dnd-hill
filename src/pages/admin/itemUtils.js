@@ -89,30 +89,9 @@ export const hasAnyItemEffect = (rawEffects) => {
   );
 };
 
-export const TEMP_ITEM_CATEGORIES = [
-  { id: -101, nom: 'Consommables', description: 'Objets à usage unique ou limité : potions, fioles, rations, remèdes.', couleur: '#54d58a', icone: 'flask', temporary: true },
-  { id: -102, nom: 'Armes', description: 'Tout ce qui sert à attaquer : lames, masses, arcs, armes improvisées.', couleur: '#d55f5f', icone: 'sword', temporary: true },
-  { id: -103, nom: 'Armures', description: 'Protections portées : torse, casque, gants, bottes, boucliers.', couleur: '#7ba7ff', icone: 'shield', temporary: true },
-  { id: -104, nom: 'Artefacts', description: 'Objets rares, instables ou chargés de magie, souvent uniques.', couleur: '#d77ee8', icone: 'gem', temporary: true },
-  { id: -105, nom: 'Outils', description: 'Matériel utilitaire : kits, cordes, instruments, outils de métier.', couleur: '#c8a84a', icone: 'tool', temporary: true },
-  { id: -201, parentId: -101, nom: 'Potions', description: 'Préparations buvables qui restaurent ou renforcent temporairement.', couleur: '#54d58a', icone: 'potion', temporary: true },
-  { id: -202, parentId: -101, nom: 'Fioles', description: 'Petits contenants alchimiques à effet rapide.', couleur: '#7de0b1', icone: 'vial', temporary: true },
-  { id: -203, parentId: -102, nom: 'Lames', description: 'Épées, dagues et armes tranchantes.', couleur: '#d55f5f', icone: 'sword', temporary: true },
-  { id: -204, parentId: -102, nom: 'Contondantes', description: 'Masses, marteaux et armes faites pour briser.', couleur: '#c77a55', icone: 'hammer', temporary: true },
-  { id: -205, parentId: -103, nom: 'Torse', description: 'Armures principales portées sur le buste.', couleur: '#7ba7ff', icone: 'armor', temporary: true },
-  { id: -206, parentId: -103, nom: 'Gants', description: 'Protège les mains sans gêner les gestes fins.', couleur: '#9bbcff', icone: 'gloves', temporary: true },
-];
-
-export const TEMP_ITEMS = [
-  { id: -1001, categoryId: -201, nom: 'Potion de vitalité mineure', description: "Restaure une petite quantité de vitalité lorsqu'elle est consommée.", stackable: true, icone: 'potion', temporary: true },
-  { id: -1002, categoryId: -202, nom: "Fiole d'endurance claire", description: 'Une préparation amère qui aide à reprendre son souffle après un effort.', stackable: true, icone: 'vial', temporary: true },
-  { id: -1003, categoryId: -203, nom: "Lame courte d'entraînement", description: 'Une arme simple, équilibrée, pensée pour les premiers combats.', equipable: true, icone: 'sword', temporary: true },
-  { id: -1004, categoryId: -204, nom: 'Masse de fer brut', description: "Lourde, directe, rarement subtile. Elle fait exactement ce qu'on attend d'elle.", equipable: true, icone: 'hammer', temporary: true },
-  { id: -1005, categoryId: -205, nom: 'Plastron renforcé', description: 'Protection de torse robuste, utile pour encaisser les coups frontaux.', equipable: true, icone: 'armor', temporary: true },
-  { id: -1006, categoryId: -206, nom: 'Gants de cuir riveté', description: 'Protège les mains sans gêner les gestes fins.', equipable: true, icone: 'gloves', temporary: true },
-  { id: -1007, categoryId: -104, nom: "Fragment d'écho ancien", description: "Un éclat froid qui semble répéter des souvenirs qui ne lui appartiennent pas.", icone: 'crystal', temporary: true },
-  { id: -1008, categoryId: -105, nom: 'Kit de crochetage usé', description: "Un ensemble incomplet, mais encore fiable entre des mains patientes.", stackable: false, icone: 'lockpick', temporary: true },
-];
+// Aucun objet/catégorie de démo — tous créés depuis l'admin.
+export const TEMP_ITEM_CATEGORIES = [];
+export const TEMP_ITEMS = [];
 
 export const normalizeItemCategoryId = (value) => {
   if (value === null || value === undefined || value === '') return null;

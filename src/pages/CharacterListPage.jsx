@@ -4309,71 +4309,9 @@ function DetailGrimoire({ char }) {
 }
 
 // ── Inventaire picker — données & helpers ─────────────────────
-const INVENTORY_PICKER_TEMP_CATEGORIES = [
-  { id: -101, nom: 'Consommables', couleur: '#54d58a', icone: 'flask', temporary: true },
-  { id: -102, nom: 'Armes',        couleur: '#d55f5f', icone: 'sword', temporary: true },
-  { id: -103, nom: 'Armures',      couleur: '#7ba7ff', icone: 'shield', temporary: true },
-  { id: -104, nom: 'Artefacts',    couleur: '#d77ee8', icone: 'gem',   temporary: true },
-  { id: -105, nom: 'Outils',       couleur: '#c8a84a', icone: 'tool',  temporary: true },
-  { id: -201, parentId: -101, nom: 'Potions',      couleur: '#54d58a', icone: 'potion', temporary: true },
-  { id: -202, parentId: -101, nom: 'Fioles',       couleur: '#7de0b1', icone: 'vial',   temporary: true },
-  { id: -207, parentId: -101, nom: 'Elixirs',      couleur: '#8de8c0', icone: 'flask',  temporary: true },
-  { id: -203, parentId: -102, nom: 'Lames',        couleur: '#d55f5f', icone: 'sword',  temporary: true },
-  { id: -204, parentId: -102, nom: 'Contondantes', couleur: '#c77a55', icone: 'hammer', temporary: true },
-  { id: -205, parentId: -103, nom: 'Torse',        couleur: '#7ba7ff', icone: 'armor',  temporary: true },
-  { id: -206, parentId: -103, nom: 'Gants',        couleur: '#9bbcff', icone: 'gloves', temporary: true },
-];
-
-const INVENTORY_PICKER_TEMP_ITEMS = [
-  {
-    id: -1001, categoryId: -201,
-    nom: 'Potion de vitalité mineure',
-    description: `Restaure une petite quantité de vitalité lorsqu'elle est consommée.`,
-    stackable: true, icone: 'potion', temporary: true,
-  },
-  {
-    id: -1002, categoryId: -202,
-    nom: `Fiole d'endurance claire`,
-    description: `Une préparation amère qui aide à reprendre son souffle après un effort.`,
-    stackable: true, icone: 'vial', temporary: true,
-  },
-  {
-    id: -1003, categoryId: -203,
-    nom: `Lame courte d'entraînement`,
-    description: `Une arme simple, équilibrée, pensée pour les premiers combats.`,
-    equipable: true, equipSlot: 'arme', icone: 'sword', temporary: true,
-  },
-  {
-    id: -1004, categoryId: -204,
-    nom: 'Masse de fer brut',
-    description: `Lourde, directe, rarement subtile. Elle fait exactement ce qu'on attend d'elle.`,
-    equipable: true, equipSlot: 'arme', icone: 'hammer', temporary: true,
-  },
-  {
-    id: -1005, categoryId: -205,
-    nom: 'Plastron renforcé',
-    description: `Protection de torse robuste, utile pour encaisser les coups frontaux.`,
-    equipable: true, equipSlot: 'torse', icone: 'armor', temporary: true,
-  },
-  {
-    id: -1006, categoryId: -206,
-    nom: 'Gants de cuir riveté',
-    description: `Protège les mains sans gêner les gestes fins.`,
-    equipable: true, equipSlot: 'gants', icone: 'gloves', temporary: true,
-  },
-  {
-    id: -1007, categoryId: -104,
-    nom: `Fragment d'écho ancien`,
-    description: `Un éclat froid qui semble répéter des souvenirs qui ne lui appartiennent pas.`,
-    icone: 'crystal', temporary: true,
-  },
-  {
-    id: -1008, categoryId: -105,
-    nom: 'Kit de crochetage usé',
-    description: `Un ensemble incomplet, mais encore fiable entre des mains patientes.`,
-    icone: 'lockpick', temporary: true,
-  },
-];
+// Aucun objet/catégorie de démo — tous créés depuis l'admin.
+const INVENTORY_PICKER_TEMP_CATEGORIES = [];
+const INVENTORY_PICKER_TEMP_ITEMS = [];
 
 const normalizeInventoryCategoryId = (value) => {
   if (value === null || value === undefined || value === '') return null;
@@ -4409,17 +4347,11 @@ const getInventoryCategoryById = (categories, categoryId) => {
 const inventoryPickerIncludesText = (value, search) =>
   String(value || '').toLowerCase().includes(String(search || '').trim().toLowerCase());
 
-const CONSUMABLE_ROOT_CATEGORY_ID = -101; // "Consommables" in INVENTORY_PICKER_TEMP_CATEGORIES
 const RESOURCE_EFFECT_KEYS = { vitalite: 'vie', mana: 'mana', endurance: 'endu' };
 
-// Admin-authored items carry an explicit `usable` flag. The temporary demo
-// catalog doesn't, so it falls back to "is this filed under Consommables?".
-const isConsumableItem = (item, itemCategories) => {
-  if (item.usable === true) return true;
-  if (item.usable === false) return false;
-  const branchIds = getInventoryCategoryBranchIds(itemCategories, CONSUMABLE_ROOT_CATEGORY_ID);
-  return branchIds.includes(normalizeInventoryCategoryId(item.categoryId));
-};
+// Un objet créé depuis l'admin porte toujours un flag `usable` explicite
+// (voir ItemPanel.jsx) — pas de déduction par catégorie nécessaire.
+const isConsumableItem = (item) => item.usable === true;
 
 // ── Onglet Inventaire ─────────────────────────────────────────
 function DetailInventaire({ char }) {
@@ -4726,7 +4658,7 @@ function DetailInventaire({ char }) {
               {isStart && (
                 (() => {
                   const category = getInventoryItemCategory(slot.item);
-                  const usable = isConsumableItem(slot.item, itemCategories);
+                  const usable = isConsumableItem(slot.item);
                   return (
                     <div
                       className="inv2-item"
