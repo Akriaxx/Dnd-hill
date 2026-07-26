@@ -268,12 +268,12 @@ export default function PlayersPanel() {
     <div className="admin-panel players-panel">
       <div className="admin-panel-actions">
         <VerificationGate verification={verification} />
-        <button className="admin-btn admin-btn--add" onClick={() => { resetForm(); setShowForm(true); }}>
+        <button className="admin-btn admin-btn--add" onClick={() => { resetForm(); setShowForm(true); }} disabled={!verified}>
           + Nouveau joueur
         </button>
       </div>
       {!verified && (
-        <p className="race-form-hint">Lancez la procédure de vérification pour modifier ou supprimer un compte.</p>
+        <p className="race-form-hint">Lancez la procédure de vérification pour créer, modifier ou supprimer un compte.</p>
       )}
 
       {loadError && <p className="comp-empty">Erreur de chargement : {loadError}</p>}
