@@ -242,9 +242,9 @@ export default function MaitriseDefPanel() {
                 </div>
               </div>
               <div className={`index-category-content${isOpen ? ' is-open' : ''}`} aria-hidden={!isOpen}>
-                <div className="admin-panel-grid">
+                <div className="admin-panel-grid compact-entry-grid">
                   {categoryEntries.map((entry) => (
-                    <div key={entry.id} className="admin-card admin-card--custom index-card" style={{ '--index-color': entry.couleur || '#c8a84a' }}>
+                    <div key={entry.id} className="admin-card admin-card--custom index-card compact-entry-card" style={{ '--index-color': entry.couleur || '#c8a84a' }}>
                       <div className="admin-card-header">
                         <div className="admin-card-title">
                           <span className="index-card-color" />
