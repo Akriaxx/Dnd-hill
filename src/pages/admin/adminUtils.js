@@ -98,7 +98,7 @@ export const getRanksAtLevel = (ranks, level) => {
 
 export const BLANK_CLASS_FORM = {
   nom: '', type: '', description: '', allowedRaces: [],
-  armures: '', physique: '', magique: '',
+  armures: [], physique: '', magique: '',
   resourceDice: { vie: '', mana: '', endu: '' },
   nombreSortsMagiques: 0, nombreSortsPhysiques: 0, nombreCompetences: 0,
 };

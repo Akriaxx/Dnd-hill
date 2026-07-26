@@ -3348,10 +3348,15 @@ function infoNameValue(row) {
   return typeof row === 'string' ? row : row?.nom || row?.label || row?.key || '';
 }
 
-function buildInfoDetails(defInput, kind = '') {
+function buildInfoDetails(defInput, kind = '', context = {}) {
   // Même piège que definitionInfoText : mergeDefinition peut renvoyer
   // `null`, que le paramètre par défaut (= {}) ne rattrape pas.
   const def = defInput || {};
+  const { classCategories = [], itemCategories = [] } = context;
+  const classTypeLabel = classCategories.find((c) => c.key === def.type)?.nom || def.type;
+  const armuresLabel = Array.isArray(def.armures)
+    ? def.armures.map((id) => itemCategories.find((c) => String(c.id) === String(id))?.nom).filter(Boolean).join(', ')
+    : def.armures;
   const innate = stripIdentityLead(def.competenceRaciale || def.competenceAscendance || '');
   const resources = infoResourceValues(def.baseResources, def.resourceDice);
   const resistances = compactList(def.resistanceBonuses, infoResistanceValue);
@@ -3363,8 +3368,8 @@ function buildInfoDetails(defInput, kind = '') {
     ? [`+1 x${def.aptitudeChoices.plusOne ?? 1}`, `+2 x${def.aptitudeChoices.plusTwo ?? 1}`]
     : [];
   const classSetup = [
-    def.type ? `Type : ${def.type}` : '',
-    def.armures ? `Armures : ${def.armures}` : '',
+    def.type ? `Type : ${classTypeLabel}` : '',
+    armuresLabel ? `Armures : ${armuresLabel}` : '',
     def.physique ? `Sort physique : ${def.physique}` : '',
     def.magique ? `Sort magique : ${def.magique}` : '',
     def.nombreSortsMagiques != null ? `${def.nombreSortsMagiques} sort(s) magique(s) / niveau` : '',
@@ -3436,10 +3441,13 @@ function DetailInformations({ char }) {
     customClasses,
     customSubclasses,
     customMaitriseEntries,
+    customClassCategories,
+    customItemCategories,
   } = useAdminStore();
   const raceDef = mergeDefinition(RACE_DATA, customRaces, char.race);
   const ascendanceDef = mergeDefinition(ASCENDANCE_DATA, customAscendances, char.ascendance);
   const classDef = getCombinedClassDefinition(char, customClasses);
+  const classInfoContext = { classCategories: customClassCategories || [], itemCategories: customItemCategories || [] };
   const subclassDef = getCombinedSubclassDefinition(char, customSubclasses);
   const provenanceDef = mergeDefinition(PROVENANCE_DATA, customProvenances, char.provenance);
   const originDef = mergeDefinition(ORIGIN_DATA, customOrigins, char.origine);
@@ -3448,7 +3456,7 @@ function DetailInformations({ char }) {
   const items = [
     ['Ma Race', char.race, definitionInfoText(raceDef, char.descRace), buildInfoDetails(raceDef, 'race')],
     ['Mon Ascendance', char.ascendance, definitionInfoText(ascendanceDef, char.descAscendance), buildInfoDetails(ascendanceDef, 'ascendance')],
-    ['Ma Classe', char.classe, definitionInfoText(classDef, char.descClasse), buildInfoDetails(classDef, 'classe')],
+    ['Ma Classe', char.classe, definitionInfoText(classDef, char.descClasse), buildInfoDetails(classDef, 'classe', classInfoContext)],
     ['Ma Sous-Classe', char.sousClasse, definitionInfoText(subclassDef, char.descSousClasse), buildInfoDetails(subclassDef, 'sous-classe')],
     ['Ma Provenance', char.provenance, definitionInfoText(provenanceDef, char.descProvenance), buildInfoDetails(provenanceDef, 'provenance')],
     ['Mon Origine', char.origine, definitionInfoText(originDef, char.descOrigine), buildInfoDetails(originDef, 'origine')],
