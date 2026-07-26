@@ -163,32 +163,27 @@ export default function LanguesPanel() {
           categories={visibleCategories.map((category) => ({ ...category, couleur: category.couleur || '#bcecff' }))}
           entriesForCategory={(category) => filtered.filter((entry) => entry.categoryKey === category.key)}
           renderContent={(category, categoryEntries) => (
-            <div className="admin-knowledge-list admin-language-list">
-              {categoryEntries.length > 0 ? (
-                <>
-                  <div className="admin-knowledge-head">
-                    <span>#</span>
-                    <span>Langue</span>
-                  </div>
-                  {categoryEntries.map((language, index) => (
-                    <div
-                      key={language.id || language.key}
-                      className="admin-knowledge-row"
-                      style={{ '--knowledge-color': language.couleur || category.couleur || '#bcecff' }}
-                    >
-                      <span className="admin-knowledge-index">{String(index + 1).padStart(2, '0')}</span>
-                      <div className="admin-knowledge-main">
-                        <strong>{language.nom}</strong>
-                        {language.description && <p>{language.description}</p>}
-                      </div>
-                      <div className="admin-knowledge-actions">
-                        <button className="admin-btn" onClick={() => startLanguageEdit(language)}>Modifier</button>
-                        <button className="admin-btn admin-btn--danger" onClick={() => requestLanguageDelete(language)}>Supprimer</button>
-                      </div>
+            <div className="entry-card-grid">
+              {categoryEntries.length > 0 ? categoryEntries.map((language) => (
+                <div
+                  key={language.id || language.key}
+                  className="entry-card"
+                  style={{ '--entry-color': language.couleur || category.couleur || '#bcecff' }}
+                >
+                  <div className="entry-card-top">
+                    <div className="entry-card-badge">{(language.nom || '?').trim().charAt(0).toUpperCase()}</div>
+                    <div className="entry-card-body">
+                      <span className="entry-card-kicker">Langue</span>
+                      <h3 className="entry-card-title">{language.nom}</h3>
                     </div>
-                  ))}
-                </>
-              ) : (
+                  </div>
+                  {language.description && <div className="entry-card-desc">{language.description}</div>}
+                  <div className="entry-card-actions">
+                    <button className="admin-btn" onClick={() => startLanguageEdit(language)}>Modifier</button>
+                    <button className="admin-btn admin-btn--danger" onClick={() => requestLanguageDelete(language)}>Supprimer</button>
+                  </div>
+                </div>
+              )) : (
                 <div className="index-empty">Aucune langue dans cette catégorie.</div>
               )}
             </div>

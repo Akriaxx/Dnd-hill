@@ -194,32 +194,27 @@ export default function ConnaissancesPanel() {
           .map((category) => ({ ...category, couleur: category.couleur || '#c8a84a' }))}
         entriesForCategory={(category) => filtered.filter((entry) => (entry.categoryKey || 'general') === category.key)}
         renderContent={(category, categoryEntries) => (
-          <div className="admin-knowledge-list">
-            {categoryEntries.length > 0 ? (
-              <>
-                <div className="admin-knowledge-head">
-                  <span>#</span>
-                  <span>Connaissance</span>
-                </div>
-                {categoryEntries.map((knowledge, index) => (
-                  <div
-                    key={knowledge.id || knowledge.key}
-                    className={`admin-knowledge-row${knowledge.custom ? ' is-custom' : ''}`}
-                    style={{ '--knowledge-color': knowledge.couleur || category.couleur || '#c8a84a' }}
-                  >
-                    <span className="admin-knowledge-index">{String(index + 1).padStart(2, '0')}</span>
-                    <div className="admin-knowledge-main">
-                      <strong>{knowledge.nom}</strong>
-                      {knowledge.description && <p>{knowledge.description}</p>}
-                    </div>
-                    <div className="admin-knowledge-actions">
-                      <button className="admin-btn" onClick={() => startKnowledgeEdit(knowledge)}>Modifier</button>
-                      <button className="admin-btn admin-btn--danger" onClick={() => requestKnowledgeDelete(knowledge)}>Supprimer</button>
-                    </div>
+          <div className="entry-card-grid">
+            {categoryEntries.length > 0 ? categoryEntries.map((knowledge) => (
+              <div
+                key={knowledge.id || knowledge.key}
+                className="entry-card"
+                style={{ '--entry-color': knowledge.couleur || category.couleur || '#c8a84a' }}
+              >
+                <div className="entry-card-top">
+                  <div className="entry-card-badge">{(knowledge.nom || '?').trim().charAt(0).toUpperCase()}</div>
+                  <div className="entry-card-body">
+                    <span className="entry-card-kicker">Connaissance</span>
+                    <h3 className="entry-card-title">{knowledge.nom}</h3>
                   </div>
-                ))}
-              </>
-            ) : (
+                </div>
+                {knowledge.description && <div className="entry-card-desc">{knowledge.description}</div>}
+                <div className="entry-card-actions">
+                  <button className="admin-btn" onClick={() => startKnowledgeEdit(knowledge)}>Modifier</button>
+                  <button className="admin-btn admin-btn--danger" onClick={() => requestKnowledgeDelete(knowledge)}>Supprimer</button>
+                </div>
+              </div>
+            )) : (
               <div className="index-empty">Aucune connaissance dans cette catégorie.</div>
             )}
           </div>
