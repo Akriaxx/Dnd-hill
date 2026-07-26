@@ -76,6 +76,7 @@ export const GAME_DATA_STATE_KEYS = [
   'customCaracteristiques',
   'customResistanceCategories',
   'customResistanceEntries',
+  'customMaitriseCategories',
   'customMaitriseEntries',
   'customArchetypes',
   'customItemCategories',
@@ -127,6 +128,7 @@ const EMPTY_GAME_DATA_STATE = {
   customCaracteristiques: [],
   customResistanceCategories: [],
   customResistanceEntries: [],
+  customMaitriseCategories: [],
   customMaitriseEntries: [],
   customArchetypes: [],
   customItemCategories: [],
@@ -940,6 +942,29 @@ export const useAdminStore = create(
       deleteResistanceEntry: (id) =>
         set((state) => ({
           customResistanceEntries: (state.customResistanceEntries || []).filter((e) => e.id !== id),
+        })),
+
+      // Catégories de domaines de maîtrise (ex: Lumière, Chaos, Eau…)
+      customMaitriseCategories: [],
+
+      addMaitriseCategory: (category) =>
+        set((state) => ({
+          customMaitriseCategories: [
+            ...(state.customMaitriseCategories || []),
+            { ...category, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+          ],
+        })),
+
+      updateMaitriseCategory: (id, patch) =>
+        set((state) => ({
+          customMaitriseCategories: (state.customMaitriseCategories || []).map((c) =>
+            c.id === id ? { ...c, ...patch, updatedAt: new Date().toISOString() } : c
+          ),
+        })),
+
+      deleteMaitriseCategory: (id) =>
+        set((state) => ({
+          customMaitriseCategories: (state.customMaitriseCategories || []).filter((c) => c.id !== id),
         })),
 
       // Entrées de maîtrise créées par le MJ
