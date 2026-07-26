@@ -29,16 +29,11 @@ import {
 } from '../itemUtils';
 
 // item.icone stocke une clé (ex: "sword"), pas du texte libre — voir
-// ItemIconPicker. Affichée à côté du nom plutôt qu'en ligne de détail à
-// part : plus lisible qu'un DetailLine répétant la clé brute.
-function ItemTitle({ item }) {
+// ItemIconPicker. Rendue dans le badge rond de la card plutôt qu'en ligne
+// de détail à part.
+function ItemIcon({ item }) {
   const entry = getItemIcon(item.icone);
-  return (
-    <span className="item-card-title">
-      {entry && <entry.Icon size={16} strokeWidth={1.6} className="item-card-title-icon" />}
-      {item.nom}
-    </span>
-  );
+  return entry ? <entry.Icon size={20} strokeWidth={1.6} /> : null;
 }
 
 function ItemEffectBuilder({ value, onChange, aptitudeOptions, resistanceOptions, onlyKey = null }) {
@@ -451,7 +446,8 @@ export default function ItemPanel() {
                     {directItems.map((item) => (
                       <AdminCard
                         key={item.id}
-                        title={<ItemTitle item={item} />}
+                        title={item.nom}
+                        icon={<ItemIcon item={item} />}
                         badge={[item.temporary && 'Brut', item.consumable && 'Consommable', item.equipable && 'Équipable', item.stackable && 'Stackable'].filter(Boolean).join(' · ') || undefined}
                         desc={item.description}
                         onEdit={item.temporary ? undefined : () => startItemEdit(item)}
@@ -482,7 +478,8 @@ export default function ItemPanel() {
                         {childItems.map((item) => (
                           <AdminCard
                             key={item.id}
-                            title={<ItemTitle item={item} />}
+                            title={item.nom}
+                            icon={<ItemIcon item={item} />}
                             badge={[item.temporary && 'Brut', item.consumable && 'Consommable', item.equipable && 'Équipable', item.stackable && 'Stackable'].filter(Boolean).join(' · ') || undefined}
                             desc={item.description}
                             onEdit={item.temporary ? undefined : () => startItemEdit(item)}
@@ -521,7 +518,8 @@ export default function ItemPanel() {
             {filtered.filter((i) => !i.categoryId || !categories.find((c) => c.id === i.categoryId)).map((item) => (
               <AdminCard
                 key={item.id}
-                title={<ItemTitle item={item} />}
+                title={item.nom}
+                icon={<ItemIcon item={item} />}
                 badge={[item.temporary && 'Brut', item.consumable && 'Consommable', item.equipable && 'Équipable', item.stackable && 'Stackable'].filter(Boolean).join(' · ') || undefined}
                 desc={item.description}
                 onEdit={item.temporary ? undefined : () => startItemEdit(item)}

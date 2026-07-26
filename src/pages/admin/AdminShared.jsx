@@ -59,7 +59,7 @@ export function AdminFilterPanel({ search, onSearch, searchPlaceholder = 'Recher
 }
 
 export function SectionGrid({ children, small }) {
-  return <div className={`admin-panel-grid${small ? ' admin-panel-grid--sm' : ''}`}>{children}</div>;
+  return <div className={`entry-card-grid${small ? '' : ' entry-card-grid--wide'}`}>{children}</div>;
 }
 
 export function CategoryAccordionList({ categories, entriesForCategory, renderEntry, renderContent, emptyLabel = 'Aucune entrée dans cette catégorie.', small = false }) {
@@ -408,30 +408,28 @@ export function KnowledgeCategoryModal({ existingKeys, initial, title = 'Nouvell
   );
 }
 
-export function AdminCard({ title, badge, badgeColor, meta, desc, custom, onEdit, onDelete, children }) {
+export function AdminCard({ title, icon, badge, badgeColor, meta, desc, custom, onEdit, onDelete, children }) {
   const [open, setOpen] = useState(false);
+  const initial = typeof title === 'string' ? title.trim().charAt(0).toUpperCase() : '';
   return (
-    <div className={`admin-card${open ? ' admin-card--open' : ''}${custom ? ' admin-card--custom' : ''}`}>
-      <div className="admin-card-header">
-        <div className="admin-card-title">
-          {custom && <span className="admin-custom-badge">✦</span>}
-          {title}
+    <div className="entry-card" style={{ '--entry-color': badgeColor || '#c8a84a' }}>
+      <div className="entry-card-top">
+        <div className="entry-card-badge">{icon || initial || '✦'}</div>
+        <div className="entry-card-body">
+          {custom && <span className="entry-card-kicker">✦ Personnalisé</span>}
+          <h3 className="entry-card-title">{title}</h3>
+          {badge && <span className="entry-card-sub">{badge}</span>}
         </div>
-        {badge && (
-          <span className="admin-card-badge" style={badgeColor ? { background: badgeColor + '22', color: badgeColor, borderColor: badgeColor + '55' } : {}}>
-            {badge}
-          </span>
-        )}
       </div>
-      {meta && <div className="admin-card-meta">{meta}</div>}
-      {desc && <p className={`admin-card-desc${open ? '' : ' admin-card-desc--clamped'}`}>{desc}</p>}
+      {meta && <div className="entry-card-meta"><span>{meta}</span></div>}
+      {desc && <p className={`entry-card-desc${open ? '' : ' entry-card-desc--clamped'}`}>{desc}</p>}
       {(desc || children) && (
-        <button className="admin-card-toggle" onClick={() => setOpen((v) => !v)}>
+        <button className="entry-card-toggle" onClick={() => setOpen((v) => !v)}>
           {open ? '▲ Réduire' : '▼ Voir détails'}
         </button>
       )}
-      {open && children && <div className="admin-card-detail">{children}</div>}
-      <div className="admin-card-actions">
+      {open && children && <div className="entry-card-detail">{children}</div>}
+      <div className="entry-card-actions">
         <button className="admin-btn" onClick={onEdit} disabled={!onEdit}>Modifier</button>
         <button className="admin-btn admin-btn--danger" onClick={onDelete} disabled={!onDelete}>Supprimer</button>
       </div>
