@@ -31,3 +31,4 @@ dist-ssr
 # Local tool state (not project content)
 .claude/
 .codex-remote-attachments/
+.vercel

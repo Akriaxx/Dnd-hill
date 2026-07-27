@@ -161,7 +161,7 @@ export default function LevelingPanel() {
       )}
 
       {showForm && (
-        <div className="index-modal-backdrop" onClick={(event) => event.target === event.currentTarget && closeForm()}>
+        <div className="index-modal-backdrop">
           <div className="index-modal index-modal--wide leveling-modal">
             <div className="index-modal-header">
               <h3>{editingRule ? 'Modifier un palier' : 'Nouveau palier'}</h3>

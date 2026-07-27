@@ -289,7 +289,7 @@ export default function PlayersPanel() {
       )}
 
       {showForm && (
-        <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && closeForm()}>
+        <div className="index-modal-backdrop">
           <div className="index-modal">
             <div className="index-modal-header">
               <h3>{editingPlayer ? 'Modifier le joueur' : 'Nouveau joueur'}</h3>

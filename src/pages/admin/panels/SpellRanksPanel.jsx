@@ -145,7 +145,7 @@ export default function SpellRanksPanel() {
       </div>
 
       {showForm && (
-        <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && setShowForm(false)}>
+        <div className="index-modal-backdrop">
           <div className="index-modal spell-rank-builder">
             <div className="index-modal-header">
               <h3>{editingRank ? 'Modifier le rang' : `Nouveau rang ${nextValue}`}</h3>

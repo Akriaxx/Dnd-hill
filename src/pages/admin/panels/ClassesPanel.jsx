@@ -57,7 +57,7 @@ function ClassFormModal({ initial, races, classCategories, caracteristiques, equ
   };
 
   return (
-    <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="index-modal-backdrop">
       <div className="race-modal">
         <div className="race-form">
           <div className="race-form-header">

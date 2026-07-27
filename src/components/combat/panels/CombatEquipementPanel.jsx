@@ -48,7 +48,7 @@ export default function CombatEquipementPanel({ char }) {
       </ul>
 
       {activeSlotDef && (
-        <div className="index-modal-backdrop" onClick={(event) => event.target === event.currentTarget && closePicker()}>
+        <div className="index-modal-backdrop">
           <div className="index-confirm-modal">
             <div className="index-modal-header">
               <h3>{activeSlotDef.label}</h3>

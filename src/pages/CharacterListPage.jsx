@@ -4285,7 +4285,7 @@ function ActionCard({ action }) {
 
 function CompetenceUnlockModal({ eligible, onClose, onPick }) {
   return (
-    <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="index-modal-backdrop">
       <div className="index-modal">
         <div className="index-modal-header">
           <h3>Débloquer une compétence</h3>
@@ -4724,7 +4724,7 @@ function DetailInventaire({ char }) {
 
         {/* Texte narratif affiché à l'utilisation d'un item consommable */}
         {useItemPopup && createPortal(
-          <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && setUseItemPopup(null)}>
+          <div className="index-modal-backdrop">
             <div className="index-confirm-modal">
               <div className="index-modal-header">
                 <h3>{useItemPopup.nom}</h3>

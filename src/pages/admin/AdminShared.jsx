@@ -7,7 +7,7 @@ import { useGameplayEffectsPanel, useMatchedHeight } from './adminEffectsPanelHo
 
 export function ConfirmModal({ title, message, dangerLabel = 'Supprimer', onCancel, onConfirm }) {
   return (
-    <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && onCancel()}>
+    <div className="index-modal-backdrop">
       <div className="index-confirm-modal">
         <div className="index-modal-header">
           <h3>{title}</h3>
@@ -383,7 +383,7 @@ export function KnowledgeCategoryModal({ existingKeys, initial, title = 'Nouvell
     onSave({ ...form, nom, key });
   };
   return (
-    <div className="index-modal-backdrop" onClick={(event) => event.target === event.currentTarget && onClose()}>
+    <div className="index-modal-backdrop">
       <div className="index-modal">
         <div className="index-modal-header">
           <h3>{title}</h3>
@@ -616,7 +616,7 @@ export function IdentityEntryModal({ kindLabel, categories, initial, existingKey
   ];
 
   return (
-    <div className={`index-modal-backdrop${effectsShrink ? ' has-effects-panel' : ''}`} onClick={(event) => event.target === event.currentTarget && onClose()}>
+    <div className={`index-modal-backdrop${effectsShrink ? ' has-effects-panel' : ''}`}>
       <div className="race-modal" ref={modalRef}>
         <div className="race-form">
           <div className="race-form-header">
@@ -662,7 +662,7 @@ export function IdentityEntryModal({ kindLabel, categories, initial, existingKey
             )}
           </div>
           {enableProvenances && provenancePanelOpen && (
-            <div className="race-resistance-panel-backdrop" onClick={(event) => event.target === event.currentTarget && setProvenancePanelOpen(false)}>
+            <div className="race-resistance-panel-backdrop">
               <div className="race-resistance-panel">
                 <div className="race-resistance-panel-head">
                   <div>
@@ -720,7 +720,7 @@ export function IdentityEntryModal({ kindLabel, categories, initial, existingKey
             </div>
           )}
           {enableAptitudes && aptitudePanelOpen && (
-            <div className="race-resistance-panel-backdrop" onClick={(event) => event.target === event.currentTarget && setAptitudePanelOpen(false)}>
+            <div className="race-resistance-panel-backdrop">
               <div className="race-resistance-panel">
                 <div className="race-resistance-panel-head">
                   <div>
@@ -822,7 +822,7 @@ export function VerificationGate({ verification }) {
       </button>
 
       {verifyOpen && (
-        <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && setVerifyOpen(false)}>
+        <div className="index-modal-backdrop">
           <div className="index-modal">
             <div className="index-modal-header">
               <h3>Procédure de vérification</h3>

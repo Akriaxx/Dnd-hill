@@ -40,7 +40,7 @@ export default function ActionTypesPanel() {
       </div>
 
       {showForm && (
-        <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && closeForm()}>
+        <div className="index-modal-backdrop">
           <div className="index-modal">
             <div className="index-modal-header">
               <h3>{editing ? "Modifier le type d'action" : "Nouveau type d'action"}</h3>

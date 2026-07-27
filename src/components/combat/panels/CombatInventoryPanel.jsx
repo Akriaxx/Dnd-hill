@@ -52,7 +52,7 @@ export default function CombatInventoryPanel({ char }) {
       )}
 
       {useTextPopup && (
-        <div className="index-modal-backdrop" onClick={(event) => event.target === event.currentTarget && setUseTextPopup(null)}>
+        <div className="index-modal-backdrop">
           <div className="index-confirm-modal">
             <div className="index-modal-header">
               <h3>{useTextPopup.nom}</h3>

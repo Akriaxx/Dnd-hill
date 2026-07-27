@@ -17,7 +17,7 @@ function KnowledgeCategoryModal({ existingKeys, initial, title = 'Nouvelle caté
   const canSave = nom.trim().length > 0 && !conflict;
 
   return (
-    <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="index-modal-backdrop">
       <div className="index-modal">
         <div className="index-modal-header">
           <h3>{title}</h3>
@@ -161,7 +161,7 @@ export default function CompetencesPanel() {
       )}
 
       {viewingCompetence && (
-        <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && setViewingCompetence(null)}>
+        <div className="index-modal-backdrop">
           <div className="index-modal index-modal--wide competence-detail-modal">
             <div className="index-modal-header">
               <h3>{viewingCompetence.nom}</h3>
@@ -192,7 +192,7 @@ export default function CompetencesPanel() {
       )}
 
       {showForm && (
-        <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && closeForm()}>
+        <div className="index-modal-backdrop">
           <div className="index-modal">
             <div className="index-modal-header">
               <h3>{editingCompetence ? 'Modifier la compétence' : 'Nouvelle compétence'}</h3>

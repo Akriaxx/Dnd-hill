@@ -270,7 +270,7 @@ export default function ItemPanel() {
       </div>
 
       {showItemForm && (
-        <div className={`index-modal-backdrop${(effectsShrink || conditionShrink) ? ' has-effects-panel' : ''}`} onClick={(e) => e.target === e.currentTarget && cancelItemForm()}>
+        <div className={`index-modal-backdrop${(effectsShrink || conditionShrink) ? ' has-effects-panel' : ''}`}>
           <div className="index-modal index-modal--wide" ref={modalRef}>
             <div className="index-modal-header">
               <h3>{editingItem ? "Modifier l'entrée" : 'Nouvelle entrée'}</h3>

@@ -113,7 +113,7 @@ export default function MaitriseDefPanel() {
       )}
 
       {showCategoryForm && (
-        <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && cancelCategoryForm()}>
+        <div className="index-modal-backdrop">
           <div className="index-modal">
             <div className="index-modal-header">
               <h3>{editingCategory ? 'Modifier la catégorie' : 'Nouvelle catégorie'}</h3>
@@ -139,7 +139,7 @@ export default function MaitriseDefPanel() {
       )}
 
       {showForm && (
-        <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && closeForm()}>
+        <div className="index-modal-backdrop">
           <div className="index-modal">
             <div className="index-modal-header">
               <h3>{editing ? "Modifier l'entrée" : 'Nouvelle entrée'}</h3>

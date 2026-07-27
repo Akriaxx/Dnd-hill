@@ -38,7 +38,7 @@ function EtatCategoryModal({ existingKeys, initial, subclasses, classes, onClose
   };
 
   return (
-    <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="index-modal-backdrop">
       <div className="index-modal">
         <div className="index-modal-header">
           <h3>{initial ? 'Modifier la catégorie' : "Nouvelle catégorie d'état"}</h3>
@@ -295,7 +295,7 @@ export default function EtatsPanel() {
       )}
 
       {viewingEtat && (
-        <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && setViewingEtat(null)}>
+        <div className="index-modal-backdrop">
           <div className="index-modal index-modal--wide competence-detail-modal">
             <div className="index-modal-header">
               <h3>{viewingEtat.nom}</h3>
@@ -343,7 +343,7 @@ export default function EtatsPanel() {
       )}
 
       {showForm && (
-        <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && closeForm()}>
+        <div className="index-modal-backdrop">
           <div className="index-modal index-modal--wide">
             <div className="index-modal-header">
               <h3>{editingEtat ? "Modifier l'état" : 'Nouvel état'}</h3>

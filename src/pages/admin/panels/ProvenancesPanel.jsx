@@ -23,7 +23,7 @@ function ProvenanceModal({ initial, existingKeys, onClose, onSave }) {
     onSave({ ...form, key, nom });
   };
   return (
-    <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="index-modal-backdrop">
       <div className="race-modal">
         <div className="race-form">
           <div className="race-form-header">

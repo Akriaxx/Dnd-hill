@@ -53,7 +53,7 @@ function ResistancePanel({ title, desc, resistanceBonuses, onClose, onToggle, on
   const resistanceByKey = new Map(resistanceOptions.map((o) => [o.key, o]));
   const selectedKeys = new Set(resistanceBonuses.map((r) => r.resistanceKey));
   return (
-    <div className="race-resistance-panel-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="race-resistance-panel-backdrop">
       <div className="race-resistance-panel">
         <div className="race-resistance-panel-head">
           <div><h4>{title}</h4><p>{desc}</p></div>
@@ -109,7 +109,7 @@ function AptitudePanel({ title, desc, selected, aptitudeCategories, aptitudeOpti
   const aptitudeByKey = new Map(aptitudeOptions.map((a) => [a.key || slugifyKey(a.nom), a]));
   const selectedKeys = new Set(selected.map((r) => r.key || slugifyKey(r.nom)));
   return (
-    <div className="race-resistance-panel-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="race-resistance-panel-backdrop">
       <div className="race-resistance-panel">
         <div className="race-resistance-panel-head">
           <div><h4>{title}</h4><p>{desc}</p></div>
@@ -175,7 +175,7 @@ function LanguagePanel({ title, desc, selected, languageOptions, languageCategor
       ]
     : [{ key: 'langues', nom: 'Langues', couleur: '#bcecff' }];
   return (
-    <div className="race-resistance-panel-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="race-resistance-panel-backdrop">
       <div className="race-resistance-panel">
         <div className="race-resistance-panel-head">
           <div><h4>{title}</h4><p>{desc}</p></div>
@@ -374,7 +374,7 @@ function RaceForm({ initial, onSave, onCancel }) {
   ];
 
   return (
-    <div className={`index-modal-backdrop${effectsShrink ? ' has-effects-panel' : ''}`} onClick={(e) => e.target === e.currentTarget && onCancel()}>
+    <div className={`index-modal-backdrop${effectsShrink ? ' has-effects-panel' : ''}`}>
       <div className="race-modal" ref={modalRef}>
       <div className="race-form">
           <div className="race-form-header">
@@ -473,7 +473,7 @@ function RaceForm({ initial, onSave, onCancel }) {
         />
       )}
       {provenancePanelOpen && (
-        <div className="race-resistance-panel-backdrop" onClick={(e) => e.target === e.currentTarget && setProvenancePanelOpen(false)}>
+        <div className="race-resistance-panel-backdrop">
           <div className="race-resistance-panel">
             <div className="race-resistance-panel-head">
               <div><h4>Provenances de la race</h4><p>Sélectionne les provenances accessibles à cette race.</p></div>

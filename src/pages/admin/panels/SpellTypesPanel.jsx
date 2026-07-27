@@ -128,7 +128,7 @@ export default function SpellTypesPanel() {
       </div>
 
       {showForm && (
-        <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && cancelForm()}>
+        <div className="index-modal-backdrop">
           <div className="index-modal index-modal--wide">
             <div className="index-modal-header">
               <h3>{editingType ? 'Modifier le type' : 'Nouveau type de sort'}</h3>

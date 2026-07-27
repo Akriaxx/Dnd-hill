@@ -46,7 +46,7 @@ export default function ItemClassePanel() {
       </div>
 
       {showForm && (
-        <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && cancelForm()}>
+        <div className="index-modal-backdrop">
           <div className="index-modal">
             <div className="index-modal-header">
               <h3>{editingClass ? 'Modifier la classe' : 'Nouvelle classe'}</h3>

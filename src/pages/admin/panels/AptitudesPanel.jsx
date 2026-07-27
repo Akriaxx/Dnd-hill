@@ -37,7 +37,7 @@ function AptitudeEntryModal({ categories, initialCategory, initialAptitude, exis
   };
 
   return (
-    <div className="index-modal-backdrop" onClick={(event) => event.target === event.currentTarget && onClose()}>
+    <div className="index-modal-backdrop">
       <div className="index-modal">
         <div className="index-modal-header">
           <h3>{initialAptitude ? "Modifier l'aptitude" : 'Nouvelle aptitude'}</h3>

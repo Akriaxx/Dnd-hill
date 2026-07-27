@@ -304,7 +304,7 @@ export default function SpellZonesPanel() {
       </div>
 
       {showForm && (
-        <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && setShowForm(false)}>
+        <div className="index-modal-backdrop">
           <div className="index-modal index-modal--wide spell-zone-builder">
             <div className="index-modal-header">
               <h3>{editingZone ? 'Modifier la zone' : 'Nouvelle zone'}</h3>

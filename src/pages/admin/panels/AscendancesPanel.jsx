@@ -221,7 +221,7 @@ function AscendanceForm({ initial, raceOptions, onSave, onCancel, onClose }) {
   const handleClose = onClose || onCancel;
 
   return (
-    <div className={`index-modal-backdrop${effectsShrink ? ' has-effects-panel' : ''}`} onClick={(e) => e.target === e.currentTarget && handleClose()}>
+    <div className={`index-modal-backdrop${effectsShrink ? ' has-effects-panel' : ''}`}>
       <div className="race-modal" ref={modalRef}>
       <div className="race-form">
           <div className="race-form-header">
@@ -263,7 +263,7 @@ function AscendanceForm({ initial, raceOptions, onSave, onCancel, onClose }) {
             <GameplayEffectsToggle open={effectsOpen} onToggle={setEffectsOpen} />
           </div>
           {resistancePanelOpen && (
-        <div className="race-resistance-panel-backdrop" onClick={(e) => e.target === e.currentTarget && setResistancePanelOpen(false)}>
+        <div className="race-resistance-panel-backdrop">
           <div className="race-resistance-panel">
             <div className="race-resistance-panel-head">
               <div><h4>Résistances d'ascendance</h4><p>Sélectionne les résistances, puis règle bonus ou malus.</p></div>
@@ -313,7 +313,7 @@ function AscendanceForm({ initial, raceOptions, onSave, onCancel, onClose }) {
       )}
 
       {aptitudePanelOpen && (
-        <div className="race-resistance-panel-backdrop" onClick={(e) => e.target === e.currentTarget && setAptitudePanelOpen(false)}>
+        <div className="race-resistance-panel-backdrop">
           <div className="race-resistance-panel">
             <div className="race-resistance-panel-head">
               <div><h4>Aptitudes d'ascendance</h4><p>Sélectionne les aptitudes propres à cette ascendance.</p></div>
@@ -366,7 +366,7 @@ function AscendanceForm({ initial, raceOptions, onSave, onCancel, onClose }) {
       )}
 
       {languagePanelOpen && (
-        <div className="race-resistance-panel-backdrop" onClick={(e) => e.target === e.currentTarget && setLanguagePanelOpen(false)}>
+        <div className="race-resistance-panel-backdrop">
           <div className="race-resistance-panel">
             <div className="race-resistance-panel-head">
               <div><h4>Langues d'ascendance</h4><p>Sélectionne les langues propres à cette ascendance.</p></div>
@@ -418,7 +418,7 @@ function AscendanceForm({ initial, raceOptions, onSave, onCancel, onClose }) {
       )}
 
       {provenancePanelOpen && (
-        <div className="race-resistance-panel-backdrop" onClick={(e) => e.target === e.currentTarget && setProvenancePanelOpen(false)}>
+        <div className="race-resistance-panel-backdrop">
           <div className="race-resistance-panel">
             <div className="race-resistance-panel-head">
               <div><h4>Provenances d'ascendance</h4><p>Sélectionne les provenances liées à cette ascendance.</p></div>

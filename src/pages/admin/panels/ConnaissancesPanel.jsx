@@ -34,7 +34,7 @@ function KnowledgeEntryModal({ categories, initialCategory, initialKnowledge, ex
   };
 
   return (
-    <div className="index-modal-backdrop" onClick={(event) => event.target === event.currentTarget && onClose()}>
+    <div className="index-modal-backdrop">
       <div className="index-modal">
         <div className="index-modal-header">
           <h3>{initialKnowledge ? 'Modifier la connaissance' : 'Nouvelle connaissance'}</h3>

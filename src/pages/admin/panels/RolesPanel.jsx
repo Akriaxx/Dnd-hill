@@ -95,7 +95,7 @@ export default function RolesPanel() {
       )}
 
       {showForm && (
-        <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && closeForm()}>
+        <div className="index-modal-backdrop">
           <div className="index-modal">
             <div className="index-modal-header">
               <h3>{editingRole ? 'Modifier le rôle' : 'Nouveau rôle'}</h3>

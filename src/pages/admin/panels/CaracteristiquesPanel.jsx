@@ -91,7 +91,7 @@ export default function CaracteristiquesPanel() {
       )}
 
       {showForm && (
-        <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && closeForm()}>
+        <div className="index-modal-backdrop">
           <div className="index-modal">
             <div className="index-modal-header">
               <h3>{editing ? 'Modifier la caractéristique' : 'Nouvelle caractéristique'}</h3>

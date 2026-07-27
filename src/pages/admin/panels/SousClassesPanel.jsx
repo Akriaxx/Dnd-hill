@@ -46,7 +46,7 @@ function SubclassFormModal({ initial, classes, classCategories, races, archetype
   const classColor = parentClass ? (classCategories.find((c) => c.key === parentClass.type)?.couleur || '#c8a84a') : '#888';
 
   return (
-    <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="index-modal-backdrop">
       <div className="race-modal">
         <div className="race-form">
           <div className="race-form-header">

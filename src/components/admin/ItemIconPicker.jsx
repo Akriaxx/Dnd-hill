@@ -22,7 +22,7 @@ export default function ItemIconPicker({ value, onChange }) {
       </button>
 
       {open && createPortal(
-        <div className="index-modal-backdrop" onClick={(event) => event.target === event.currentTarget && setOpen(false)}>
+        <div className="index-modal-backdrop">
           <div className="index-modal item-icon-picker-modal">
             <div className="index-modal-header">
               <h3>Choisir une icône</h3>
