@@ -990,11 +990,10 @@ export const useAdminStore = create(
           customMaitriseEntries: (state.customMaitriseEntries || []).filter((e) => e.id !== id),
         })),
 
-      // Archétypes (rôle principal d'une classe/sous-classe en jeu) —
-      // liste plate avec hiérarchie par parentId (même convention que les
-      // catégories d'objets) : un archétype racine (parentId nul) est un
-      // archétype "Principal", un archétype enfant est un "Second"
-      // (sous-archétype) rattaché à son parent.
+      // Archétypes (rôle joué en jeu) — liste plate, sans hiérarchie. C'est
+      // au niveau de la Classe / Sous-classe qu'on choisit lequel est le
+      // principal et lesquels sont secondaires (voir archetypeId /
+      // archetypeSecondaryIds dans adminUtils.js).
       customArchetypes: [],
 
       addArchetype: (entry) =>
@@ -1014,7 +1013,7 @@ export const useAdminStore = create(
 
       deleteArchetype: (id) =>
         set((state) => ({
-          customArchetypes: (state.customArchetypes || []).filter((e) => e.id !== id && e.parentId !== id),
+          customArchetypes: (state.customArchetypes || []).filter((e) => e.id !== id),
         })),
 
       // États — contrairement au reste du contenu de référence (races,

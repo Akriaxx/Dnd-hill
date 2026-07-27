@@ -98,9 +98,10 @@ export const getRanksAtLevel = (ranks, level) => {
 
 export const BLANK_CLASS_FORM = {
   nom: '', type: '', description: '', allowedRaces: [],
-  // Rôle principal joué par la classe en jeu (voir ArchetypesPanel) —
-  // référence un archétype Principal ou Second.
+  // Rôle(s) joué(s) par la classe en jeu (voir ArchetypesPanel) — un
+  // archétype principal et, éventuellement, des archétypes secondaires.
   archetypeId: null,
+  archetypeSecondaryIds: [],
   // Classes d'équipement (customItemClasses) autorisées pour cette classe
   // de personnage — vide = toutes autorisées. Voir ClassesPanel.jsx.
   allowedItemClasses: [],
@@ -111,8 +112,10 @@ export const BLANK_CLASS_FORM = {
 
 export const BLANK_SUBCLASS_FORM = {
   nom: '', classe: '', description: '', allowedRaces: [],
-  // Rôle principal joué par la sous-classe en jeu — voir BLANK_CLASS_FORM.
+  // Rôle(s) joué(s) par la sous-classe — voir BLANK_CLASS_FORM. Laisser
+  // archetypeId à null hérite du principal ET des secondaires de la classe.
   archetypeId: null,
+  archetypeSecondaryIds: [],
   resourceDice: { vie: '', mana: '', endu: '' },
   replaceClassResourceDice: false,
   replaceClassSpellCounts: false,

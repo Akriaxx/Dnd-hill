@@ -6,7 +6,7 @@ import { getItemIcon } from '../../../data/itemIcons';
 import { ConfirmModal, AdminFilterPanel } from '../AdminShared';
 import { asArray, includesText } from '../adminUtils';
 
-const BLANK_ARCHETYPE = { nom: '', description: '', icone: '', parentId: null };
+const BLANK_ARCHETYPE = { nom: '', description: '', icone: '' };
 
 export default function ArchetypesPanel() {
   const { customArchetypes, addArchetype, updateArchetype, deleteArchetype } = useAdminStore();
@@ -21,12 +21,7 @@ export default function ArchetypesPanel() {
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
   const canSave = form.nom.trim().length > 0;
 
-  const roots = archetypes.filter((a) => !a.parentId);
-  const childrenOf = (id) => archetypes.filter((a) => String(a.parentId) === String(id));
-  const filteredRoots = roots.filter((root) => (
-    includesText(root.nom, search) || includesText(root.description, search)
-    || childrenOf(root.id).some((child) => includesText(child.nom, search) || includesText(child.description, search))
-  ));
+  const filtered = archetypes.filter((a) => includesText(a.nom, search) || includesText(a.description, search));
 
   const handleSave = () => {
     if (!canSave) return;
@@ -37,18 +32,14 @@ export default function ArchetypesPanel() {
     setShowForm(false);
   };
 
-  const startCreatePrincipal = () => { setEditing(null); setForm(BLANK_ARCHETYPE); setShowForm(true); };
-  const startCreateSecond = (parentId) => { setEditing(null); setForm({ ...BLANK_ARCHETYPE, parentId }); setShowForm(true); };
+  const startCreate = () => { setEditing(null); setForm(BLANK_ARCHETYPE); setShowForm(true); };
   const startEdit = (entry) => { setEditing(entry); setForm({ ...BLANK_ARCHETYPE, ...entry }); setShowForm(true); };
   const cancelForm = () => { setShowForm(false); setEditing(null); setForm(BLANK_ARCHETYPE); };
 
   const requestDelete = (entry) => {
-    const children = childrenOf(entry.id);
     setConfirmDelete({
-      title: entry.parentId ? "Supprimer l'archétype" : 'Supprimer le Principal',
-      message: children.length > 0
-        ? `Supprimer "${entry.nom}" ? ${children.length} archétype(s) Second rattaché(s) seront supprimés aussi.`
-        : `Supprimer "${entry.nom}" ?`,
+      title: "Supprimer l'archétype",
+      message: `Supprimer "${entry.nom}" ?`,
       dangerLabel: 'Supprimer',
       onConfirm: () => deleteArchetype(entry.id),
     });
@@ -57,16 +48,14 @@ export default function ArchetypesPanel() {
   return (
     <div className="admin-panel">
       <div className="admin-panel-actions">
-        <button className="admin-btn admin-btn--add" onClick={startCreatePrincipal}>+ Archétype Principal</button>
+        <button className="admin-btn admin-btn--add" onClick={startCreate}>+ Nouvel archétype</button>
       </div>
 
       {showForm && (
         <div className="index-modal-backdrop" onClick={(e) => e.target === e.currentTarget && cancelForm()}>
           <div className="index-modal">
             <div className="index-modal-header">
-              <h3>
-                {editing ? 'Modifier l\'archétype' : form.parentId ? 'Nouvel archétype Second' : 'Nouvel archétype Principal'}
-              </h3>
+              <h3>{editing ? "Modifier l'archétype" : 'Nouvel archétype'}</h3>
               <button className="admin-btn" onClick={cancelForm}>✕ Fermer</button>
             </div>
             <div className="index-form">
@@ -76,18 +65,13 @@ export default function ArchetypesPanel() {
                   <input value={form.nom} onChange={(e) => set('nom', e.target.value)} placeholder="Ex: Exécuteur" />
                 </div>
               </div>
-              {form.parentId && (
-                <p className="race-form-hint">
-                  Rattaché au Principal : {archetypes.find((a) => String(a.id) === String(form.parentId))?.nom || '—'}
-                </p>
-              )}
               <div className="comp-form-field">
                 <label>Icône</label>
                 <ItemIconPicker value={form.icone} onChange={(next) => set('icone', next)} />
               </div>
               <div className="comp-form-field">
                 <label>Description</label>
-                <SmartDescEditor value={form.description} onChange={(v) => set('description', v)} placeholder="Rôle principal en jeu, style attendu…" />
+                <SmartDescEditor value={form.description} onChange={(v) => set('description', v)} placeholder="Rôle en jeu, style attendu…" />
               </div>
               <div className="comp-form-footer">
                 <button className="admin-btn" onClick={cancelForm}>Annuler</button>
@@ -110,49 +94,31 @@ export default function ArchetypesPanel() {
         />
       )}
 
-      <AdminFilterPanel search={search} onSearch={setSearch} count={filteredRoots.length} total={roots.length} />
+      <AdminFilterPanel search={search} onSearch={setSearch} count={filtered.length} total={archetypes.length} />
 
-      {filteredRoots.length === 0 ? (
+      {filtered.length === 0 ? (
         <p style={{ opacity: 0.5, textAlign: 'center', marginTop: '2rem' }}>Aucun archétype créé.</p>
       ) : (
-        <div className="entry-card-grid entry-card-grid--wide">
-          {filteredRoots.map((root) => {
-            const iconEntry = getItemIcon(root.icone);
-            const children = childrenOf(root.id);
+        <div className="entry-card-grid">
+          {filtered.map((archetype) => {
+            const iconEntry = getItemIcon(archetype.icone);
             return (
-              <div key={root.id} className="entry-card" style={{ '--entry-color': '#c8a84a' }}>
+              <div key={archetype.id} className="entry-card" style={{ '--entry-color': '#c8a84a' }}>
                 <div className="entry-card-top">
                   <div className="entry-card-badge">
-                    {iconEntry ? <iconEntry.Icon size={20} strokeWidth={1.6} /> : root.nom.trim().charAt(0).toUpperCase()}
+                    {iconEntry ? <iconEntry.Icon size={20} strokeWidth={1.6} /> : archetype.nom.trim().charAt(0).toUpperCase()}
                   </div>
                   <div className="entry-card-body">
-                    <span className="entry-card-kicker">Archétype Principal</span>
-                    <h3 className="entry-card-title">{root.nom}</h3>
+                    <span className="entry-card-kicker">Archétype</span>
+                    <h3 className="entry-card-title">{archetype.nom}</h3>
                   </div>
                 </div>
-                {root.description && (
-                  <div className="entry-card-desc"><SmartText text={root.description} /></div>
+                {archetype.description && (
+                  <div className="entry-card-desc"><SmartText text={archetype.description} /></div>
                 )}
-                <div className="entry-card-detail">
-                  <span>Second :</span>
-                  {children.length > 0 ? (
-                    <div className="item-icon-picker-grid item-icon-picker-grid--inline">
-                      {children.map((child) => {
-                        const childIcon = getItemIcon(child.icone);
-                        return (
-                          <button key={child.id} type="button" className="item-icon-picker-option" onClick={() => startEdit(child)}>
-                            {childIcon ? <childIcon.Icon size={22} strokeWidth={1.5} /> : <span className="item-icon-picker-plus">?</span>}
-                            <span>{child.nom}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ) : <em>Aucun</em>}
-                </div>
                 <div className="entry-card-actions">
-                  <button className="admin-btn" onClick={() => startCreateSecond(root.id)}>+ Second</button>
-                  <button className="admin-btn" onClick={() => startEdit(root)}>Modifier</button>
-                  <button className="admin-btn admin-btn--danger" onClick={() => requestDelete(root)}>Supprimer</button>
+                  <button className="admin-btn" onClick={() => startEdit(archetype)}>Modifier</button>
+                  <button className="admin-btn admin-btn--danger" onClick={() => requestDelete(archetype)}>Supprimer</button>
                 </div>
               </div>
             );

@@ -13,7 +13,7 @@ import {
 } from '../adminUtils';
 import { groupItemClassesByRoot } from '../itemUtils';
 
-function ClassFormModal({ initial, races, classCategories, caracteristiques, equipClassGroups, archetypeRoots, archetypeChildrenOf, onClose, onSave }) {
+function ClassFormModal({ initial, races, classCategories, caracteristiques, equipClassGroups, archetypes, onClose, onSave }) {
   const [form, setForm] = useState(() => ({
     ...BLANK_CLASS_FORM,
     ...(initial || {}),
@@ -33,6 +33,13 @@ function ClassFormModal({ initial, races, classCategories, caracteristiques, equ
     set('allowedItemClasses', [...current]);
   };
 
+  const secondaryArchetypeOptions = archetypes.filter((a) => String(a.id) !== String(form.archetypeId ?? ''));
+  const toggleSecondaryArchetype = (id) => {
+    const current = new Set(asArray(form.archetypeSecondaryIds));
+    if (current.has(id)) current.delete(id); else current.add(id);
+    set('archetypeSecondaryIds', [...current]);
+  };
+
   const save = () => {
     if (!canSave) return;
     onSave({
@@ -41,6 +48,7 @@ function ClassFormModal({ initial, races, classCategories, caracteristiques, equ
       nom: form.nom.trim(),
       allowedRaces: asArray(form.allowedRaces),
       allowedItemClasses: asArray(form.allowedItemClasses),
+      archetypeSecondaryIds: asArray(form.archetypeSecondaryIds),
       resourceDice: normalizeResourceDice(form),
       nombreSortsMagiques: Number(form.nombreSortsMagiques) || 0,
       nombreSortsPhysiques: Number(form.nombreSortsPhysiques) || 0,
@@ -72,20 +80,29 @@ function ClassFormModal({ initial, races, classCategories, caracteristiques, equ
                   </select>
                 </div>
                 <div className="race-form-field race-form-field--grow">
-                  <label>Archétype</label>
+                  <label>Archétype principal</label>
                   <select value={form.archetypeId ?? ''} onChange={(e) => set('archetypeId', Number(e.target.value) || null)}>
                     <option value="">— Aucun —</option>
-                    {archetypeRoots.map((root) => (
-                      <optgroup key={root.id} label={root.nom}>
-                        <option value={root.id}>{root.nom}</option>
-                        {archetypeChildrenOf(root.id).map((child) => (
-                          <option key={child.id} value={child.id}>— {child.nom}</option>
-                        ))}
-                      </optgroup>
-                    ))}
+                    {archetypes.map((a) => <option key={a.id} value={a.id}>{a.nom}</option>)}
                   </select>
                 </div>
               </div>
+              {archetypes.length > 0 && (
+                <div className="race-lock-panel">
+                  <div className="race-lock-head">
+                    <span>Archétypes secondaires</span>
+                    <small>{asArray(form.archetypeSecondaryIds).length === 0 ? 'Aucun' : `${form.archetypeSecondaryIds.length} sélectionné(s)`}</small>
+                  </div>
+                  <div className="race-lock-grid">
+                    {secondaryArchetypeOptions.map((a) => (
+                      <label key={a.id} className={`race-lock-choice${asArray(form.archetypeSecondaryIds).includes(a.id) ? ' active' : ''}`}>
+                        <input type="checkbox" checked={asArray(form.archetypeSecondaryIds).includes(a.id)} onChange={() => toggleSecondaryArchetype(a.id)} />
+                        <span>{a.nom}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="race-form-row">
                 <div className="race-form-field race-form-field--grow">
                   <label>Stat physique</label>
@@ -176,8 +193,6 @@ export default function ClassesPanel() {
   const itemCategoryRoots = itemCategories.filter((c) => !c.parentId);
   const equipClassGroups = groupItemClassesByRoot(itemClasses, itemCategoryRoots);
   const archetypes = asArray(customArchetypes);
-  const archetypeRoots = archetypes.filter((a) => !a.parentId);
-  const archetypeChildrenOf = (id) => archetypes.filter((a) => String(a.parentId) === String(id));
   const hiddenClassKeys = new Set(asArray(storedHiddenClassKeys));
   const customClassKeys = new Set(asArray(customClasses).map((c) => c.key || slugifyKey(c.nom)));
   const entries = asArray(customClasses).filter((c) => !hiddenClassKeys.has(c.key || slugifyKey(c.nom)));
@@ -217,7 +232,10 @@ export default function ClassesPanel() {
         </div>
         <div className="entry-card-detail">
           {cls.archetypeId != null && (
-            <span>Archétype : <b>{archetypes.find((a) => String(a.id) === String(cls.archetypeId))?.nom || '—'}</b></span>
+            <span>Archétype principal : <b>{archetypes.find((a) => String(a.id) === String(cls.archetypeId))?.nom || '—'}</b></span>
+          )}
+          {asArray(cls.archetypeSecondaryIds).length > 0 && (
+            <span>Archétypes secondaires : <b>{asArray(cls.archetypeSecondaryIds).map((id) => archetypes.find((a) => String(a.id) === String(id))?.nom).filter(Boolean).join(', ')}</b></span>
           )}
           <span>Dés : <b>{resourceDiceSummary(cls)}</b></span>
           {asArray(cls.allowedItemClasses).length > 0 && (
@@ -274,8 +292,7 @@ export default function ClassesPanel() {
           classCategories={classCategories}
           caracteristiques={caracteristiques}
           equipClassGroups={equipClassGroups}
-          archetypeRoots={archetypeRoots}
-          archetypeChildrenOf={archetypeChildrenOf}
+          archetypes={archetypes}
           onClose={() => { setShowForm(false); setEditingClass(null); }}
           onSave={handleSave}
         />

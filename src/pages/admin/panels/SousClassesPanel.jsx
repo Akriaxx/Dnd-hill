@@ -11,7 +11,7 @@ import {
   normalizeResourceDice, resourceDiceSummary, getRaceOptionsForLocks,
 } from '../adminUtils';
 
-function SubclassFormModal({ initial, classes, classCategories, races, archetypeRoots, archetypeChildrenOf, onClose, onSave }) {
+function SubclassFormModal({ initial, classes, classCategories, races, archetypes, onClose, onSave }) {
   const [form, setForm] = useState(() => ({
     ...BLANK_SUBCLASS_FORM,
     ...(initial || {}),
@@ -27,11 +27,19 @@ function SubclassFormModal({ initial, classes, classCategories, races, archetype
       key: form.key || slugifyKey(form.nom),
       nom: form.nom.trim(),
       allowedRaces: asArray(form.allowedRaces),
+      archetypeSecondaryIds: form.archetypeId != null ? asArray(form.archetypeSecondaryIds) : [],
       resourceDice: normalizeResourceDice(form),
       nombreSortsMagiques: Number(form.nombreSortsMagiques) || 0,
       nombreSortsPhysiques: Number(form.nombreSortsPhysiques) || 0,
       nombreCompetences: Number(form.nombreCompetences) || 0,
     });
+  };
+
+  const secondaryArchetypeOptions = archetypes.filter((a) => String(a.id) !== String(form.archetypeId ?? ''));
+  const toggleSecondaryArchetype = (id) => {
+    const current = new Set(asArray(form.archetypeSecondaryIds));
+    if (current.has(id)) current.delete(id); else current.add(id);
+    set('archetypeSecondaryIds', [...current]);
   };
 
   const parentClass = classes.find((c) => (c.key || slugifyKey(c.nom)) === form.classe || c.nom === form.classe);
@@ -75,20 +83,29 @@ function SubclassFormModal({ initial, classes, classCategories, races, archetype
               </div>
               <div className="race-form-row">
                 <div className="race-form-field race-form-field--grow">
-                  <label>Archétype</label>
+                  <label>Archétype principal</label>
                   <select value={form.archetypeId ?? ''} onChange={(e) => set('archetypeId', Number(e.target.value) || null)}>
                     <option value="">— Hérite de la classe —</option>
-                    {archetypeRoots.map((root) => (
-                      <optgroup key={root.id} label={root.nom}>
-                        <option value={root.id}>{root.nom}</option>
-                        {archetypeChildrenOf(root.id).map((child) => (
-                          <option key={child.id} value={child.id}>— {child.nom}</option>
-                        ))}
-                      </optgroup>
-                    ))}
+                    {archetypes.map((a) => <option key={a.id} value={a.id}>{a.nom}</option>)}
                   </select>
                 </div>
               </div>
+              {form.archetypeId != null && archetypes.length > 0 && (
+                <div className="race-lock-panel">
+                  <div className="race-lock-head">
+                    <span>Archétypes secondaires</span>
+                    <small>{asArray(form.archetypeSecondaryIds).length === 0 ? 'Aucun' : `${form.archetypeSecondaryIds.length} sélectionné(s)`}</small>
+                  </div>
+                  <div className="race-lock-grid">
+                    {secondaryArchetypeOptions.map((a) => (
+                      <label key={a.id} className={`race-lock-choice${asArray(form.archetypeSecondaryIds).includes(a.id) ? ' active' : ''}`}>
+                        <input type="checkbox" checked={asArray(form.archetypeSecondaryIds).includes(a.id)} onChange={() => toggleSecondaryArchetype(a.id)} />
+                        <span>{a.nom}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="race-form-field">
                 <label>Description</label>
                 <SmartDescEditor value={form.description || ''} onChange={(v) => set('description', v)} />
@@ -168,8 +185,6 @@ export default function SousClassesPanel() {
 
   const raceLockOptions = getRaceOptionsForLocks(customRaces);
   const archetypes = asArray(customArchetypes);
-  const archetypeRoots = archetypes.filter((a) => !a.parentId);
-  const archetypeChildrenOf = (id) => archetypes.filter((a) => String(a.parentId) === String(id));
   const classes = asArray(customClasses);
   const classCategories = asArray(customClassCategories);
   const maitrises = asArray(customMaitriseEntries);
@@ -215,8 +230,13 @@ export default function SousClassesPanel() {
         </div>
         <div className="entry-card-detail">
           <span>
-            Archétype : <b>{sc.archetypeId != null
+            Archétype principal : <b>{sc.archetypeId != null
               ? (archetypes.find((a) => String(a.id) === String(sc.archetypeId))?.nom || '—')
+              : `Hérite de ${parentClass?.nom || 'la classe'}`}</b>
+          </span>
+          <span>
+            Archétypes secondaires : <b>{sc.archetypeId != null
+              ? (asArray(sc.archetypeSecondaryIds).map((id) => archetypes.find((a) => String(a.id) === String(id))?.nom).filter(Boolean).join(', ') || 'Aucun')
               : `Hérite de ${parentClass?.nom || 'la classe'}`}</b>
           </span>
           <span>
@@ -280,8 +300,7 @@ export default function SousClassesPanel() {
           classes={classes}
           classCategories={classCategories}
           races={raceLockOptions}
-          archetypeRoots={archetypeRoots}
-          archetypeChildrenOf={archetypeChildrenOf}
+          archetypes={archetypes}
           onClose={() => { setShowForm(false); setEditingSubclass(null); }}
           onSave={handleSave}
         />
