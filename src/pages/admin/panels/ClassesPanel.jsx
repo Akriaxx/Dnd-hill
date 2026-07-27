@@ -109,7 +109,6 @@ function ClassFormModal({ initial, races, classCategories, caracteristiques, equ
                   <select value={form.physique || ''} onChange={(e) => set('physique', e.target.value)}>
                     <option value="">—</option>
                     {caracteristiques.map((c) => <option key={c.cle} value={c.cle}>{c.cle}</option>)}
-                    <option value="VAR">VAR</option>
                   </select>
                 </div>
                 <div className="race-form-field race-form-field--grow">
@@ -117,7 +116,6 @@ function ClassFormModal({ initial, races, classCategories, caracteristiques, equ
                   <select value={form.magique || ''} onChange={(e) => set('magique', e.target.value)}>
                     <option value="">—</option>
                     {caracteristiques.map((c) => <option key={c.cle} value={c.cle}>{c.cle}</option>)}
-                    <option value="VAR">VAR</option>
                   </select>
                 </div>
                 <div className="race-form-field race-form-field--grow">
