@@ -127,35 +127,34 @@ export default function LevelingPanel() {
           <p className="admin-placeholder-sub">Commence par créer le niveau 0 avec la classe de départ.</p>
         </div>
       ) : (
-        <div className="level-rule-list">
+        <div className="entry-card-grid entry-card-grid--wide">
           {sortedRules.map((rule) => {
             const level = Number(rule.level) || 0;
             return (
-              <article className="level-rule-card" key={rule.id || rule.key}>
-                <div className="level-rule-badge">LV {level}</div>
-                <div className="level-rule-main">
-                  <div className="level-rule-head">
-                    <div>
-                      <h3>{rule.title || `Niveau ${level}`}</h3>
-                      {rule.summary && <p>{rule.summary}</p>}
-                    </div>
-                    <div className="level-rule-tags">
-                      {level === 0 && <span>Classe de départ : {rule.baseClass || 'Explorateur'}</span>}
-                      {level > 0 && <span>Jet ressource 1d classe/sous-classe</span>}
-                      {Number(rule.characterPoints) !== 0 && (
-                        <span>{Number(rule.characterPoints) > 0 ? '+' : ''}{rule.characterPoints} point(s) de carac</span>
-                      )}
-                      {rule.unlockClass && <span>Déblocage classe</span>}
-                      {rule.unlockSubclass && <span>Déblocage sous-classe</span>}
-                      {rule.unlockMaitrise && <span>Déblocage maîtrise</span>}
-                    </div>
+              <div className="entry-card" key={rule.id || rule.key}>
+                <div className="entry-card-top">
+                  <div className="entry-card-badge">{level}</div>
+                  <div className="entry-card-body">
+                    <span className="entry-card-kicker">Palier — Niveau {level}</span>
+                    <h3 className="entry-card-title">{rule.title || `Niveau ${level}`}</h3>
                   </div>
                 </div>
-                <div className="ascendance-row-actions level-rule-actions">
+                {rule.summary && <div className="entry-card-desc">{rule.summary}</div>}
+                <div className="entry-card-tags">
+                  {level === 0 && <span className="entry-card-tag">Classe de départ : {rule.baseClass || 'Explorateur'}</span>}
+                  {level > 0 && <span className="entry-card-tag">Jet ressource 1d classe/sous-classe</span>}
+                  {Number(rule.characterPoints) !== 0 && (
+                    <span className="entry-card-tag">{Number(rule.characterPoints) > 0 ? '+' : ''}{rule.characterPoints} point(s) de carac</span>
+                  )}
+                  {rule.unlockClass && <span className="entry-card-tag">Déblocage classe</span>}
+                  {rule.unlockSubclass && <span className="entry-card-tag">Déblocage sous-classe</span>}
+                  {rule.unlockMaitrise && <span className="entry-card-tag">Déblocage maîtrise</span>}
+                </div>
+                <div className="entry-card-actions">
                   <button className="admin-btn" onClick={() => startEdit(rule)}>Modifier</button>
                   <button className="admin-btn admin-btn--danger" onClick={() => requestDelete(rule)}>Supprimer</button>
                 </div>
-              </article>
+              </div>
             );
           })}
         </div>
