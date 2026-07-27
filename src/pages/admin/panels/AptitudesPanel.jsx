@@ -211,36 +211,27 @@ export default function AptitudesPanel() {
         categories={visibleCategories}
         entriesForCategory={(category) => filtered.filter((aptitude) => (aptitude.cat || aptitude.categoryKey) === category.key)}
         renderContent={(category, categoryEntries) => (
-          <div className="admin-aptitude-table">
-            {categoryEntries.length > 0 ? (
-              <>
-                <div className="admin-apt-head"><span>Nom</span><span>Stat</span><span>Catégorie</span><span>Actions</span></div>
-                {categoryEntries.map((apt, aptitudeIndex) => (
-                  <div
-                    key={`${apt.id || apt.key || apt.nom}-${aptitudeIndex}`}
-                    className={`admin-apt-row${apt.meta ? ' admin-apt-row--meta' : ''}${apt.custom ? ' is-custom' : ''}`}
-                    style={{
-                      '--aptitude-color': apt.couleur || category.couleur || '#bcecff',
-                      '--index-color': apt.couleur || category.couleur || '#bcecff',
-                    }}
-                  >
-                    <span className="admin-apt-nom">
-                      <span className="admin-apt-name-line">
-                        <span className="index-card-color" />
-                        {apt.nom}{apt.meta ? ' *' : ''}
-                      </span>
-                      {apt.description && <small>{apt.description}</small>}
-                    </span>
-                    <span className="admin-apt-stat">{apt.stat}</span>
-                    <span className="admin-apt-cat">{category.nom}</span>
-                    <span className="admin-apt-actions">
-                      <button className="admin-btn" onClick={() => startAptitudeEdit(apt)}>Modifier</button>
-                      <button className="admin-btn admin-btn--danger" onClick={() => requestAptitudeDelete(apt)}>Supprimer</button>
-                    </span>
+          <div className="entry-card-grid">
+            {categoryEntries.length > 0 ? categoryEntries.map((apt, aptitudeIndex) => (
+              <div
+                key={`${apt.id || apt.key || apt.nom}-${aptitudeIndex}`}
+                className="entry-card"
+                style={{ '--entry-color': apt.couleur || category.couleur || '#bcecff' }}
+              >
+                <div className="entry-card-top">
+                  <div className="entry-card-badge">{(apt.nom || '?').trim().charAt(0).toUpperCase()}</div>
+                  <div className="entry-card-body">
+                    <span className="entry-card-kicker">{category.nom}{apt.stat ? ` — ${apt.stat}` : ''}</span>
+                    <h3 className="entry-card-title">{apt.nom}{apt.meta ? ' *' : ''}</h3>
                   </div>
-                ))}
-              </>
-            ) : (
+                </div>
+                {apt.description && <div className="entry-card-desc">{apt.description}</div>}
+                <div className="entry-card-actions">
+                  <button className="admin-btn" onClick={() => startAptitudeEdit(apt)}>Modifier</button>
+                  <button className="admin-btn admin-btn--danger" onClick={() => requestAptitudeDelete(apt)}>Supprimer</button>
+                </div>
+              </div>
+            )) : (
               <div className="index-empty">Aucune aptitude dans cette catégorie.</div>
             )}
           </div>
