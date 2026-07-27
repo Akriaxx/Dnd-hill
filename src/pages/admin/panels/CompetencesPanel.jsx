@@ -305,39 +305,37 @@ export default function CompetencesPanel() {
         ]}
       />
 
-      <div className="competence-list">
+      <div className="entry-card-grid entry-card-grid--wide">
         {filteredCompetences.length === 0 && (
           <div className="index-empty">Aucune compétence trouvée.</div>
         )}
         {filteredCompetences.map((c) => (
-          <article key={c.id} className="competence-row" style={{ '--competence-color': c.tagColor || '#d77ee8' }}>
-            <div className="competence-row-marker">
-              <span>{c.type === 'actif' ? 'A' : 'P'}</span>
-            </div>
-            <div className="competence-row-main">
-              <div className="competence-row-title">
-                <span className="index-card-color" />
-                <strong>{c.nom}</strong>
-                <em>{c.type === 'actif' ? 'Actif' : 'Passif'}</em>
-                {c.restrictLevel && <span className="competence-row-level">Niv. {c.restrictLevel}+</span>}
+          <div key={c.id} className="entry-card" style={{ '--entry-color': c.tagColor || '#d77ee8' }}>
+            <div className="entry-card-top">
+              <div className="entry-card-badge">{c.type === 'actif' ? 'A' : 'P'}</div>
+              <div className="entry-card-body">
+                <span className="entry-card-kicker">
+                  {c.type === 'actif' ? 'Actif' : 'Passif'}{c.restrictLevel ? ` — Niv. ${c.restrictLevel}+` : ''}
+                </span>
+                <h3 className="entry-card-title">{c.nom}</h3>
               </div>
-              <div className="competence-row-meta">
-                <span>{categories.find((cat) => cat.key === (c.categoryKey || 'general'))?.nom || 'Général'}</span>
-                <span>{c.classe || 'Toutes les classes'}</span>
-                {c.sousClasse && <span>{c.sousClasse}</span>}
-              </div>
-              {c.description && (
-                <div className="competence-row-desc">
-                  <SmartText text={c.description} />
-                </div>
-              )}
             </div>
-            <div className="competence-row-actions">
+            <div className="entry-card-meta">
+              <span>{categories.find((cat) => cat.key === (c.categoryKey || 'general'))?.nom || 'Général'}</span>
+              <span>{c.classe || 'Toutes les classes'}</span>
+              {c.sousClasse && <span>{c.sousClasse}</span>}
+            </div>
+            {c.description && (
+              <div className="entry-card-desc entry-card-desc--clamped">
+                <SmartText text={c.description} />
+              </div>
+            )}
+            <div className="entry-card-actions">
               <button className="admin-btn" onClick={() => setViewingCompetence(c)}>Consulter</button>
               <button className="admin-btn" onClick={() => openEdit(c)}>Modifier</button>
               <button className="admin-btn admin-btn--danger" onClick={() => requestDelete(c)}>Supprimer</button>
             </div>
-          </article>
+          </div>
         ))}
       </div>
     </div>

@@ -446,31 +446,32 @@ export default function EtatsPanel() {
         entriesForCategory={(category) => filteredEtats.filter((e) => asArray(e.categoryKeys).includes(category.key))}
         emptyLabel="Aucun état dans cette catégorie."
         renderEntry={(e) => (
-          <article key={e.id} className="competence-row" style={{ '--competence-color': e.tagColor || '#d77ee8' }}>
-            <div className="competence-row-main">
-              <div className="competence-row-title">
-                <span className="index-card-color" />
-                <strong>{e.nom}</strong>
+          <div key={e.id} className="entry-card" style={{ '--entry-color': e.tagColor || '#d77ee8' }}>
+            <div className="entry-card-top">
+              <div className="entry-card-badge">{(e.nom || '?').trim().charAt(0).toUpperCase()}</div>
+              <div className="entry-card-body">
+                <span className="entry-card-kicker">État</span>
+                <h3 className="entry-card-title">{e.nom}</h3>
               </div>
-              {asArray(e.maitriseKeys).length > 0 && (
-                <div className="competence-row-meta">
-                  {e.maitriseKeys.map((key) => (
-                    <span key={key}>{maitrises.find((m) => m.key === key)?.label || key}</span>
-                  ))}
-                </div>
-              )}
-              {e.description && (
-                <div className="competence-row-desc">
-                  <SmartText text={e.description} />
-                </div>
-              )}
             </div>
-            <div className="competence-row-actions">
+            {asArray(e.maitriseKeys).length > 0 && (
+              <div className="entry-card-meta">
+                {e.maitriseKeys.map((key) => (
+                  <span key={key}>{maitrises.find((m) => m.key === key)?.label || key}</span>
+                ))}
+              </div>
+            )}
+            {e.description && (
+              <div className="entry-card-desc entry-card-desc--clamped">
+                <SmartText text={e.description} />
+              </div>
+            )}
+            <div className="entry-card-actions">
               <button className="admin-btn" onClick={() => setViewingEtat(e)}>Consulter</button>
               <button className="admin-btn" onClick={() => openEdit(e)}>Modifier</button>
               <button className="admin-btn admin-btn--danger" onClick={() => requestDelete(e)}>Supprimer</button>
             </div>
-          </article>
+          </div>
         )}
       />
     </div>
