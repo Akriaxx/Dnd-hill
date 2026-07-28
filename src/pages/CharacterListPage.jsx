@@ -2811,7 +2811,7 @@ function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes
   const expandedEntry = entries.find((entry) => (entry.key || entry.nom) === expandedKey) || null;
   const colorForEntry = (entry) => classCategories.find((cat) => cat.key === entry.type)?.couleur || '#c8a84a';
 
-  return (
+  return createPortal(
     <>
       <div className="index-modal-backdrop">
         <div className="index-modal index-modal--wide index-modal--picker">
@@ -2865,7 +2865,8 @@ function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes
           categoryColor={colorForEntry(expandedEntry)}
         />
       )}
-    </>
+    </>,
+    document.body
   );
 }
 
