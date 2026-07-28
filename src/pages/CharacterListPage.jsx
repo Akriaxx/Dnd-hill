@@ -2763,7 +2763,7 @@ function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes
             searchPlaceholder="Rechercher par nom..."
             count={filteredEntries.length}
             total={entries.length}
-            fields={availableCategories.length > 1 ? [{
+            fields={availableCategories.length > 0 ? [{
               key: 'type', label: 'Catégorie', value: categoryFilter, onChange: setCategoryFilter, options: [
                 { value: 'all', label: 'Toutes' },
                 ...availableCategories.map((cat) => ({ value: cat.key, label: cat.nom })),
