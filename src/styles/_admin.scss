@@ -3214,7 +3214,8 @@
 .levelup-picker-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 12px;
+  row-gap: 26px;
+  column-gap: 28px;
 }
 
 .levelup-entry-detail {
