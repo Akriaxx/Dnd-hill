@@ -440,19 +440,31 @@ const getHistoriqueReferenceList = (customHistoriques = []) => {
   ];
 };
 
+// Comme pour findReference (voir plus bas) : customCaracteristiques est
+// souvent vide, donc STAT_REFS sert de secours pour que FOR/DEX/CON/INT/
+// SAG/CHA apparaissent toujours dans le picker "Gameplay", pas seulement
+// à la résolution d'un tag déjà tapé.
 const getCaracteritiqueReferenceList = (customCaracteristiques = []) => {
   const seenKeys = new Set();
-  return safeArray(customCaracteristiques)
-    .sort((a, b) => (a.ordre || 0) - (b.ordre || 0))
-    .map((carac) => {
-      const key = carac.cle;
-      const label = carac.nom || carac.cle;
-      if (!key || !label) return null;
-      const nk = normalizeKey(key);
+  return [
+    ...safeArray(customCaracteristiques)
+      .sort((a, b) => (a.ordre || 0) - (b.ordre || 0))
+      .map((carac) => {
+        const key = carac.cle;
+        const label = carac.nom || carac.cle;
+        if (!key || !label) return null;
+        const nk = normalizeKey(key);
+        if (seenKeys.has(nk)) return null;
+        seenKeys.add(nk);
+        return { key, label, title: label, type: 'Caractéristique', description: carac.description || '', color: TAG_STYLE.caracteristique };
+      }).filter(Boolean),
+    ...STAT_REFS.filter((ref) => ['FOR', 'DEX', 'CON', 'INT', 'SAG', 'CHA'].includes(ref.key)).map((ref) => {
+      const nk = normalizeKey(ref.key);
       if (seenKeys.has(nk)) return null;
       seenKeys.add(nk);
-      return { key, label, title: label, type: 'Caractéristique', description: carac.description || '', color: TAG_STYLE.caracteristique };
-    }).filter(Boolean);
+      return { key: ref.key, label: ref.label, title: ref.label, type: 'Caractéristique', description: ref.description, color: TAG_STYLE.caracteristique };
+    }).filter(Boolean),
+  ];
 };
 
 const getResistanceReferenceList = (customResistanceEntries = []) => {
@@ -635,6 +647,16 @@ const buildTagTypes = (
     icon: '⚒',
     options: safeArray(customItems).map((item) => ({ key: item.nom, label: item.nom })),
   },
+  // COST_REFS (mana/endurance/vie/action…) n'avait jamais de catégorie
+  // dans le picker : le registre existait pour résoudre {cost.xxx} une
+  // fois tapé à la main, mais rien ne permettait de l'insérer depuis {.
+  {
+    key: 'cost',
+    label: 'Coût',
+    color: TAG_STYLE.cost,
+    icon: '⚡',
+    options: COST_REFS.map((c) => ({ key: c.key, label: c.label, needsValue: true })),
+  },
 ];
 
 const TAG_TYPES = buildTagTypes();
@@ -644,7 +666,7 @@ const TAG_NAV_GROUPS = [
   { key: 'references', label: 'Références & Savoirs', icon: '☷', color: TAG_STYLE.knowledge, types: ['knowledge', 'aptitude', 'language'] },
   { key: 'identites', label: 'Origines & Identités', icon: '◈', color: TAG_STYLE.origin, types: ['origin', 'historique', 'provenance', 'race', 'ascendance'] },
   { key: 'gameplay', label: 'Gameplay', icon: '⚔', color: TAG_STYLE.index, types: ['caracteristique', 'index', 'class', 'subclass', 'competence', 'resistance', 'maitrise'] },
-  { key: 'items', label: 'Équipement', icon: '⚒', color: TAG_STYLE.weapon, types: ['weapon'] },
+  { key: 'items', label: 'Économie & Équipement', icon: '⚒', color: TAG_STYLE.weapon, types: ['weapon', 'cost'] },
 ];
 
 function findReference(typeKey, key) {
