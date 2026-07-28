@@ -3093,10 +3093,20 @@
     transform: translateY(-3px);
   }
   &:hover .levelup-class-frame {
-    border-color: color-mix(in srgb, var(--entry-color) 65%, transparent);
-    box-shadow: 0 16px 32px rgba(0,0,0,0.4), 0 0 24px color-mix(in srgb, var(--entry-color) 18%, transparent);
+    border-color: color-mix(in srgb, var(--entry-color) 75%, transparent);
+    box-shadow: 0 16px 32px rgba(0,0,0,0.5), 0 0 28px color-mix(in srgb, var(--entry-color) 30%, transparent);
+    animation: levelup-frame-pulse 1.8s ease-in-out infinite;
   }
-  &:hover .levelup-class-title { border-color: color-mix(in srgb, var(--entry-color) 75%, transparent); }
+  &:hover .levelup-class-frame::before { opacity: 1; }
+  &:hover .levelup-class-title {
+    border-color: var(--entry-color);
+    text-shadow: 0 0 12px color-mix(in srgb, var(--entry-color) 55%, transparent);
+  }
+}
+
+@keyframes levelup-frame-pulse {
+  0%, 100% { box-shadow: 0 16px 32px rgba(0,0,0,0.5), 0 0 22px color-mix(in srgb, var(--entry-color) 24%, transparent); }
+  50% { box-shadow: 0 16px 32px rgba(0,0,0,0.5), 0 0 34px color-mix(in srgb, var(--entry-color) 42%, transparent); }
 }
 
 .levelup-class-plates {
@@ -3134,11 +3144,49 @@
   white-space: normal;
 }
 
+// Coins "HUD" façon interface de jeu (ARPG) : deux traits par coin,
+// dessinés en calques de fond sur ::before plutôt qu'en pseudo-éléments
+// séparés (on n'a que ::before/::after à disposition pour 4 coins).
+// Placeholder partagé pour éviter de dupliquer le bloc de calques.
+%levelup-hud-corners {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.7;
+    transition: opacity 0.16s ease;
+    background-image:
+      linear-gradient(var(--entry-color, #c8a84a), var(--entry-color, #c8a84a)),
+      linear-gradient(var(--entry-color, #c8a84a), var(--entry-color, #c8a84a)),
+      linear-gradient(var(--entry-color, #c8a84a), var(--entry-color, #c8a84a)),
+      linear-gradient(var(--entry-color, #c8a84a), var(--entry-color, #c8a84a)),
+      linear-gradient(var(--entry-color, #c8a84a), var(--entry-color, #c8a84a)),
+      linear-gradient(var(--entry-color, #c8a84a), var(--entry-color, #c8a84a)),
+      linear-gradient(var(--entry-color, #c8a84a), var(--entry-color, #c8a84a)),
+      linear-gradient(var(--entry-color, #c8a84a), var(--entry-color, #c8a84a));
+    background-repeat: no-repeat;
+    background-size:
+      14px 2px, 2px 14px,
+      14px 2px, 2px 14px,
+      14px 2px, 2px 14px,
+      14px 2px, 2px 14px;
+    background-position:
+      top -1px left -1px, top -1px left -1px,
+      top -1px right -1px, top -1px right -1px,
+      bottom -1px left -1px, bottom -1px left -1px,
+      bottom -1px right -1px, bottom -1px right -1px;
+  }
+}
+
 .levelup-class-frame {
-  border: 1px solid color-mix(in srgb, var(--entry-color, #c8a84a) 34%, transparent);
+  @extend %levelup-hud-corners;
+  border: 1px solid color-mix(in srgb, var(--entry-color, #c8a84a) 30%, transparent);
   background:
-    linear-gradient(160deg, color-mix(in srgb, var(--entry-color, #c8a84a) 10%, transparent), transparent 55%),
-    rgba(0,0,0,0.32);
+    linear-gradient(160deg, color-mix(in srgb, var(--entry-color, #c8a84a) 8%, transparent), transparent 55%),
+    rgba(0,0,0,0.52);
   padding: 36px 14px 16px;
   display: flex;
   flex-direction: column;
@@ -3152,6 +3200,11 @@
 }
 
 .levelup-detail-modal {
+  // Le cadre interne défile (contenu long) : ses coins HUD scrolleraient
+  // avec lui, donc on les désactive ici et on les remet sur la modale
+  // elle-même, qui ne bouge pas.
+  @extend %levelup-hud-corners;
+
   .levelup-class-frame--expanded {
     flex: 1;
     min-height: 0;
@@ -3159,6 +3212,8 @@
     border: none;
     scrollbar-width: thin;
     scrollbar-color: rgba(200,168,74,0.35) transparent;
+
+    &::before { display: none; }
   }
 }
 
