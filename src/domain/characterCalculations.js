@@ -668,7 +668,14 @@ export function getLinearTotal(source, fallbackBase = 0) {
 }
 
 export function getMovementData(char) {
-  return getLinearTotal(char?.deplacement, 15);
+  // objectBonus vient exclusivement de l'équipement porté (ex: bottes +4) —
+  // voir getEquippedItemEffectSum juste en dessous, même mécanisme déjà
+  // utilisé pour les stats de combat. Rien d'autre n'alimente ce champ, donc
+  // on l'écrase plutôt que de l'additionner à une valeur stockée.
+  return getLinearTotal({
+    ...(char?.deplacement ?? {}),
+    objectBonus: getEquippedItemEffectSum(char, 'deplacement'),
+  }, 0);
 }
 
 export function getCarryingData(char) {
@@ -679,7 +686,7 @@ export function getCarryingData(char) {
 // (voir ITEM_SIMPLE_EFFECTS dans pages/admin/itemUtils.js — attaquePhysique,
 // esquive, initiative, etc.) : ce sont ces items qui alimentent maintenant
 // Bonus/Malus de "Stats de combat", pas une saisie manuelle.
-function getEquippedItemEffectSum(char, effectKey) {
+export function getEquippedItemEffectSum(char, effectKey) {
   const equipement = char?.equipement ?? {};
   return Object.values(equipement).reduce((sum, item) => (
     sum + Number(item?.effects?.simple?.[effectKey] ?? 0)
