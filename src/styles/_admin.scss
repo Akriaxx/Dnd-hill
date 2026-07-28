@@ -3079,6 +3079,7 @@
 // génériques de l'admin.
 
 .levelup-class-card {
+  --entry-color: #c8a84a;
   display: flex;
   flex-direction: column;
   cursor: default;
@@ -3092,10 +3093,10 @@
     transform: translateY(-3px);
   }
   &:hover .levelup-class-frame {
-    border-color: rgba(200,168,74,0.5);
-    box-shadow: 0 16px 32px rgba(0,0,0,0.4);
+    border-color: color-mix(in srgb, var(--entry-color) 65%, transparent);
+    box-shadow: 0 16px 32px rgba(0,0,0,0.4), 0 0 24px color-mix(in srgb, var(--entry-color) 18%, transparent);
   }
-  &:hover .levelup-class-title { border-color: rgba(200,168,74,0.6); }
+  &:hover .levelup-class-title { border-color: color-mix(in srgb, var(--entry-color) 75%, transparent); }
 }
 
 .levelup-class-plates {
@@ -3112,7 +3113,7 @@
 .levelup-class-title {
   padding: 9px 22px;
   background: rgba(8,7,4,0.92);
-  border: 1px solid rgba(200,168,74,0.4);
+  border: 1px solid color-mix(in srgb, var(--entry-color, #c8a84a) 50%, transparent);
   font-family: $font-display;
   font-size: 18px;
   letter-spacing: 0.6px;
@@ -3134,13 +3135,15 @@
 }
 
 .levelup-class-frame {
-  border: 1px solid rgba(200,168,74,0.28);
-  background: rgba(0,0,0,0.32);
+  border: 1px solid color-mix(in srgb, var(--entry-color, #c8a84a) 34%, transparent);
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--entry-color, #c8a84a) 10%, transparent), transparent 55%),
+    rgba(0,0,0,0.32);
   padding: 36px 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: border-color 0.16s ease;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
 .levelup-class-frame--expanded {

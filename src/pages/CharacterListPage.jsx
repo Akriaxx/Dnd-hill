@@ -2604,7 +2604,7 @@ function LevelUpDiceHex({ item }) {
   );
 }
 
-function ArchetypeHex({ archetype, size = 'lg', role = 'principal' }) {
+function ArchetypeHex({ archetype, size = 'lg', role = 'principal', color = '#c8a84a' }) {
   const [open, setOpen] = useState(false);
   const [popoverStyle, setPopoverStyle] = useState(null);
   const buttonRef = useRef(null);
@@ -2625,8 +2625,8 @@ function ArchetypeHex({ archetype, size = 'lg', role = 'principal' }) {
     const top = belowTop + expectedHeight > window.innerHeight - margin
       ? Math.max(margin, rect.top - expectedHeight - 8)
       : belowTop;
-    setPopoverStyle({ left: `${left}px`, top: `${top}px`, width: `${width}px`, '--smart-tag-color': '#c8a84a' });
-  }, []);
+    setPopoverStyle({ left: `${left}px`, top: `${top}px`, width: `${width}px`, '--smart-tag-color': color });
+  }, [color]);
 
   if (!archetype) return null;
 
@@ -2650,6 +2650,7 @@ function ArchetypeHex({ archetype, size = 'lg', role = 'principal' }) {
       <span
         ref={buttonRef}
         className={`hex-badge hex-badge--${size}`}
+        style={{ '--hex-color': color }}
         onMouseEnter={() => { placePopover(); setOpen(true); }}
         onMouseLeave={() => setOpen(false)}
       >
@@ -2660,7 +2661,7 @@ function ArchetypeHex({ archetype, size = 'lg', role = 'principal' }) {
   );
 }
 
-function ArchetypeHexRow({ entry, archetypes = [] }) {
+function ArchetypeHexRow({ entry, archetypes = [], color = '#c8a84a' }) {
   if (!entry?.archetypeId) return <div className="hex-row hex-row--empty" />;
   const principal = archetypes.find((a) => String(a.id) === String(entry.archetypeId));
   if (!principal) return <div className="hex-row hex-row--empty" />;
@@ -2676,11 +2677,11 @@ function ArchetypeHexRow({ entry, archetypes = [] }) {
   return (
     <div className="hex-row">
       <div className="hex-row-side hex-row-side--left">
-        {left.map((a) => <ArchetypeHex key={a.id} archetype={a} size="sm" role="secondaire" />)}
+        {left.map((a) => <ArchetypeHex key={a.id} archetype={a} size="sm" role="secondaire" color={color} />)}
       </div>
-      <ArchetypeHex archetype={principal} size="lg" role="principal" />
+      <ArchetypeHex archetype={principal} size="lg" role="principal" color={color} />
       <div className="hex-row-side hex-row-side--right">
-        {right.map((a) => <ArchetypeHex key={a.id} archetype={a} size="sm" role="secondaire" />)}
+        {right.map((a) => <ArchetypeHex key={a.id} archetype={a} size="sm" role="secondaire" color={color} />)}
       </div>
     </div>
   );
@@ -2700,12 +2701,12 @@ function LevelUpDiceRow({ entry }) {
   );
 }
 
-function LevelUpEntryCard({ entry, onToggle, archetypes }) {
+function LevelUpEntryCard({ entry, onToggle, archetypes, categoryColor = '#c8a84a' }) {
   return (
-    <div className="levelup-class-card levelup-class-card--pickable" onClick={onToggle}>
+    <div className="levelup-class-card levelup-class-card--pickable" onClick={onToggle} style={{ '--entry-color': categoryColor }}>
       <div className="levelup-class-plates">
         <div className="levelup-class-title">{entry.nom}</div>
-        <ArchetypeHexRow entry={entry} archetypes={archetypes} />
+        <ArchetypeHexRow entry={entry} archetypes={archetypes} color={categoryColor} />
       </div>
       <div className="levelup-class-frame">
         <LevelUpDiceRow entry={entry} />
@@ -2717,7 +2718,7 @@ function LevelUpEntryCard({ entry, onToggle, archetypes }) {
 
 const LEVELUP_DETAIL_CLOSE_MS = 200;
 
-function LevelUpEntryDetailModal({ entry, onClose, onSelect, archetypes, itemClasses, competences }) {
+function LevelUpEntryDetailModal({ entry, onClose, onSelect, archetypes, itemClasses, competences, categoryColor = '#c8a84a' }) {
   const [closing, setClosing] = useState(false);
   const itemClassNames = asArray(entry.allowedItemClasses)
     .map((id) => itemClasses.find((c) => c.id === id)?.nom)
@@ -2733,7 +2734,7 @@ function LevelUpEntryDetailModal({ entry, onClose, onSelect, archetypes, itemCla
 
   return (
     <div className={`index-modal-backdrop levelup-detail-backdrop${closing ? ' is-closing' : ''}`}>
-      <div className={`index-modal index-modal--wide index-modal--picker levelup-detail-modal${closing ? ' is-closing' : ''}`}>
+      <div className={`index-modal index-modal--wide index-modal--picker levelup-detail-modal${closing ? ' is-closing' : ''}`} style={{ '--entry-color': categoryColor }}>
         <div className="levelup-class-frame levelup-class-frame--expanded">
           <div className="levelup-entry-expanded-head">
             <h3 className="levelup-class-title levelup-class-title--inline">{entry.nom}</h3>
@@ -2746,7 +2747,7 @@ function LevelUpEntryDetailModal({ entry, onClose, onSelect, archetypes, itemCla
               {entry.description && <p className="levelup-class-desc levelup-class-desc--full"><SmartText text={entry.description} /></p>}
             </div>
             <div className="levelup-entry-col">
-              <ArchetypeHexRow entry={entry} archetypes={archetypes} />
+              <ArchetypeHexRow entry={entry} archetypes={archetypes} color={categoryColor} />
               <div className="levelup-entry-stat">
                 <span>Caractéristiques principales</span>
                 <b>{statLabel(entry.physique)} — {statLabel(entry.magique)}</b>
@@ -2808,6 +2809,7 @@ function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes
   ));
 
   const expandedEntry = entries.find((entry) => (entry.key || entry.nom) === expandedKey) || null;
+  const colorForEntry = (entry) => classCategories.find((cat) => cat.key === entry.type)?.couleur || '#c8a84a';
 
   return (
     <>
@@ -2843,6 +2845,7 @@ function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes
                       entry={entry}
                       onToggle={() => setExpandedKey(key)}
                       archetypes={archetypes}
+                      categoryColor={colorForEntry(entry)}
                     />
                   );
                 })}
@@ -2859,6 +2862,7 @@ function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes
           archetypes={archetypes}
           itemClasses={itemClasses}
           competences={competences}
+          categoryColor={colorForEntry(expandedEntry)}
         />
       )}
     </>
