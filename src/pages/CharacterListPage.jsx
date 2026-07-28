@@ -885,9 +885,29 @@ export default function CharacterListPage() {
       {/* ── Stage ── */}
       <div className="select-stage" ref={stageRef}>
         <div className="select-fog" aria-hidden="true">
-          <div className="select-fog-layer select-fog-layer--1" />
-          <div className="select-fog-layer select-fog-layer--2" />
-          <div className="select-fog-layer select-fog-layer--3" />
+          {/* Bruit fractal (feTurbulence) plutôt que des blobs radiaux : ça
+              donne de vraies volutes fines qui s'entremêlent, pas une masse
+              floue qui glisse. baseFrequency anime en continu pour que le
+              motif se déforme organiquement ("danse") au lieu de juste
+              translater. */}
+          <svg className="select-fog-svg">
+            <filter id="select-smoke-filter" x="-20%" y="-20%" width="140%" height="140%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.014 0.024" numOctaves="4" seed="7" result="noise">
+                <animate
+                  attributeName="baseFrequency"
+                  dur="50s"
+                  values="0.014 0.024;0.019 0.03;0.011 0.019;0.016 0.026;0.014 0.024"
+                  repeatCount="indefinite"
+                />
+              </feTurbulence>
+              <feColorMatrix in="noise" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0" result="white" />
+              <feComponentTransfer in="white" result="wisps">
+                <feFuncA type="gamma" amplitude="1.4" exponent="5" offset="0" />
+              </feComponentTransfer>
+              <feGaussianBlur in="wisps" stdDeviation="2.2" />
+            </filter>
+            <rect width="100%" height="100%" filter="url(#select-smoke-filter)" />
+          </svg>
         </div>
 
         {/* Left arrow */}
