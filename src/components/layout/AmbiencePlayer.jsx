@@ -8,7 +8,7 @@ import sheetOpenSfx from '../../assets/audio/sfx-sheet-open.mp3';
 import pageTurnSfx from '../../assets/audio/sfx-page-turn.mp3';
 
 const AMBIENT_VOLUME = 0.25;
-const FADE_IN_MS = 2500;
+const FADE_IN_MS = 5000;
 const FADE_OUT_MS = 700;
 const FADE_STEPS = 30;
 

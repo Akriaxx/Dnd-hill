@@ -54,17 +54,13 @@ export default function LoginPage() {
     const id = resetIdentifier.trim();
     let email = id;
     if (!id.includes('@')) {
-      const { data: lookup } = await supabase
-        .from('login_lookup')
-        .select('email')
-        .eq('username', id)
-        .maybeSingle();
-      if (!lookup?.email) {
+      const { data: lookupEmail } = await supabase.rpc('get_login_email', { p_username: id });
+      if (!lookupEmail) {
         setResetError('Aucun compte associé à cet identifiant ou email.');
         setResetSending(false);
         return;
       }
-      email = lookup.email;
+      email = lookupEmail;
     }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset`,

@@ -6,12 +6,12 @@ import { useAudioStore } from './audioStore';
 
 const resolveEmail = async (identifier) => {
   if (identifier.includes('@')) return identifier;
-  const { data: lookup } = await supabase
-    .from('login_lookup')
-    .select('email')
-    .eq('username', identifier)
-    .maybeSingle();
-  return lookup?.email || null;
+  // Fonction plutôt que la vue login_lookup (supprimée — voir
+  // docs/supabase/012_login_lookup_function.sql) : même contournement RLS
+  // nécessaire pour un visiteur non connecté, mais surface étroite (un
+  // pseudo précis en entrée, pas de liste énumérable en sortie).
+  const { data: email } = await supabase.rpc('get_login_email', { p_username: identifier });
+  return email || null;
 };
 
 const profileToUser = (authUser, profile) => ({
@@ -41,7 +41,7 @@ export const useAuthStore = create(
         const cleanIdentifier = identifier.trim();
 
         // Le login se fait par identifiant, Supabase Auth attend un email —
-        // on résout l'un vers l'autre via la vue login_lookup.
+        // on résout l'un vers l'autre via resolveEmail (RPC get_login_email).
         const email = await resolveEmail(cleanIdentifier);
         if (!email) return false;
 
