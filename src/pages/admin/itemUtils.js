@@ -53,18 +53,20 @@ export const ITEM_SIMPLE_EFFECTS = [
   { key: 'esquive', label: 'Esquive' },
   { key: 'initiative', label: 'Initiative' },
   { key: 'deplacement', label: 'Déplacement' },
+  { key: 'emplacements', label: 'Emplacements' },
 ];
 
 // Regroupe ITEM_SIMPLE_EFFECTS par besoin plutôt que de tout afficher en
 // vrac : Ressources d'abord (vitalité/mana/endurance), puis Attaque,
-// Défense, Initiative, et enfin Déplacement — voir ItemPanel.jsx
-// (ItemEffectBuilder) qui s'appuie sur ces groupes pour le rendu du
-// panneau "Ressource".
+// Défense, Initiative, Déplacement, et enfin Emplacements (ex: un sac) —
+// voir ItemPanel.jsx (ItemEffectBuilder) qui s'appuie sur ces groupes pour
+// le rendu du panneau "Ressource".
 export const ITEM_SIMPLE_EFFECT_GROUPS = [
   { label: 'Ressources', keys: ['vitalite', 'mana', 'endurance'] },
   { label: 'Attaque', keys: ['attaquePhysique', 'attaqueMagique', 'attaqueDistance'] },
   { label: 'Défense', keys: ['resistanceMagique', 'resistancePhysique', 'esquive'] },
   { label: 'Initiative', keys: ['initiative'] },
+  { label: 'Emplacements', keys: ['emplacements'] },
   { label: 'Déplacement', keys: ['deplacement'] },
 ];
 

@@ -52,6 +52,7 @@ import {
   getComputedAptitudeBonuses,
   getComputedLanguageRows,
   getComputedResistanceBonuses,
+  getEquippedItemEffectSum,
   getMovementData,
   getRaceDefinition,
   getResourceData,
@@ -4890,7 +4891,7 @@ const isConsumableItem = (item) => item.usable === true;
 // ── Onglet Inventaire ─────────────────────────────────────────
 function DetailInventaire({ char }) {
   const { updateCharacter } = useCharacterStore();
-  const { customAptitudes, customResistanceEntries, customItemCategories, customItems } = useAdminStore();
+  const { customAptitudes, customResistanceEntries, customItemCategories, customItems, customClasses, customSubclasses } = useAdminStore();
   const itemEffectOptions = getItemEffectLookupOptions(customAptitudes, customResistanceEntries);
   const itemCategories = mergeInventoryPickerRows(INVENTORY_PICKER_TEMP_CATEGORIES, customItemCategories);
   const itemCatalog = mergeInventoryPickerRows(INVENTORY_PICKER_TEMP_ITEMS, customItems);
@@ -4993,10 +4994,25 @@ function DetailInventaire({ char }) {
     closePopup();
   };
 
-  // Calcul emplacements dynamique depuis char.emplacements
-  const e = char.emplacements ?? { base: 50, bonus: 0, objectBonus: 0, tempBonus: 0, malus: 0, objectMalus: 0, tempMalus: 0 };
+  // Base résolue en direct depuis la classe (remplacée par la sous-classe si
+  // elle coche "Remplacer les emplacements de la classe parente") — même
+  // schéma que resolveMovementBase pour le déplacement, pas un snapshot figé
+  // à la création du perso. objectBonus vient de l'équipement porté (un sac
+  // par ex.), voir getEquippedItemEffectSum.
+  const carryingClassDef = getCombinedClassDefinition(char, customClasses);
+  const carryingSubclassDef = getCombinedSubclassDefinition(char, customSubclasses);
+  const carryingBase = Number(
+    (carryingSubclassDef?.replaceClassEmplacements ? carryingSubclassDef?.emplacements : null)
+    ?? carryingClassDef?.emplacements
+    ?? 0
+  ) || 0;
+  const e = {
+    ...(char.emplacements ?? {}),
+    base: carryingBase,
+    objectBonus: getEquippedItemEffectSum(char, 'emplacements'),
+  };
   const totalSlots = Math.max(1,
-    (e.base ?? 50) +
+    (e.base ?? 0) +
     (e.bonus ?? 0) + (e.objectBonus ?? 0) + (e.tempBonus ?? 0) -
     (e.malus ?? 0) - (e.objectMalus ?? 0) - (e.tempMalus ?? 0)
   );

@@ -679,7 +679,16 @@ export function getMovementData(char) {
 }
 
 export function getCarryingData(char) {
-  return getLinearTotal(char?.emplacements, 50);
+  // base vient de resolveCarryingBase (CharacterListPage.jsx, injecté dans
+  // une copie de char avant l'appel — même schéma que getMovementData /
+  // resolveMovementBase) : classe, remplacée par la sous-classe si elle
+  // coche "Remplacer les emplacements de la classe parente". objectBonus
+  // vient de l'équipement porté (ex: un sac +10), même mécanisme que le
+  // déplacement.
+  return getLinearTotal({
+    ...(char?.emplacements ?? {}),
+    objectBonus: getEquippedItemEffectSum(char, 'emplacements'),
+  }, 0);
 }
 
 // Somme, sur tout l'équipement porté, la valeur d'un effet "simple" donné

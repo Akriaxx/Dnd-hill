@@ -4461,22 +4461,15 @@
   text-transform: uppercase;
 }
 
-// Flex-wrap plutôt qu'une grille à colonnes fixes : un groupe à nombre
-// impair d'entrées (voir ITEM_SIMPLE_EFFECT_GROUPS — Ressources/Attaque/
-// Défense ont 3 entrées, Initiative 1 seule) laissait une case vide fantôme
-// dans une grille à 2 colonnes strictes. En flex, la dernière case orpheline
-// s'étire naturellement (flex-grow) sur toute la largeur de sa ligne plutôt
-// que de laisser un trou à côté d'elle.
+// Grille à colonnes fixes : un groupe à nombre impair d'entrées (voir
+// ITEM_SIMPLE_EFFECT_GROUPS — Ressources/Attaque/Défense ont 3 entrées,
+// Initiative/Déplacement 1 seule) laisse une case vide plutôt que
+// d'étirer la dernière case orpheline sur toute la largeur.
 .item-effect-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 1px;
   background: rgba(200, 168, 74, 0.14);
-
-  // Les libellés ("Résistance phy.", etc.) tenaient à peine dans 120px et
-  // étaient tronqués — voir aussi le panneau élargi (.admin-effects-side-panel).
-  &--simple .item-effect-cell { flex-basis: 200px; }
-  &--stats .item-effect-cell { flex-basis: 130px; }
 }
 
 .item-effect-cell {
@@ -4486,7 +4479,6 @@
   gap: 10px;
   min-height: 48px;
   padding: 10px 14px;
-  flex-grow: 1;
   background: rgba(8, 8, 5, 0.88);
 
   span {

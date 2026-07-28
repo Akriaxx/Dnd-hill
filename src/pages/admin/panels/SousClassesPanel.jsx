@@ -155,6 +155,24 @@ function SubclassFormModal({ initial, classes, classCategories, races, archetype
             </div>
 
             <div className="race-form-section race-form-section--wide">
+              <div className="race-form-section-title">Emplacement de sac</div>
+              <label className="index-value-toggle" style={{ marginBottom: '0.75rem' }}>
+                <input type="checkbox" checked={Boolean(form.replaceClassEmplacements)} onChange={(e) => set('replaceClassEmplacements', e.target.checked)} />
+                Remplacer les emplacements de la classe parente
+              </label>
+              {form.replaceClassEmplacements ? (
+                <div className="race-form-row">
+                  <div className="race-form-field race-form-field--sm">
+                    <label>Emplacements</label>
+                    <input type="number" min={0} value={form.emplacements ?? 0} onChange={(e) => set('emplacements', Number(e.target.value) || 0)} />
+                  </div>
+                </div>
+              ) : (
+                <p className="race-form-hint" style={{ opacity: 0.6 }}>Les emplacements de la classe parente sont utilisés.</p>
+              )}
+            </div>
+
+            <div className="race-form-section race-form-section--wide">
               <div className="race-form-section-title">Verrou de race</div>
               <RaceLockFields value={form.allowedRaces} races={races} onChange={(v) => set('allowedRaces', v)} />
             </div>

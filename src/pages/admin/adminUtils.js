@@ -108,6 +108,10 @@ export const BLANK_CLASS_FORM = {
   physique: '', magique: '',
   resourceDice: { vie: '', mana: '', endu: '' },
   nombreSortsMagiques: 0, nombreSortsPhysiques: 0, nombreCompetences: 0,
+  // Emplacements d'inventaire de base pour cette classe — voir
+  // getCarryingData (characterCalculations.js), résolu en direct comme le
+  // déplacement de race, pas figé à la création du perso.
+  emplacements: 0,
 };
 
 export const BLANK_SUBCLASS_FORM = {
@@ -120,6 +124,8 @@ export const BLANK_SUBCLASS_FORM = {
   replaceClassResourceDice: false,
   replaceClassSpellCounts: false,
   nombreSortsMagiques: 0, nombreSortsPhysiques: 0, nombreCompetences: 0,
+  emplacements: 0,
+  replaceClassEmplacements: false,
 };
 
 export const RESOURCE_DICE_KEYS = [['vie', 'Vie'], ['mana', 'Mana'], ['endu', 'Endurance']];
