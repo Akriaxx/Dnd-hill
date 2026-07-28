@@ -3080,9 +3080,29 @@
 
 .levelup-class-card {
   --entry-color: #c8a84a;
+  position: relative;
   display: flex;
   flex-direction: column;
   cursor: default;
+
+  // Halo "brouillard" flou derrière toute la carte (plaque + cadre) pour
+  // que l'ensemble se lise comme un seul objet, plutôt qu'une bordure
+  // nette qui découpe le cadre du reste. Très diffus, pas de contour dur.
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -34px -14px -14px;
+    z-index: -1;
+    background: radial-gradient(ellipse at center, color-mix(in srgb, var(--entry-color) 40%, transparent) 0%, transparent 72%);
+    filter: blur(22px);
+    opacity: 0.55;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+}
+
+.levelup-class-card--pickable:hover::after {
+  opacity: 0.85;
 }
 
 .levelup-class-card--pickable {
@@ -3183,7 +3203,7 @@
 
 .levelup-class-frame {
   @extend %levelup-hud-corners;
-  border: 1px solid color-mix(in srgb, var(--entry-color, #c8a84a) 30%, transparent);
+  border: 1px solid color-mix(in srgb, var(--entry-color, #c8a84a) 14%, transparent);
   background:
     linear-gradient(160deg, color-mix(in srgb, var(--entry-color, #c8a84a) 8%, transparent), transparent 55%),
     rgba(0,0,0,0.52);
