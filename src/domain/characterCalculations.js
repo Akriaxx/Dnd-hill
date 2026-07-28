@@ -714,7 +714,7 @@ export function getCombatStats(char) {
     { key: 'atkPhysique', label: 'Att. physique', base: 3, mod: str, autoBonus: Math.max(0, dex) + ruleBonuses.attackPhysical, itemKey: 'attaquePhysique' },
     { key: 'atkMagique', label: 'Att. magique', base: 2, mod: Math.max(int, sag, cha), autoBonus: ruleBonuses.attackMagic, itemKey: 'attaqueMagique' },
     { key: 'atkDistance', label: 'Att. distance', base: 3, mod: dex, autoBonus: ruleBonuses.attackDistance, itemKey: 'attaqueDistance' },
-    { key: 'defPhysique', label: 'Déf. physique', base: 8, mod: con, autoBonus: 1 + ruleBonuses.defensePhysical, itemKey: 'resistancePhysique' },
+    { key: 'defPhysique', label: 'Déf. physique', base: 8, mod: con, autoBonus: ruleBonuses.defensePhysical, itemKey: 'resistancePhysique' },
     { key: 'defMagique', label: 'Déf. magique', base: 8, mod: sag, autoBonus: ruleBonuses.defenseMagic, itemKey: 'resistanceMagique' },
     { key: 'esquive', label: 'Esquive', base: 9, mod: dex, autoBonus: ruleBonuses.esquive, itemKey: 'esquive' },
   ];
