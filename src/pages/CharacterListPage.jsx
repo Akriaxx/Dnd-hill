@@ -16,7 +16,7 @@ import {
   canViewCharacter,
 } from '../auth/permissions';
 import { useCombatStore } from '../store/combatStore';
-import { SmartText, SmartTag } from '../components/admin/SmartDescEditor';
+import { SmartText, SmartTag, resolveSmartReference } from '../components/admin/SmartDescEditor';
 import ItemEffectSummary from '../components/admin/ItemEffectSummary';
 import EquipementPanel, {
   CatSVG,
@@ -2545,10 +2545,64 @@ function getLevelUpRewards(char, classDef, subclassDef, levelRule, customCompete
 // ── Picker visuel classe / sous-classe (level-up) ─────────────
 
 const LEVELUP_DICE_ITEMS = [
-  { key: 'vie', label: 'DDV', iconKey: 'heart', color: '#4ac87a' },
-  { key: 'mana', label: 'DDM', iconKey: 'droplet', color: '#5f8dff' },
-  { key: 'endu', label: 'DDE', iconKey: 'zap', color: '#ff7060' },
+  { key: 'vie', label: 'DDV', iconKey: 'heart', color: '#4ac87a', indexTitle: 'Pts de Vie' },
+  { key: 'mana', label: 'DDM', iconKey: 'droplet', color: '#5f8dff', indexTitle: 'Pts de Mana' },
+  { key: 'endu', label: 'DDE', iconKey: 'zap', color: '#ff7060', indexTitle: "Pts d'Endurance" },
 ];
+
+function LevelUpDiceHex({ item }) {
+  const [open, setOpen] = useState(false);
+  const [popoverStyle, setPopoverStyle] = useState(null);
+  const buttonRef = useRef(null);
+  const iconEntry = getItemIcon(item.iconKey);
+  const ref = resolveSmartReference(`index.${item.indexTitle}`);
+
+  const placePopover = useCallback(() => {
+    const button = buttonRef.current;
+    if (!button) return;
+    const rect = button.getBoundingClientRect();
+    const margin = 12;
+    const width = Math.min(320, window.innerWidth - margin * 2);
+    const expectedHeight = 150;
+    const left = Math.min(
+      Math.max(rect.left + rect.width / 2 - width / 2, margin),
+      Math.max(margin, window.innerWidth - width - margin)
+    );
+    const belowTop = rect.bottom + 8;
+    const top = belowTop + expectedHeight > window.innerHeight - margin
+      ? Math.max(margin, rect.top - expectedHeight - 8)
+      : belowTop;
+    setPopoverStyle({ left: `${left}px`, top: `${top}px`, width: `${width}px`, '--smart-tag-color': item.color });
+  }, [item.color]);
+
+  const popover = open && popoverStyle ? createPortal(
+    <span className="smart-popover" role="dialog" style={popoverStyle}>
+      <span className="smart-popover-head">
+        <span className="smart-popover-kicker">{ref.type}</span>
+        <strong className="smart-popover-title">{ref.title}</strong>
+      </span>
+      {ref.description && (
+        <span className="smart-popover-desc">
+          <SmartText text={ref.description} />
+        </span>
+      )}
+    </span>,
+    document.body
+  ) : null;
+
+  return (
+    <span
+      ref={buttonRef}
+      className="hex-badge hex-badge--sm"
+      style={{ '--hex-color': item.color }}
+      onMouseEnter={() => { placePopover(); setOpen(true); }}
+      onMouseLeave={() => setOpen(false)}
+    >
+      {iconEntry ? <iconEntry.Icon size={16} strokeWidth={2} /> : null}
+      {popover}
+    </span>
+  );
+}
 
 function ArchetypeHex({ archetype, size = 'lg', role = 'principal' }) {
   const [open, setOpen] = useState(false);
@@ -2636,17 +2690,12 @@ function LevelUpDiceRow({ entry }) {
   const dice = normalizeResourceDice(entry);
   return (
     <div className="levelup-dice-row">
-      {LEVELUP_DICE_ITEMS.map((item) => {
-        const iconEntry = getItemIcon(item.iconKey);
-        return (
-          <div key={item.key} className="levelup-dice-item">
-            <span className="hex-badge hex-badge--sm" style={{ '--hex-color': item.color }}>
-              {iconEntry ? <iconEntry.Icon size={16} strokeWidth={2} /> : null}
-            </span>
-            <span className="levelup-dice-value">{(dice[item.key] || '—').toUpperCase()}</span>
-          </div>
-        );
-      })}
+      {LEVELUP_DICE_ITEMS.map((item) => (
+        <div key={item.key} className="levelup-dice-item">
+          <LevelUpDiceHex item={item} />
+          <span className="levelup-dice-value">{(dice[item.key] || '—').toUpperCase()}</span>
+        </div>
+      ))}
     </div>
   );
 }
