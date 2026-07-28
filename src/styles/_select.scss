@@ -39,44 +39,66 @@
 }
 
 // ── Brouillard d'ambiance derrière les cartes ────────────────
-// Calque plein écran, en tout premier dans le DOM (juste après le
-// header) donc peint derrière tout le reste — voile blanc léger, plus
-// dense/visible côté footer, quasi invisible côté header (masque
-// vertical), avec une lente dérive horizontale pour donner l'impression
-// de vent.
+// Vit uniquement dans .select-stage (voir CharacterListPage.jsx) — entre
+// header et footer, jamais dessus. Voile blanc léger et diffus, plus
+// présent vers le bas de la zone (jamais sur le footer lui-même) et
+// quasi invisible en haut. Plusieurs nappes fines qui dérivent avec un
+// léger balancement vertical (aller-retour, pas une translation plate)
+// pour un rendu plus organique, façon vapeur.
 .select-fog {
   position: absolute;
   inset: 0;
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  mask-image: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.35) 45%, transparent 85%);
-  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.35) 45%, transparent 85%);
+  mask-image: linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.22) 40%, transparent 88%);
+  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.22) 40%, transparent 88%);
 }
 
 .select-fog-layer {
   position: absolute;
-  bottom: -15%;
-  left: -60%;
-  width: 220%;
-  height: 65%;
-  background: radial-gradient(ellipse 55% 100% at 50% 100%, rgba(255,255,255,0.5), transparent 72%);
-  filter: blur(38px);
+  bottom: -8%;
+  width: 85%;
+  height: 55%;
+  background: radial-gradient(ellipse 50% 100% at 50% 100%, rgba(255,255,255,0.22), transparent 75%);
+  filter: blur(32px);
 }
 
 .select-fog-layer--1 {
-  animation: select-fog-drift 80s linear infinite;
+  left: -25%;
+  animation: select-fog-sway-a 70s ease-in-out infinite;
 }
 
 .select-fog-layer--2 {
-  opacity: 0.6;
-  animation: select-fog-drift 110s linear infinite;
-  animation-delay: -40s;
+  left: 15%;
+  opacity: 0.75;
+  animation: select-fog-sway-b 90s ease-in-out infinite;
+  animation-delay: -30s;
 }
 
-@keyframes select-fog-drift {
-  from { transform: translateX(0%); }
-  to   { transform: translateX(35%); }
+.select-fog-layer--3 {
+  left: 45%;
+  opacity: 0.55;
+  width: 70%;
+  animation: select-fog-sway-a 105s ease-in-out infinite reverse;
+  animation-delay: -60s;
+}
+
+// Aller-retour (pas un from/to qui saute au bouclage) : léger balancement
+// vertical mêlé à la dérive horizontale, pour que ça "danse" plutôt que
+// de glisser à plat.
+@keyframes select-fog-sway-a {
+  0%, 100% { transform: translate(0%, 0%); }
+  25%      { transform: translate(16%, -6%); }
+  50%      { transform: translate(30%, 2%); }
+  75%      { transform: translate(14%, -3%); }
+}
+
+@keyframes select-fog-sway-b {
+  0%, 100% { transform: translate(0%, 0%); }
+  30%      { transform: translate(-14%, 4%); }
+  60%      { transform: translate(-24%, -5%); }
+  80%      { transform: translate(-10%, 1%); }
 }
 
 // ── Card column (filter + carousel stacked) ──

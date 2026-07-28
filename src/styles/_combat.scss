@@ -1,6 +1,23 @@
 @use 'variables' as *;
 @use 'fonts' as *;
 
+// Scrollbar fine et dorée, cohérente avec le reste du site — plusieurs
+// zones scrollables du mode combat utilisaient encore la barre par défaut
+// du navigateur.
+%themed-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(200,168,74,0.35) transparent;
+
+  &::-webkit-scrollbar { width: 8px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(200,168,74,0.35);
+    border-radius: 4px;
+
+    &:hover { background: rgba(200,168,74,0.55); }
+  }
+}
+
 // ── Footer toggle (MJ/dev) ─────────────────────────────────────
 .combat-mode-toggle {
   font-family: $font-caps;
@@ -62,6 +79,7 @@
 }
 
 .combat-char-picker-dropdown {
+  @extend %themed-scrollbar;
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
@@ -589,6 +607,7 @@
 // devient une simple SOEUR de l'overlay — pas une descendante — et doit
 // donc gagner explicitement l'empilement au lieu d'en hériter.
 .combat-select-dropdown {
+  @extend %themed-scrollbar;
   position: fixed;
   z-index: 1000000;
   max-height: 240px;
@@ -618,6 +637,7 @@
 }
 
 .combat-panel-content {
+  @extend %themed-scrollbar;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -837,6 +857,7 @@
 // CombatInventoryPanel (.index-modal-backdrop/.index-confirm-modal),
 // position: fixed donc jamais rognée par l'overflow: hidden des panneaux.
 .combat-equip-picker-body {
+  @extend %themed-scrollbar;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1215,6 +1236,7 @@
 // finit tôt ou tard recouvert par le contenu qui glisse dessous ; un titre
 // qui fait partie du flux n'a pas ce problème, il scrolle avec tout le reste.
 .combat-overlay-page {
+  @extend %themed-scrollbar;
   position: absolute;
   inset: 0;
   overflow-y: auto;
