@@ -2651,7 +2651,25 @@ function LevelUpDiceRow({ entry }) {
   );
 }
 
-function LevelUpEntryCard({ entry, expanded, onToggle, onSelect, archetypes, itemClasses, competences }) {
+function LevelUpEntryCard({ entry, onToggle, archetypes }) {
+  return (
+    <div className="levelup-class-card levelup-class-card--pickable" onClick={onToggle}>
+      <div className="levelup-class-plates">
+        <div className="levelup-class-title">{entry.nom}</div>
+        <ArchetypeHexRow entry={entry} archetypes={archetypes} />
+      </div>
+      <div className="levelup-class-frame">
+        <LevelUpDiceRow entry={entry} />
+        {entry.description && <p className="levelup-class-desc">{entry.description}</p>}
+      </div>
+    </div>
+  );
+}
+
+const LEVELUP_DETAIL_CLOSE_MS = 200;
+
+function LevelUpEntryDetailModal({ entry, onClose, onSelect, archetypes, itemClasses, competences }) {
+  const [closing, setClosing] = useState(false);
   const itemClassNames = asArray(entry.allowedItemClasses)
     .map((id) => itemClasses.find((c) => c.id === id)?.nom)
     .filter(Boolean);
@@ -2659,13 +2677,18 @@ function LevelUpEntryCard({ entry, expanded, onToggle, onSelect, archetypes, ite
   const actifs = classCompetences.filter((c) => c.type === 'actif');
   const passifs = classCompetences.filter((c) => c.type !== 'actif');
 
-  if (expanded) {
-    return (
-      <div className="levelup-class-card levelup-class-card--expanded">
+  const handleReduce = () => {
+    setClosing(true);
+    setTimeout(onClose, LEVELUP_DETAIL_CLOSE_MS);
+  };
+
+  return (
+    <div className={`index-modal-backdrop levelup-detail-backdrop${closing ? ' is-closing' : ''}`}>
+      <div className={`index-modal index-modal--wide index-modal--picker levelup-detail-modal${closing ? ' is-closing' : ''}`}>
         <div className="levelup-class-frame levelup-class-frame--expanded">
           <div className="levelup-entry-expanded-head">
             <h3 className="levelup-class-title levelup-class-title--inline">{entry.nom}</h3>
-            <button type="button" className="admin-btn" onClick={onToggle}>✕ Réduire</button>
+            <button type="button" className="admin-btn" onClick={handleReduce}>✕ Réduire</button>
           </div>
 
           <div className="levelup-entry-detail">
@@ -2713,25 +2736,12 @@ function LevelUpEntryCard({ entry, expanded, onToggle, onSelect, archetypes, ite
             </div>
 
             <div className="levelup-entry-confirm-row">
-              <button type="button" className="race-form-save-btn" onClick={(e) => { e.stopPropagation(); onSelect(entry.nom); }}>
+              <button type="button" className="race-form-save-btn" onClick={() => onSelect(entry.nom)}>
                 Choisir {entry.nom}
               </button>
             </div>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="levelup-class-card levelup-class-card--pickable" onClick={onToggle}>
-      <div className="levelup-class-plates">
-        <div className="levelup-class-title">{entry.nom}</div>
-        <ArchetypeHexRow entry={entry} archetypes={archetypes} />
-      </div>
-      <div className="levelup-class-frame">
-        <LevelUpDiceRow entry={entry} />
-        {entry.description && <p className="levelup-class-desc">{entry.description}</p>}
       </div>
     </div>
   );
@@ -2748,51 +2758,61 @@ function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes
     && (includesText(entry.nom, search) || includesText(entry.description, search))
   ));
 
+  const expandedEntry = entries.find((entry) => (entry.key || entry.nom) === expandedKey) || null;
+
   return (
-    <div className="index-modal-backdrop">
-      <div className={`index-modal index-modal--wide${expandedKey ? ' index-modal--xwide' : ' index-modal--picker'}`}>
-        <div className="index-modal-header">
-          <h3>{title}</h3>
-          <button className="admin-btn" onClick={onClose}>✕ Fermer</button>
-        </div>
-        <div className="index-form">
-          <AdminFilterPanel
-            search={search}
-            onSearch={setSearch}
-            searchPlaceholder="Rechercher par nom..."
-            count={filteredEntries.length}
-            total={entries.length}
-            fields={availableCategories.length > 0 ? [{
-              key: 'type', label: 'Catégorie', value: categoryFilter, onChange: setCategoryFilter, options: [
-                { value: 'all', label: 'Toutes' },
-                ...availableCategories.map((cat) => ({ value: cat.key, label: cat.nom })),
-              ],
-            }] : []}
-          />
-          {filteredEntries.length === 0 ? (
-            <p style={{ opacity: 0.5, textAlign: 'center', margin: '2rem 0' }}>Aucune option disponible.</p>
-          ) : (
-            <div className="entry-card-grid levelup-picker-grid">
-              {filteredEntries.map((entry) => {
-                const key = entry.key || entry.nom;
-                return (
-                  <LevelUpEntryCard
-                    key={key}
-                    entry={entry}
-                    expanded={expandedKey === key}
-                    onToggle={() => setExpandedKey((current) => (current === key ? null : key))}
-                    onSelect={onSelect}
-                    archetypes={archetypes}
-                    itemClasses={itemClasses}
-                    competences={competences}
-                  />
-                );
-              })}
-            </div>
-          )}
+    <>
+      <div className="index-modal-backdrop">
+        <div className="index-modal index-modal--wide index-modal--picker">
+          <div className="index-modal-header">
+            <h3>{title}</h3>
+            <button className="admin-btn" onClick={onClose}>✕ Fermer</button>
+          </div>
+          <div className="index-form">
+            <AdminFilterPanel
+              search={search}
+              onSearch={setSearch}
+              searchPlaceholder="Rechercher par nom..."
+              count={filteredEntries.length}
+              total={entries.length}
+              fields={availableCategories.length > 0 ? [{
+                key: 'type', label: 'Catégorie', value: categoryFilter, onChange: setCategoryFilter, options: [
+                  { value: 'all', label: 'Toutes' },
+                  ...availableCategories.map((cat) => ({ value: cat.key, label: cat.nom })),
+                ],
+              }] : []}
+            />
+            {filteredEntries.length === 0 ? (
+              <p style={{ opacity: 0.5, textAlign: 'center', margin: '2rem 0' }}>Aucune option disponible.</p>
+            ) : (
+              <div className="entry-card-grid levelup-picker-grid">
+                {filteredEntries.map((entry) => {
+                  const key = entry.key || entry.nom;
+                  return (
+                    <LevelUpEntryCard
+                      key={key}
+                      entry={entry}
+                      onToggle={() => setExpandedKey(key)}
+                      archetypes={archetypes}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+      {expandedEntry && (
+        <LevelUpEntryDetailModal
+          entry={expandedEntry}
+          onClose={() => setExpandedKey(null)}
+          onSelect={onSelect}
+          archetypes={archetypes}
+          itemClasses={itemClasses}
+          competences={competences}
+        />
+      )}
+    </>
   );
 }
 
