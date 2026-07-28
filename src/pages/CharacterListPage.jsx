@@ -2565,7 +2565,7 @@ function LevelUpDiceHex({ item }) {
     const width = Math.min(320, window.innerWidth - margin * 2);
     const expectedHeight = 150;
     const left = Math.min(
-      Math.max(rect.left + rect.width / 2 - width / 2, margin),
+      Math.max(rect.left, margin),
       Math.max(margin, window.innerWidth - width - margin)
     );
     const belowTop = rect.bottom + 8;
@@ -2618,7 +2618,7 @@ function ArchetypeHex({ archetype, size = 'lg', role = 'principal', color = '#c8
     const width = Math.min(320, window.innerWidth - margin * 2);
     const expectedHeight = 160;
     const left = Math.min(
-      Math.max(rect.left + rect.width / 2 - width / 2, margin),
+      Math.max(rect.left, margin),
       Math.max(margin, window.innerWidth - width - margin)
     );
     const belowTop = rect.bottom + 8;

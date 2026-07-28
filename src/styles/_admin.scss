@@ -3208,6 +3208,10 @@
     linear-gradient(160deg, color-mix(in srgb, var(--entry-color, #c8a84a) 8%, transparent), transparent 55%),
     rgba(0,0,0,0.52);
   padding: 36px 14px 16px;
+  // Hauteur fixe : toutes les cartes du picker s'alignent, la description
+  // scrolle dans son espace plutôt que d'étirer la carte (voir
+  // .levelup-class-desc plus bas).
+  height: 172px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -3215,6 +3219,7 @@
 }
 
 .levelup-class-frame--expanded {
+  height: auto;
   padding: 16px;
   gap: 16px;
 }
@@ -3255,15 +3260,18 @@
   font-size: 12.5px;
   line-height: 1.5;
   color: rgba(244,240,231,0.68);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  // La carte a une hauteur fixe (voir .levelup-class-frame) : la
+  // description prend l'espace restant et scrolle plutôt que d'étirer
+  // la carte ou de couper le texte au clamp.
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(200,168,74,0.35) transparent;
 }
 
 .levelup-class-desc--full {
-  display: block;
-  -webkit-line-clamp: unset;
+  flex: none;
   overflow: visible;
 }
 
