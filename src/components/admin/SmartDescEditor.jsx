@@ -755,16 +755,32 @@ function findReference(typeKey, key) {
       description: item.description || '',
       color: item.tagColor || item.couleur || TAG_STYLE.provenance,
     })),
-    caracteristique: customCaracteristiques
-      .sort((a, b) => (a.ordre || 0) - (b.ordre || 0))
-      .map((carac) => ({
-        key: carac.cle,
-        label: carac.nom || carac.cle,
-        title: carac.nom || carac.cle,
+    // customCaracteristiques (Gestion du donjon → Caractéristiques) est
+    // souvent vide — personne n'a besoin d'y recréer FOR/DEX/CON/INT/SAG/CHA
+    // à la main pour que { carac FOR } fonctionne : STAT_REFS (même source
+    // que le registre "stat") sert de secours pour les 6 caractéristiques
+    // de base, comme class/race/subclass etc. le font déjà avec leurs
+    // propres données statiques.
+    caracteristique: [
+      ...customCaracteristiques
+        .sort((a, b) => (a.ordre || 0) - (b.ordre || 0))
+        .map((carac) => ({
+          key: carac.cle,
+          label: carac.nom || carac.cle,
+          title: carac.nom || carac.cle,
+          type: 'Caractéristique',
+          description: carac.description || '',
+          color: TAG_STYLE.caracteristique,
+        })),
+      ...STAT_REFS.filter((ref) => ['FOR', 'DEX', 'CON', 'INT', 'SAG', 'CHA'].includes(ref.key)).map((ref) => ({
+        key: ref.key,
+        label: ref.label,
+        title: ref.label,
         type: 'Caractéristique',
-        description: carac.description || '',
+        description: ref.description,
         color: TAG_STYLE.caracteristique,
       })),
+    ],
     resistance: customResistanceEntries.map((item) => ({
       key: item.key || item.label,
       label: item.label,
