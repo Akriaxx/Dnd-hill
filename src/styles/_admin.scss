@@ -3199,6 +3199,14 @@
   gap: 16px;
 }
 
+// Le picker se porte désormais directement sur document.body (voir
+// LevelUpEntryPickerModal), en frère de .levelup-overlay (z-index 99999,
+// _select.scss) plutôt qu'imbriqué dedans — il lui faut donc un z-index
+// explicitement au-dessus pour rester par-dessus l'écran de level up.
+.levelup-picker-backdrop {
+  z-index: 100000;
+}
+
 .levelup-detail-modal {
   // Le cadre interne défile (contenu long) : ses coins HUD scrolleraient
   // avec lui, donc on les désactive ici et on les remet sur la modale

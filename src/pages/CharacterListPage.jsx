@@ -2733,7 +2733,7 @@ function LevelUpEntryDetailModal({ entry, onClose, onSelect, archetypes, itemCla
   };
 
   return (
-    <div className={`index-modal-backdrop levelup-detail-backdrop${closing ? ' is-closing' : ''}`}>
+    <div className={`index-modal-backdrop levelup-picker-backdrop levelup-detail-backdrop${closing ? ' is-closing' : ''}`}>
       <div className={`index-modal index-modal--wide index-modal--picker levelup-detail-modal${closing ? ' is-closing' : ''}`} style={{ '--entry-color': categoryColor }}>
         <div className="levelup-class-frame levelup-class-frame--expanded">
           <div className="levelup-entry-expanded-head">
@@ -2813,7 +2813,7 @@ function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes
 
   return createPortal(
     <>
-      <div className="index-modal-backdrop">
+      <div className="index-modal-backdrop levelup-picker-backdrop">
         <div className="index-modal index-modal--wide index-modal--picker">
           <div className="index-modal-header">
             <h3>{title}</h3>
