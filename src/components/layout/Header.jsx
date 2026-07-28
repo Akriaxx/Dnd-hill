@@ -22,34 +22,38 @@ export default function Header({ title = 'Eindhill', subtitle = 'Fiche de Person
   return (
     <header className="site-header">
       <div className="header-audio-controls">
-        <button
-          type="button"
-          className={`header-audio-btn${musicOn ? ' is-active' : ''}`}
-          onClick={toggleMusic}
-          title={musicOn ? 'Couper la musique' : 'Activer la musique'}
-          aria-pressed={musicOn}
-        >
-          <Music2 size={16} strokeWidth={2} />
-        </button>
-        <input
-          type="range"
-          className="header-audio-volume"
-          min={0}
-          max={100}
-          value={Math.round(musicVolume * 100)}
-          onChange={(e) => setMusicVolume(Number(e.target.value) / 100)}
-          title="Volume de la musique"
-          aria-label="Volume de la musique"
-        />
-        <button
-          type="button"
-          className={`header-audio-btn${ambientOn ? ' is-active' : ''}`}
-          onClick={toggleAmbient}
-          title={ambientOn ? "Couper les bruits d'ambiance" : "Activer les bruits d'ambiance"}
-          aria-pressed={ambientOn}
-        >
-          <Wind size={16} strokeWidth={2} />
-        </button>
+        <div className="header-audio-row">
+          <button
+            type="button"
+            className={`header-audio-btn${musicOn ? ' is-active' : ''}`}
+            onClick={toggleMusic}
+            title={musicOn ? 'Couper la musique' : 'Activer la musique'}
+            aria-pressed={musicOn}
+          >
+            <Music2 size={16} strokeWidth={2} />
+          </button>
+          <input
+            type="range"
+            className="header-audio-volume"
+            min={0}
+            max={100}
+            value={Math.round(musicVolume * 100)}
+            onChange={(e) => setMusicVolume(Number(e.target.value) / 100)}
+            title="Volume de la musique"
+            aria-label="Volume de la musique"
+          />
+        </div>
+        <div className="header-audio-row">
+          <button
+            type="button"
+            className={`header-audio-btn${ambientOn ? ' is-active' : ''}`}
+            onClick={toggleAmbient}
+            title={ambientOn ? "Couper les bruits d'ambiance" : "Activer les bruits d'ambiance"}
+            aria-pressed={ambientOn}
+          >
+            <Wind size={16} strokeWidth={2} />
+          </button>
+        </div>
       </div>
 
       {user && (
