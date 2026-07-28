@@ -85,6 +85,7 @@ export const useAuthStore = create(
       logout: () => {
         supabase.auth.signOut();
         set({ user: null });
+        useAudioStore.setState({ musicOn: false, ambientOn: false });
       },
     }),
     { name: 'rpg-auth' },
@@ -99,7 +100,10 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   const currentUser = useAuthStore.getState().user;
 
   if (!session) {
-    if (currentUser) useAuthStore.setState({ user: null });
+    if (currentUser) {
+      useAuthStore.setState({ user: null });
+      useAudioStore.setState({ musicOn: false, ambientOn: false });
+    }
     return;
   }
 
