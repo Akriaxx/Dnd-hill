@@ -515,7 +515,11 @@ export function getResourceData(char) {
     return {
       ...resource,
       pool: { actuel, max },
-      bonus: max - resource.base,
+      // Rien n'alimente encore un vrai bonus permanent de ressource (race,
+      // objet, effet...) — seul le gain de dé de niveau existe (`levelup`).
+      // `bonus` reprenait par erreur la même formule que `levelup`,
+      // affichant deux fois le même gain sous deux étiquettes différentes.
+      bonus: 0,
       tempBonus: Number(pool.tempBonus ?? 0),
       malus: 0,
       tempMalus: Number(pool.tempMalus ?? 0),
