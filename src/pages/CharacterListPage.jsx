@@ -866,6 +866,10 @@ export default function CharacterListPage() {
       detailPhase ? `detail-${detailPhase}` : '',
     ].filter(Boolean).join(' ')}>
       <Header />
+      <div className="select-fog" aria-hidden="true">
+        <div className="select-fog-layer select-fog-layer--1" />
+        <div className="select-fog-layer select-fog-layer--2" />
+      </div>
       <div className="app-toast-stack">
         {errorToastVisible && (
           <button className="app-error-toast" onClick={() => navigate('/admin')}>

@@ -9,6 +9,7 @@
   flex-direction: column;
   background: $bg;
   overflow: hidden;
+  position: relative;
   --detail-shift: clamp(540px, 48vw, 980px);
   --detail-card-base-width: min(435px, 70vw);
   --detail-card-width: clamp(435px, 31vw, 513px);
@@ -35,6 +36,47 @@
   padding: 16px 80px 56px;
   overflow: visible;
   min-height: 0;
+}
+
+// ── Brouillard d'ambiance derrière les cartes ────────────────
+// Calque plein écran, en tout premier dans le DOM (juste après le
+// header) donc peint derrière tout le reste — voile blanc léger, plus
+// dense/visible côté footer, quasi invisible côté header (masque
+// vertical), avec une lente dérive horizontale pour donner l'impression
+// de vent.
+.select-fog {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  mask-image: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.35) 45%, transparent 85%);
+  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.35) 45%, transparent 85%);
+}
+
+.select-fog-layer {
+  position: absolute;
+  bottom: -15%;
+  left: -60%;
+  width: 220%;
+  height: 65%;
+  background: radial-gradient(ellipse 55% 100% at 50% 100%, rgba(255,255,255,0.5), transparent 72%);
+  filter: blur(38px);
+}
+
+.select-fog-layer--1 {
+  animation: select-fog-drift 80s linear infinite;
+}
+
+.select-fog-layer--2 {
+  opacity: 0.6;
+  animation: select-fog-drift 110s linear infinite;
+  animation-delay: -40s;
+}
+
+@keyframes select-fog-drift {
+  from { transform: translateX(0%); }
+  to   { transform: translateX(35%); }
 }
 
 // ── Card column (filter + carousel stacked) ──
