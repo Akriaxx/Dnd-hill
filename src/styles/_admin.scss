@@ -3203,7 +3203,11 @@
 // LevelUpEntryPickerModal), en frère de .levelup-overlay (z-index 99999,
 // _select.scss) plutôt qu'imbriqué dedans — il lui faut donc un z-index
 // explicitement au-dessus pour rester par-dessus l'écran de level up.
-.levelup-picker-backdrop {
+// Sélecteur à deux classes : la règle de base .index-modal-backdrop
+// (z-index 99990) est déclarée plus loin dans ce fichier et gagnerait
+// sinon la cascade à spécificité égale, peu importe l'ordre des classes
+// posées côté JSX.
+.index-modal-backdrop.levelup-picker-backdrop {
   z-index: 100000;
 }
 
