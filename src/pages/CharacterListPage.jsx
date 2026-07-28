@@ -63,7 +63,8 @@ import {
 } from '../domain/characterCalculations';
 import { getGrimoireContext } from '../domain/grimoireCalculations';
 import { getItemIcon } from '../data/itemIcons';
-import { asArray, normalizeResourceDice } from './admin/adminUtils';
+import { asArray, normalizeResourceDice, includesText } from './admin/adminUtils';
+import { AdminFilterPanel } from './admin/AdminShared';
 import logoEindhill from '../assets/logo/logo-eindhill-transparent.png';
 
 // prettier-ignore
@@ -2739,18 +2740,14 @@ function LevelUpEntryCard({ entry, expanded, onToggle, onSelect, archetypes, ite
 
 function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes = [], itemClasses = [], competences = [], classCategories = [] }) {
   const [expandedKey, setExpandedKey] = useState(null);
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [sortMode, setSortMode] = useState('categorie'); // 'categorie' | 'nom'
+  const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const usedCategoryKeys = new Set(entries.map((entry) => entry.type).filter(Boolean));
   const availableCategories = classCategories.filter((cat) => usedCategoryKeys.has(cat.key));
-  const categoryOrder = new Map(classCategories.map((cat, i) => [cat.key, i]));
-  const filteredEntries = (categoryFilter ? entries.filter((entry) => entry.type === categoryFilter) : entries)
-    .slice()
-    .sort((a, b) => (
-      sortMode === 'nom'
-        ? a.nom.localeCompare(b.nom, 'fr')
-        : (categoryOrder.get(a.type) ?? 0) - (categoryOrder.get(b.type) ?? 0) || a.nom.localeCompare(b.nom, 'fr')
-    ));
+  const filteredEntries = entries.filter((entry) => (
+    (categoryFilter === 'all' || entry.type === categoryFilter)
+    && (includesText(entry.nom, search) || includesText(entry.description, search))
+  ));
 
   return (
     <div className="index-modal-backdrop">
@@ -2760,46 +2757,19 @@ function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes
           <button className="admin-btn" onClick={onClose}>✕ Fermer</button>
         </div>
         <div className="index-form">
-          <div className="levelup-picker-filters">
-            {availableCategories.length > 1 && (
-              <div className="levelup-picker-filter-group">
-                <button
-                  type="button"
-                  className={`levelup-picker-filter-pill${categoryFilter === '' ? ' is-active' : ''}`}
-                  onClick={() => setCategoryFilter('')}
-                >
-                  Toutes
-                </button>
-                {availableCategories.map((cat) => (
-                  <button
-                    key={cat.key}
-                    type="button"
-                    className={`levelup-picker-filter-pill${categoryFilter === cat.key ? ' is-active' : ''}`}
-                    onClick={() => setCategoryFilter(cat.key)}
-                  >
-                    {cat.nom}
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="levelup-picker-sort-group">
-              <span className="levelup-picker-sort-label">Trier :</span>
-              <button
-                type="button"
-                className={`levelup-picker-filter-pill${sortMode === 'categorie' ? ' is-active' : ''}`}
-                onClick={() => setSortMode('categorie')}
-              >
-                Catégorie
-              </button>
-              <button
-                type="button"
-                className={`levelup-picker-filter-pill${sortMode === 'nom' ? ' is-active' : ''}`}
-                onClick={() => setSortMode('nom')}
-              >
-                Nom (A→Z)
-              </button>
-            </div>
-          </div>
+          <AdminFilterPanel
+            search={search}
+            onSearch={setSearch}
+            searchPlaceholder="Rechercher par nom..."
+            count={filteredEntries.length}
+            total={entries.length}
+            fields={availableCategories.length > 1 ? [{
+              key: 'type', label: 'Catégorie', value: categoryFilter, onChange: setCategoryFilter, options: [
+                { value: 'all', label: 'Toutes' },
+                ...availableCategories.map((cat) => ({ value: cat.key, label: cat.nom })),
+              ],
+            }] : []}
+          />
           {filteredEntries.length === 0 ? (
             <p style={{ opacity: 0.5, textAlign: 'center', margin: '2rem 0' }}>Aucune option disponible.</p>
           ) : (

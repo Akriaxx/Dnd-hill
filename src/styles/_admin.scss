@@ -2997,54 +2997,6 @@
 
 // ── Level-up class/subclass picker ────────────────────────────
 
-.levelup-picker-filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.levelup-picker-filter-group,
-.levelup-picker-sort-group {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.levelup-picker-sort-group {
-  margin-left: auto;
-}
-
-.levelup-picker-sort-label {
-  font-family: $font-caps;
-  font-size: 10.5px;
-  letter-spacing: 1.4px;
-  color: rgba(244,240,231,0.4);
-}
-
-.levelup-picker-filter-pill {
-  padding: 6px 14px;
-  border: 1px solid rgba(200,168,74,0.28);
-  background: rgba(0,0,0,0.3);
-  font-family: $font-caps;
-  font-size: 10.5px;
-  letter-spacing: 1.4px;
-  color: rgba(244,240,231,0.6);
-  cursor: pointer;
-  transition: border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
-
-  &:hover { border-color: rgba(200,168,74,0.5); color: $white-text; }
-
-  &.is-active {
-    border-color: $gold;
-    background: rgba(200,168,74,0.14);
-    color: $gold2;
-  }
-}
-
 .hex-row {
   display: flex;
   align-items: center;
