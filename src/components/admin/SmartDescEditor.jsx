@@ -13,6 +13,7 @@ import {
   WEAPON_DATA,
 } from '../../data/gameData';
 import { useAdminStore } from '../../store/adminStore';
+import { ITEM_EQUIP_SLOTS } from '../../pages/admin/itemUtils';
 
 const STAT_REFS = [
   { key: 'FOR', label: 'Force', description: 'Caractéristique principale liée à la puissance physique.' },
@@ -130,7 +131,7 @@ const SMART_REGISTRIES = {
     type: 'Statistique',
     description: item.description,
   })),
-  weapon: WEAPON_DATA.map((item) => optionFrom(item, 'Arme', {
+  weapon: WEAPON_DATA.map((item) => optionFrom(item, 'Objet', {
     lines: [
       ['Type', item.type],
       ['Port', item.port],
@@ -495,6 +496,7 @@ const buildTagTypes = (
   gameplayIndex = [], hiddenGameplayIndexKeys = [], customKnowledge = [], customAptitudes = [],
   customLanguages = [], customOrigins = [], customAscendances = [], customProvenances = [],
   customHistoriques = [], customCaracteristiques = [], customResistanceEntries = [], customMaitriseEntries = [],
+  customItems = [],
 ) => [
   // ── Références & Savoirs ─────────────────────────────────────
   {
@@ -621,12 +623,17 @@ const buildTagTypes = (
     options: getMaitriseReferenceList(customMaitriseEntries).map((entry) => ({ key: entry.key, label: entry.label })),
   },
   // ── Économie & Équipement ────────────────────────────────────
+  // "Arme" pointait vers WEAPON_DATA, un catalogue statique qui n'a jamais
+  // été alimenté (toutes les données de jeu de gameData.js sont vides
+  // volontairement, voir ce fichier) — le vrai catalogue d'objets vit dans
+  // customItems (Gestion du donjon → Objets). Renommé "Objet" puisque ça
+  // couvre tout l'équipement, pas que les armes.
   {
     key: 'weapon',
-    label: 'Arme',
+    label: 'Objet',
     color: TAG_STYLE.weapon,
     icon: '⚒',
-    options: WEAPON_DATA.map((item) => ({ key: item.nom, label: item.nom })),
+    options: safeArray(customItems).map((item) => ({ key: item.nom, label: item.nom })),
   },
 ];
 
@@ -660,6 +667,7 @@ function findReference(typeKey, key) {
   const customCaracteristiques = safeArray(useAdminStore.getState?.().customCaracteristiques);
   const customResistanceEntries = safeArray(useAdminStore.getState?.().customResistanceEntries);
   const customMaitriseEntries = safeArray(useAdminStore.getState?.().customMaitriseEntries);
+  const customItems = safeArray(useAdminStore.getState?.().customItems);
   const indexRefs = getIndexReferenceList(gameplayIndex, hiddenGameplayIndexKeys);
   const knowledgeRefs = getKnowledgeReferenceList(customKnowledge);
   const languageRefs = getLanguageReferenceList(customLanguages);
@@ -799,6 +807,14 @@ function findReference(typeKey, key) {
         color: item.couleur || TAG_STYLE.maitrise,
       })),
       ...SMART_REGISTRIES.maitrise,
+    ],
+    weapon: [
+      ...customItems.map((item) => optionFrom(item, 'Objet', {
+        lines: [
+          ['Slot', ITEM_EQUIP_SLOTS.find((s) => s.key === item.equipSlot)?.label],
+        ],
+      })),
+      ...SMART_REGISTRIES.weapon,
     ],
   };
   const registries = runtimeRegistries[normalizedType]
@@ -1076,6 +1092,7 @@ export default function SmartDescEditor({ value = '', onChange, placeholder }) {
   const rawCustomCaracteristiques = useAdminStore((s) => s.customCaracteristiques);
   const rawCustomResistanceEntries = useAdminStore((s) => s.customResistanceEntries);
   const rawCustomMaitriseEntries = useAdminStore((s) => s.customMaitriseEntries);
+  const rawCustomItems = useAdminStore((s) => s.customItems);
   const customRaces = safeArray(rawCustomRaces);
   const customCompetences = safeArray(rawCustomCompetences);
   const customClasses = safeArray(rawCustomClasses);
@@ -1092,11 +1109,13 @@ export default function SmartDescEditor({ value = '', onChange, placeholder }) {
   const customCaracteristiques = safeArray(rawCustomCaracteristiques);
   const customResistanceEntries = safeArray(rawCustomResistanceEntries);
   const customMaitriseEntries = safeArray(rawCustomMaitriseEntries);
+  const customItems = safeArray(rawCustomItems);
   const tagTypes = buildTagTypes(
     customRaces, customCompetences, customClasses, customSubclasses,
     gameplayIndex, hiddenGameplayIndexKeys, customKnowledge, customAptitudes,
     customLanguages, customOrigins, customAscendances, customProvenances,
     customHistoriques, customCaracteristiques, customResistanceEntries, customMaitriseEntries,
+    customItems,
   );
   const [picker, setPicker]     = useState(null); // null | 'group' | 'type' | 'value' | 'params'
   const [pickerGroup, setPickerGroup] = useState(null);
