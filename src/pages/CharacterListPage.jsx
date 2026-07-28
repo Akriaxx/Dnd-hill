@@ -16,7 +16,7 @@ import {
   canViewCharacter,
 } from '../auth/permissions';
 import { useCombatStore } from '../store/combatStore';
-import { SmartText } from '../components/admin/SmartDescEditor';
+import { SmartText, SmartTag } from '../components/admin/SmartDescEditor';
 import ItemEffectSummary from '../components/admin/ItemEffectSummary';
 import EquipementPanel, {
   CatSVG,
@@ -62,6 +62,8 @@ import {
   statLabel,
 } from '../domain/characterCalculations';
 import { getGrimoireContext } from '../domain/grimoireCalculations';
+import { getItemIcon } from '../data/itemIcons';
+import { asArray, normalizeResourceDice } from './admin/adminUtils';
 import logoEindhill from '../assets/logo/logo-eindhill-transparent.png';
 
 // prettier-ignore
@@ -76,6 +78,20 @@ const DETAIL_TABS = [
   'Équipement',
   'Inventaire',
 ];
+// Relie chaque ligne de la table "Stats de combat" (row.key, voir
+// getCombatStats dans domain/characterCalculations.js) à sa fiche
+// dans le registre smart-tag `stat` (SMART_REGISTRIES.stat côté
+// SmartDescEditor.jsx) — ces clés existent déjà et ont leur propre
+// description, on se contente de les référencer.
+const COMBAT_STAT_INDEX_KEYS = {
+  initiative: 'Initiative',
+  atkPhysique: 'Att.Phys',
+  atkMagique: 'Att.Mag',
+  atkDistance: 'Att.Dist',
+  defPhysique: 'Def.Physique',
+  defMagique: 'Def.Magique',
+  esquive: 'Esquive',
+};
 const DETAIL_CLEAN_MS = 620;
 const DETAIL_RESIZE_MS = 820;
 const DETAIL_SHIFT_MS = 920;
@@ -2506,8 +2522,8 @@ function getLevelUpRewards(char, classDef, subclassDef, levelRule, customCompete
   ];
   const list = [
     { delay: 0, icon: '⬆', label: `Point${pts > 1 ? 's' : ''} de caractéristique`, value: `+${pts}`, color: '#c8a84a' },
-    { delay: 340, icon: '⚔', label: 'Sort physique', value: `+${sortsPhysiques}`, color: '#ff9b4a' },
-    { delay: 680, icon: '✧', label: 'Sort magique', value: `+${sortsMagiques}`, color: '#8a7cff' },
+    { delay: 340, icon: '⚔', label: 'Compétence physique', value: `+${sortsPhysiques}`, color: '#ff9b4a' },
+    { delay: 680, icon: '✧', label: 'Sort de grimoire', value: `+${sortsMagiques}`, color: '#8a7cff' },
     { delay: 1020, icon: '◆', label: 'Compétence disponible', value: `+${competences}`, color: '#64e0d0' },
     // Regroupé sous une seule ligne "Autres" cliquable plutôt qu'étalé —
     // à mesure que d'autres types de contenu (aptitudes, items…) auront
@@ -2525,7 +2541,269 @@ function getLevelUpRewards(char, classDef, subclassDef, levelRule, customCompete
   return { list, dice, diceSource: source, pointsCarac: pts, sortsPhysiques, sortsMagiques, competences, otherUnlocks };
 }
 
-function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customSubclasses = [], customMaitriseEntries = [], customCompetences = [], customSpellRanks = [], levelRules = [], onClose, onConfirm, onDraftChange }) {
+// ── Picker visuel classe / sous-classe (level-up) ─────────────
+
+const LEVELUP_DICE_ITEMS = [
+  { key: 'vie', label: 'DDV', iconKey: 'heart', color: '#4ac87a' },
+  { key: 'mana', label: 'DDM', iconKey: 'droplet', color: '#5f8dff' },
+  { key: 'endu', label: 'DDE', iconKey: 'zap', color: '#ff7060' },
+];
+
+function ArchetypeHex({ archetype, size = 'lg', role = 'principal' }) {
+  const [open, setOpen] = useState(false);
+  const [popoverStyle, setPopoverStyle] = useState(null);
+  const buttonRef = useRef(null);
+  const iconEntry = getItemIcon(archetype?.icone);
+
+  const placePopover = useCallback(() => {
+    const button = buttonRef.current;
+    if (!button) return;
+    const rect = button.getBoundingClientRect();
+    const margin = 12;
+    const width = Math.min(320, window.innerWidth - margin * 2);
+    const expectedHeight = 160;
+    const left = Math.min(
+      Math.max(rect.left + rect.width / 2 - width / 2, margin),
+      Math.max(margin, window.innerWidth - width - margin)
+    );
+    const belowTop = rect.bottom + 8;
+    const top = belowTop + expectedHeight > window.innerHeight - margin
+      ? Math.max(margin, rect.top - expectedHeight - 8)
+      : belowTop;
+    setPopoverStyle({ left: `${left}px`, top: `${top}px`, width: `${width}px`, '--smart-tag-color': '#c8a84a' });
+  }, []);
+
+  if (!archetype) return null;
+
+  const popover = open && popoverStyle ? createPortal(
+    <span className="smart-popover" role="dialog" style={popoverStyle}>
+      <span className="smart-popover-head">
+        <span className="smart-popover-kicker">{role === 'principal' ? 'Archétype principal' : 'Archétype secondaire'}</span>
+        <strong className="smart-popover-title">{archetype.nom}</strong>
+      </span>
+      {archetype.description && (
+        <span className="smart-popover-desc">
+          <SmartText text={archetype.description} />
+        </span>
+      )}
+    </span>,
+    document.body
+  ) : null;
+
+  return (
+    <>
+      <span
+        ref={buttonRef}
+        className={`hex-badge hex-badge--${size}`}
+        onMouseEnter={() => { placePopover(); setOpen(true); }}
+        onMouseLeave={() => setOpen(false)}
+      >
+        {iconEntry ? <iconEntry.Icon size={size === 'lg' ? 28 : 18} strokeWidth={2} /> : null}
+      </span>
+      {popover}
+    </>
+  );
+}
+
+function ArchetypeHexRow({ entry, archetypes = [] }) {
+  if (!entry?.archetypeId) return <div className="hex-row hex-row--empty" />;
+  const principal = archetypes.find((a) => String(a.id) === String(entry.archetypeId));
+  if (!principal) return <div className="hex-row hex-row--empty" />;
+  const secondaries = asArray(entry.archetypeSecondaryIds)
+    .map((id) => archetypes.find((a) => String(a.id) === String(id)))
+    .filter(Boolean);
+  const left = secondaries.filter((_, i) => i % 2 === 0);
+  const right = secondaries.filter((_, i) => i % 2 === 1);
+  // Deux colonnes flex:1 de part et d'autre du principal : même si les
+  // secondaires sont en nombre impair (ou absents d'un côté), les deux
+  // colonnes occupent un espace égal et le hexagone principal reste
+  // toujours pile au centre de la rangée.
+  return (
+    <div className="hex-row">
+      <div className="hex-row-side hex-row-side--left">
+        {left.map((a) => <ArchetypeHex key={a.id} archetype={a} size="sm" role="secondaire" />)}
+      </div>
+      <ArchetypeHex archetype={principal} size="lg" role="principal" />
+      <div className="hex-row-side hex-row-side--right">
+        {right.map((a) => <ArchetypeHex key={a.id} archetype={a} size="sm" role="secondaire" />)}
+      </div>
+    </div>
+  );
+}
+
+function LevelUpDiceRow({ entry }) {
+  const dice = normalizeResourceDice(entry);
+  return (
+    <div className="levelup-dice-row">
+      {LEVELUP_DICE_ITEMS.map((item) => {
+        const iconEntry = getItemIcon(item.iconKey);
+        return (
+          <div key={item.key} className="levelup-dice-item">
+            <span className="hex-badge hex-badge--sm" style={{ '--hex-color': item.color }}>
+              {iconEntry ? <iconEntry.Icon size={16} strokeWidth={2} /> : null}
+            </span>
+            <span className="levelup-dice-value">{(dice[item.key] || '—').toUpperCase()}</span>
+            <span className="levelup-dice-label">{item.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function LevelUpEntryCard({ entry, expanded, onToggle, onSelect, archetypes, itemClasses, competences }) {
+  const itemClassNames = asArray(entry.allowedItemClasses)
+    .map((id) => itemClasses.find((c) => c.id === id)?.nom)
+    .filter(Boolean);
+  const classCompetences = competences.filter((c) => c.classe === entry.nom);
+  const actifs = classCompetences.filter((c) => c.type === 'actif');
+  const passifs = classCompetences.filter((c) => c.type !== 'actif');
+
+  if (expanded) {
+    return (
+      <div className="levelup-class-card levelup-class-card--expanded">
+        <div className="levelup-class-frame levelup-class-frame--expanded">
+          <div className="levelup-entry-expanded-head">
+            <h3 className="levelup-class-title levelup-class-title--inline">{entry.nom}</h3>
+            <button type="button" className="admin-btn" onClick={onToggle}>✕ Réduire</button>
+          </div>
+
+          <div className="levelup-entry-detail">
+            <div className="levelup-entry-col">
+              <LevelUpDiceRow entry={entry} />
+              {entry.description && <p className="levelup-class-desc levelup-class-desc--full"><SmartText text={entry.description} /></p>}
+            </div>
+            <div className="levelup-entry-col">
+              <ArchetypeHexRow entry={entry} archetypes={archetypes} />
+              <div className="levelup-entry-stat">
+                <span>Caractéristiques principales</span>
+                <b>{statLabel(entry.physique)} — {statLabel(entry.magique)}</b>
+              </div>
+              <div className="levelup-entry-stat">
+                <span>Compétences par niveau</span>
+                <b>{entry.nombreSortsMagiques ?? 0} magique(s) · {entry.nombreSortsPhysiques ?? 0} physique(s)</b>
+              </div>
+              <div className="levelup-entry-stat">
+                <span>Ports d'armes / armures</span>
+                <b>{itemClassNames.length > 0 ? itemClassNames.join(', ') : '—'}</b>
+              </div>
+            </div>
+
+            <div className="levelup-entry-competences">
+              <div className="levelup-entry-competences-col">
+                <div className="levelup-entry-competences-title">Compétences de classe — Actif</div>
+                {actifs.length === 0 && <div className="levelup-entry-competences-empty">—</div>}
+                {actifs.map((comp) => (
+                  <div key={comp.id} className="levelup-entry-competence" style={{ '--comp-color': comp.tagColor || '#c8a84a' }}>
+                    <b>{comp.nom}</b>
+                    {comp.description && <span><SmartText text={comp.description} /></span>}
+                  </div>
+                ))}
+              </div>
+              <div className="levelup-entry-competences-col">
+                <div className="levelup-entry-competences-title">Compétences de classe — Passif</div>
+                {passifs.length === 0 && <div className="levelup-entry-competences-empty">—</div>}
+                {passifs.map((comp) => (
+                  <div key={comp.id} className="levelup-entry-competence" style={{ '--comp-color': comp.tagColor || '#c8a84a' }}>
+                    <b>{comp.nom}</b>
+                    {comp.description && <span><SmartText text={comp.description} /></span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="levelup-entry-confirm-row">
+              <button type="button" className="race-form-save-btn" onClick={(e) => { e.stopPropagation(); onSelect(entry.nom); }}>
+                Choisir {entry.nom}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="levelup-class-card levelup-class-card--pickable" onClick={onToggle}>
+      <div className="levelup-class-plates">
+        <div className="levelup-class-title">{entry.nom}</div>
+        <ArchetypeHexRow entry={entry} archetypes={archetypes} />
+      </div>
+      <div className="levelup-class-frame">
+        <LevelUpDiceRow entry={entry} />
+        {entry.description && <p className="levelup-class-desc">{entry.description}</p>}
+      </div>
+    </div>
+  );
+}
+
+function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes = [], itemClasses = [], competences = [], classCategories = [] }) {
+  const [expandedKey, setExpandedKey] = useState(null);
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const usedCategoryKeys = new Set(entries.map((entry) => entry.type).filter(Boolean));
+  const availableCategories = classCategories.filter((cat) => usedCategoryKeys.has(cat.key));
+  const filteredEntries = categoryFilter
+    ? entries.filter((entry) => entry.type === categoryFilter)
+    : entries;
+
+  return (
+    <div className="index-modal-backdrop">
+      <div className={`index-modal index-modal--wide${expandedKey ? ' index-modal--xwide' : ''}`}>
+        <div className="index-modal-header">
+          <h3>{title}</h3>
+          <button className="admin-btn" onClick={onClose}>✕ Fermer</button>
+        </div>
+        <div className="index-form">
+          {availableCategories.length > 1 && (
+            <div className="levelup-picker-filters">
+              <button
+                type="button"
+                className={`levelup-picker-filter-pill${categoryFilter === '' ? ' is-active' : ''}`}
+                onClick={() => setCategoryFilter('')}
+              >
+                Toutes
+              </button>
+              {availableCategories.map((cat) => (
+                <button
+                  key={cat.key}
+                  type="button"
+                  className={`levelup-picker-filter-pill${categoryFilter === cat.key ? ' is-active' : ''}`}
+                  onClick={() => setCategoryFilter(cat.key)}
+                >
+                  {cat.nom}
+                </button>
+              ))}
+            </div>
+          )}
+          {filteredEntries.length === 0 ? (
+            <p style={{ opacity: 0.5, textAlign: 'center', margin: '2rem 0' }}>Aucune option disponible.</p>
+          ) : (
+            <div className="entry-card-grid entry-card-grid--wide">
+              {filteredEntries.map((entry) => {
+                const key = entry.key || entry.nom;
+                return (
+                  <LevelUpEntryCard
+                    key={key}
+                    entry={entry}
+                    expanded={expandedKey === key}
+                    onToggle={() => setExpandedKey((current) => (current === key ? null : key))}
+                    onSelect={onSelect}
+                    archetypes={archetypes}
+                    itemClasses={itemClasses}
+                    competences={competences}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customSubclasses = [], customMaitriseEntries = [], customCompetences = [], customSpellRanks = [], customArchetypes = [], customItemClasses = [], customClassCategories = [], levelRules = [], onClose, onConfirm, onDraftChange }) {
+  const [openPicker, setOpenPicker] = useState(null); // null | 'classe' | 'sousClasse'
   const newLevel = (char.niveau ?? 0) + 1;
   const levelRule = getNextLevelRule(levelRules, char.niveau ?? 0);
   const savedDraft = char.levelUpDraft?.level === newLevel ? char.levelUpDraft : null;
@@ -2731,30 +3009,45 @@ function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customS
             {needsClassChoice && (
               <label className="levelup-select-field">
                 <span>Classe disponible pour {char.race}</span>
-                <select value={selectedClass} onChange={(event) => {
-                  const nextClass = event.target.value;
-                  setSelectedClass(nextClass);
-                  const nextSubclasses = getAvailableLevelSubclasses(char, nextClass, customSubclasses);
-                  setSelectedSubclass(nextSubclasses[0]?.nom || '');
-                }}>
-                  {classOptions.length === 0 ? (
-                    <option value="">Aucune classe disponible</option>
-                  ) : classOptions.map((entry) => (
-                    <option key={entry.key || entry.nom} value={entry.nom}>{entry.nom}</option>
-                  ))}
-                </select>
+                <button
+                  type="button"
+                  className="levelup-entry-summary"
+                  onClick={() => setOpenPicker('classe')}
+                >
+                  {selectedClass ? (
+                    <>
+                      <ArchetypeHex
+                        archetype={customArchetypes.find((a) => String(a.id) === String(classOptions.find((c) => c.nom === selectedClass)?.archetypeId))}
+                        size="sm"
+                      />
+                      <span className="levelup-entry-summary-name">{selectedClass}</span>
+                    </>
+                  ) : (
+                    <span className="levelup-entry-summary-empty">Aucune classe disponible</span>
+                  )}
+                </button>
               </label>
             )}
             {needsSubclassChoice && (
               <label className="levelup-select-field">
                 <span>Sous-classe disponible pour {char.race}</span>
-                <select value={selectedSubclass} onChange={(event) => setSelectedSubclass(event.target.value)}>
-                  {subclassOptions.length === 0 ? (
-                    <option value="">Aucune sous-classe disponible</option>
-                  ) : subclassOptions.map((entry) => (
-                    <option key={entry.key || `${entry.classe}-${entry.nom}`} value={entry.nom}>{entry.nom}</option>
-                  ))}
-                </select>
+                <button
+                  type="button"
+                  className="levelup-entry-summary"
+                  onClick={() => setOpenPicker('sousClasse')}
+                >
+                  {selectedSubclass ? (
+                    <>
+                      <ArchetypeHex
+                        archetype={customArchetypes.find((a) => String(a.id) === String(subclassOptions.find((c) => c.nom === selectedSubclass)?.archetypeId))}
+                        size="sm"
+                      />
+                      <span className="levelup-entry-summary-name">{selectedSubclass}</span>
+                    </>
+                  ) : (
+                    <span className="levelup-entry-summary-empty">Aucune sous-classe disponible</span>
+                  )}
+                </button>
               </label>
             )}
             {needsMaitriseChoice && maitriseOptions.length > 0 && (
@@ -2769,6 +3062,38 @@ function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customS
               </label>
             )}
           </div>
+        )}
+
+        {openPicker === 'classe' && (
+          <LevelUpEntryPickerModal
+            title={`Classe disponible${char.race ? ` pour ${char.race}` : ''}`}
+            entries={classOptions}
+            archetypes={customArchetypes}
+            itemClasses={customItemClasses}
+            competences={customCompetences}
+            classCategories={customClassCategories}
+            onClose={() => setOpenPicker(null)}
+            onSelect={(nom) => {
+              setSelectedClass(nom);
+              const nextSubclasses = getAvailableLevelSubclasses(char, nom, customSubclasses);
+              setSelectedSubclass(nextSubclasses[0]?.nom || '');
+              setOpenPicker(null);
+            }}
+          />
+        )}
+        {openPicker === 'sousClasse' && (
+          <LevelUpEntryPickerModal
+            title={`Sous-classe disponible${char.race ? ` pour ${char.race}` : ''}`}
+            entries={subclassOptions}
+            archetypes={customArchetypes}
+            itemClasses={customItemClasses}
+            competences={customCompetences}
+            onClose={() => setOpenPicker(null)}
+            onSelect={(nom) => {
+              setSelectedSubclass(nom);
+              setOpenPicker(null);
+            }}
+          />
         )}
 
         <div className="levelup-resource-block">
@@ -2886,7 +3211,7 @@ function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customS
 
 function DetailFiche({ char }) {
   const { levelUp, updateCharacter } = useCharacterStore();
-  const { customClasses, customSubclasses, customLevelRules, customMaitriseEntries, customCompetences, customSpellRanks } = useAdminStore();
+  const { customClasses, customSubclasses, customLevelRules, customMaitriseEntries, customCompetences, customSpellRanks, customArchetypes, customItemClasses, customClassCategories } = useAdminStore();
   const classDef = getCombinedClassDefinition(char, customClasses);
   const subclassDef = getCombinedSubclassDefinition(char, customSubclasses);
   const masteryStat = classDef.magique || 'CHA';
@@ -2929,6 +3254,9 @@ function DetailFiche({ char }) {
                   customMaitriseEntries={customMaitriseEntries || []}
                   customCompetences={customCompetences || []}
                   customSpellRanks={customSpellRanks || []}
+                  customArchetypes={customArchetypes || []}
+                  customItemClasses={customItemClasses || []}
+                  customClassCategories={customClassCategories || []}
                   levelRules={customLevelRules}
                   onClose={() => setShowLevelUp(false)}
                   onConfirm={(rewards) => levelUp(char.id, rewards)}
@@ -3071,35 +3399,9 @@ function CaracTooltipLabel({ carac }) {
 }
 
 function CaracNameCell({ carac }) {
-  const [rect, setRect] = useState(null);
-  const hasDesc = Boolean(carac.description);
   return (
-    <td
-      className="carac-td-nom"
-      style={hasDesc ? { cursor: 'help' } : undefined}
-      onMouseEnter={hasDesc ? (e) => setRect(e.currentTarget.getBoundingClientRect()) : undefined}
-      onMouseLeave={hasDesc ? () => setRect(null) : undefined}
-    >
-      {carac.nom}
-      {hasDesc && rect && createPortal(
-        <div
-          className="creation-info-floating-tooltip"
-          style={{
-            top: Math.round(rect.top + rect.height / 2),
-            left: rect.right,
-            '--info-option-color': 'var(--gold)',
-            width: 240,
-            opacity: 1,
-            animation: 'none',
-            transform: 'translate(12px, -50%)',
-          }}
-        >
-          <strong>{carac.nom}</strong>
-          <span className="creation-info-tooltip-sep" />
-          <span className="creation-info-tooltip-desc">{carac.description}</span>
-        </div>,
-        document.body,
-      )}
+    <td className="carac-td-nom">
+      <SmartTag raw={`caracteristique.${carac.cle}`} index={carac.cle} plain displayLabel={carac.nom} />
     </td>
   );
 }
@@ -3300,7 +3602,11 @@ function DetailStats({ char }) {
                 <tbody>
                   {rows.map((row, i) => (
                     <tr key={row.label} className={i % 2 !== 0 ? 'carac-odd' : ''}>
-                      <td className="carac-td-nom">{row.label}</td>
+                      <td className="carac-td-nom">
+                        {COMBAT_STAT_INDEX_KEYS[row.key] ? (
+                          <SmartTag raw={`stat.${COMBAT_STAT_INDEX_KEYS[row.key]}`} index={row.key} plain displayLabel={row.label} />
+                        ) : row.label}
+                      </td>
                       <td className="carac-td-base">{row.base}</td>
                       <td className={`carac-td-mod${valueToneClass(row.mod)}`}>{detailValue(row.mod, { signedValue: true })}</td>
                       {/* Bonus/Malus : en lecture seule — alimentés par l'équipement porté

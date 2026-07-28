@@ -931,7 +931,7 @@ export function renderSmartText(text) {
   });
 }
 
-function SmartTag({ raw, index, plain = false }) {
+export function SmartTag({ raw, index, plain = false, displayLabel }) {
   const [open, setOpen] = useState(false);
   const [popoverStyle, setPopoverStyle] = useState(null);
   const buttonRef = useRef(null);
@@ -1021,7 +1021,7 @@ function SmartTag({ raw, index, plain = false }) {
         aria-expanded={open}
         aria-controls={popoverId}
       >
-        {plain ? ref.label : `[ ${ref.label} ]`}
+        {displayLabel ?? (plain ? ref.label : `[ ${ref.label} ]`)}
       </button>
       {popover}
     </span>

@@ -2995,6 +2995,374 @@
   border-style: dashed;
 }
 
+// ── Level-up class/subclass picker ────────────────────────────
+
+.levelup-picker-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.levelup-picker-filter-pill {
+  padding: 6px 14px;
+  border: 1px solid rgba(200,168,74,0.28);
+  background: rgba(0,0,0,0.3);
+  font-family: $font-caps;
+  font-size: 10.5px;
+  letter-spacing: 1.4px;
+  color: rgba(244,240,231,0.6);
+  cursor: pointer;
+  transition: border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
+
+  &:hover { border-color: rgba(200,168,74,0.5); color: $white-text; }
+
+  &.is-active {
+    border-color: $gold;
+    background: rgba(200,168,74,0.14);
+    color: $gold2;
+  }
+}
+
+.hex-row {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  width: 100%;
+  gap: 8px;
+  min-height: 64px;
+}
+
+.hex-row--empty {
+  min-height: 0;
+}
+
+// Colonnes égales de part et d'autre du hexagone principal : garantit
+// que ce dernier reste toujours centré, même avec un nombre impair
+// (ou nul) de secondaires d'un côté.
+.hex-row-side {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hex-row-side--left {
+  justify-content: flex-end;
+}
+
+.hex-row-side--right {
+  justify-content: flex-start;
+}
+
+// La propriété `border` CSS ne suit pas fidèlement un `clip-path`
+// polygonal (elle ne laisse apparaître que les segments qui
+// coïncident avec les bords du carré d'origine). On simule donc le
+// contour hexagonal avec deux hexagones clippés superposés : un plus
+// grand en fond (couleur de bordure) et un plus petit par-dessus
+// (remplissage), l'écart entre les deux donnant l'épaisseur du trait.
+.hex-badge {
+  --hex-color: #{$gold};
+  --hex-fill: rgba(5,4,2,0.94);
+  flex: 0 0 auto;
+  position: relative;
+  display: grid;
+  place-items: center;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  background: var(--hex-color);
+  color: var(--hex-color);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--hex-color) 20%, transparent);
+  cursor: default;
+}
+
+.hex-badge::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  background: var(--hex-fill);
+}
+
+.hex-badge > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hex-badge--lg {
+  width: 64px;
+  height: 64px;
+  --hex-fill: radial-gradient(circle, #000 0%, #000 90%, var(--hex-color) 100%);
+}
+
+.hex-badge--sm {
+  width: 40px;
+  height: 40px;
+  opacity: 0.92;
+}
+
+// ── Carte classe/sous-classe (picker) ─────────────────────────
+// Composition en "plaques" flottant sur le cadre inférieur, comme
+// la maquette fournie — volontairement distincte des .entry-card
+// génériques de l'admin.
+
+.levelup-class-card {
+  display: flex;
+  flex-direction: column;
+  cursor: default;
+}
+
+.levelup-class-card--pickable {
+  cursor: pointer;
+
+  &:hover .levelup-class-frame { border-color: rgba(200,168,74,0.5); }
+  &:hover .levelup-class-title { border-color: rgba(200,168,74,0.6); }
+}
+
+.levelup-class-card--expanded {
+  grid-column: 1 / -1;
+}
+
+.levelup-class-plates {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
+  margin-bottom: -24px;
+  padding: 0 10px;
+}
+
+.levelup-class-title {
+  padding: 9px 22px;
+  background: rgba(8,7,4,0.92);
+  border: 1px solid rgba(200,168,74,0.4);
+  font-family: $font-display;
+  font-size: 18px;
+  letter-spacing: 0.6px;
+  color: $white-text;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  transition: border-color 0.16s ease;
+}
+
+.levelup-class-title--inline {
+  padding: 0;
+  background: none;
+  border: none;
+  font-size: 20px;
+  white-space: normal;
+}
+
+.levelup-class-frame {
+  border: 1px solid rgba(200,168,74,0.28);
+  background: rgba(0,0,0,0.32);
+  padding: 36px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.16s ease;
+}
+
+.levelup-class-frame--expanded {
+  padding: 16px;
+  gap: 16px;
+}
+
+.levelup-class-desc {
+  margin: 0;
+  font-family: $font-body;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: rgba(244,240,231,0.68);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.levelup-class-desc--full {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
+.levelup-entry-expanded-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(200,168,74,0.16);
+}
+
+.levelup-dice-row {
+  display: flex;
+}
+
+.levelup-dice-item {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 12px;
+  min-width: 0;
+
+  &:not(:last-child) {
+    border-right: 1px solid rgba(200,168,74,0.16);
+  }
+}
+
+.levelup-dice-value {
+  font-family: $font-display;
+  font-size: 15px;
+  color: $white-text;
+  white-space: nowrap;
+}
+
+.levelup-dice-label {
+  margin-left: auto;
+  font-family: $font-caps;
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  color: var(--dim);
+  align-self: flex-end;
+}
+
+.levelup-entry-detail {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.levelup-entry-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.levelup-entry-stat {
+  padding: 8px 10px;
+  border: 1px solid rgba(200,168,74,0.18);
+  background: rgba(0,0,0,0.24);
+
+  span {
+    display: block;
+    font-family: $font-caps;
+    font-size: 9px;
+    letter-spacing: 1.6px;
+    color: var(--dim);
+    margin-bottom: 3px;
+  }
+
+  b {
+    font-family: $font-body;
+    font-size: 12.5px;
+    color: rgba(244,240,231,0.86);
+    font-weight: 600;
+  }
+}
+
+.levelup-entry-competences {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(200,168,74,0.16);
+}
+
+.levelup-entry-competences-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.levelup-entry-competences-title {
+  font-family: $font-caps;
+  font-size: 10px;
+  letter-spacing: 1.8px;
+  color: $gold;
+  text-align: center;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(200,168,74,0.16);
+}
+
+.levelup-entry-competence {
+  --comp-color: #c8a84a;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--comp-color) 38%, transparent);
+  border-left: 3px solid var(--comp-color);
+  background: color-mix(in srgb, var(--comp-color) 7%, rgba(0,0,0,0.28));
+
+  b {
+    display: block;
+    font-family: $font-body;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(244,240,231,0.9);
+    margin-bottom: 3px;
+  }
+
+  span {
+    font-family: $font-body;
+    font-size: 11px;
+    line-height: 1.45;
+    color: rgba(244,240,231,0.62);
+  }
+}
+
+.levelup-entry-competences-empty {
+  font-family: $font-body;
+  font-size: 11.5px;
+  color: rgba(244,240,231,0.4);
+  text-align: center;
+  padding: 6px 0;
+}
+
+.levelup-entry-confirm-row {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid rgba(200,168,74,0.12);
+}
+
+.levelup-entry-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid rgba(200,168,74,0.3);
+  background: rgba(0,0,0,0.3);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: border-color 0.16s ease;
+
+  &:hover {
+    border-color: rgba(200,168,74,0.55);
+  }
+}
+
+.levelup-entry-summary-empty {
+  font-family: $font-body;
+  font-size: 12.5px;
+  color: rgba(244,240,231,0.45);
+}
+
+.levelup-entry-summary-name {
+  font-family: $font-display;
+  font-size: 15px;
+  color: $white-text;
+}
+
 // ── Grimoire spell zones ─────────────────────────────────────
 .spell-zones-panel {
   display: grid;
@@ -3464,6 +3832,10 @@
   &--wide {
     flex-basis: 960px;
     transition: flex-basis 0.34s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  &--xwide {
+    flex-basis: 1240px;
   }
 
   .index-form {
