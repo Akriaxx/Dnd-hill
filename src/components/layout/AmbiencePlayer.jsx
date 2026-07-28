@@ -1,7 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { useAudioStore } from '../../store/audioStore';
+import { preloadSfx } from '../../utils/sfx';
 import musicTrack from '../../assets/audio/music.mp3';
 import ambientTrack from '../../assets/audio/ambient.mp3';
+import cardSelectSfx from '../../assets/audio/sfx-card-select.mp3';
+import sheetOpenSfx from '../../assets/audio/sfx-sheet-open.mp3';
+import pageTurnSfx from '../../assets/audio/sfx-page-turn.mp3';
 
 const AMBIENT_VOLUME = 0.25;
 const FADE_IN_MS = 2500;
@@ -42,6 +46,11 @@ export default function AmbiencePlayer() {
 
   useEffect(() => {
     if (ambientRef.current) ambientRef.current.volume = AMBIENT_VOLUME;
+    // Précharge les bruitages ponctuels ici (montage unique, tôt dans la
+    // vie de l'appli) pour que leur tout premier déclenchement ailleurs
+    // (tourne-page, sélection perso...) ne subisse pas le délai de
+    // téléchargement + décodage.
+    [cardSelectSfx, sheetOpenSfx, pageTurnSfx].forEach(preloadSfx);
   }, []);
 
   useEffect(() => {
