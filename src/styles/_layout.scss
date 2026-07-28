@@ -471,3 +471,74 @@ section { margin-bottom: 48px; }
     background: $surface;
   }
 }
+
+// ── Crédits (bouton fixe bas-droite + popup) ──
+.credits-btn {
+  position: fixed;
+  bottom: 16px;
+  right: 20px;
+  z-index: 500;
+  padding: 6px 14px;
+  border: 1px solid var(--border-main);
+  background: rgba(0,0,0,0.4);
+  color: var(--dim);
+  font-family: $font-caps;
+  font-size: 10.5px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
+
+  &:hover {
+    border-color: var(--gold);
+    color: var(--gold2);
+    background: rgba(200,168,74,0.1);
+  }
+}
+
+.credits-modal {
+  width: min(480px, 92vw);
+}
+
+.credits-intro {
+  margin: 0 0 4px;
+  font-family: $font-body;
+  font-size: 12.5px;
+  color: rgba(244,240,231,0.6);
+}
+
+.credits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.credits-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid rgba(200,168,74,0.16);
+  background: rgba(0,0,0,0.24);
+}
+
+.credits-usage {
+  font-family: $font-caps;
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+.credits-line {
+  font-family: $font-body;
+  font-size: 12.5px;
+  color: rgba(244,240,231,0.75);
+
+  a {
+    color: var(--gold2);
+    text-decoration: underline;
+
+    &:hover { color: var(--gold); }
+  }
+}
