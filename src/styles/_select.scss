@@ -40,27 +40,71 @@
 
 // ── Fumée d'ambiance derrière les cartes ────────────────────
 // Vit uniquement dans .select-stage (voir CharacterListPage.jsx) — entre
-// header et footer, jamais dessus. Texture générée par bruit fractal SVG
-// (feTurbulence, voir le <svg> dans CharacterListPage.jsx) plutôt que des
-// blobs radiaux flous : ça donne de vraies volutes fines qui s'entremêlent
-// et se déforment en continu (baseFrequency animée), pas une masse qui
-// glisse — le but est la partie haute/fine d'un panache de fumée, pas le
-// tas condensé près de la source. Masque vertical : dense en bas de la
-// zone (jamais sur le footer, en dehors de .select-stage), quasi invisible
-// en haut (vers le header).
+// header et footer, jamais dessus. Pleine largeur (inset:0), sans
+// overflow:hidden ni masque horizontal : un double mask-image (vertical +
+// horizontal, composité) rendait un artefact en bloc selon les
+// navigateurs — trop fragile. Un seul masque, vertical uniquement ; les
+// nappes peuvent légèrement déborder à gauche/droite du stage pendant
+// leur balancement sans créer de bord dur, puisqu'il n'y a que le même
+// fond sombre au-delà. Les flèches restent lisibles via leur propre
+// z-index (10, > le 0 de la fumée). Colonnes verticales (pas des nappes
+// plates) qui montent, pulsent en largeur/opacité et se balancent, pour
+// un rendu fumée plutôt que brouillard statique.
 .select-fog {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  mask-image: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 35%, rgba(0,0,0,0.22) 62%, transparent 92%);
-  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 35%, rgba(0,0,0,0.22) 62%, transparent 92%);
+  mask-image: linear-gradient(to top, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.5) 30%, rgba(0,0,0,0.22) 55%, transparent 92%);
+  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.5) 30%, rgba(0,0,0,0.22) 55%, transparent 92%);
 }
 
-.select-fog-svg {
-  width: 100%;
+.select-fog-layer {
+  position: absolute;
+  bottom: -10%;
+  width: 46%;
   height: 100%;
-  display: block;
+  background: radial-gradient(ellipse 65% 55% at 50% 100%, rgba(255,255,255,0.3), transparent 78%);
+  filter: blur(30px);
+  transform-origin: 50% 100%;
+}
+
+.select-fog-layer--1 {
+  left: -8%;
+  animation: select-smoke-a 42s ease-in-out infinite;
+}
+
+.select-fog-layer--2 {
+  left: 28%;
+  opacity: 0.85;
+  animation: select-smoke-b 55s ease-in-out infinite;
+  animation-delay: -18s;
+}
+
+.select-fog-layer--3 {
+  left: 60%;
+  opacity: 0.7;
+  width: 40%;
+  animation: select-smoke-a 65s ease-in-out infinite reverse;
+  animation-delay: -35s;
+}
+
+// Aller-retour (pas de from/to qui saute au bouclage) : dérive + montée +
+// pulsation d'échelle/opacité mêlées, pour que ça vive et "respire" comme
+// de la fumée plutôt que de simplement glisser à plat.
+@keyframes select-smoke-a {
+  0%, 100% { transform: translate(0%, 0%) scale(1);            opacity: 1; }
+  20%      { transform: translate(14%, -10%) scale(1.12);      opacity: 0.85; }
+  45%      { transform: translate(30%, -22%) scale(0.94);      opacity: 1; }
+  70%      { transform: translate(18%, -12%) scale(1.08);      opacity: 0.8; }
+  85%      { transform: translate(6%, -4%) scale(1.02);        opacity: 0.95; }
+}
+
+@keyframes select-smoke-b {
+  0%, 100% { transform: translate(0%, 0%) scale(1);            opacity: 1; }
+  25%      { transform: translate(-16%, -14%) scale(0.9);      opacity: 0.9; }
+  50%      { transform: translate(-28%, -24%) scale(1.1);      opacity: 0.75; }
+  75%      { transform: translate(-12%, -10%) scale(0.96);     opacity: 1; }
 }
 
 // ── Card column (filter + carousel stacked) ──
