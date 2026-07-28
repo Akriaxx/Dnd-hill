@@ -241,7 +241,11 @@ function resolveMovementBase(char, customRaces = [], customAscendances = []) {
     return ascendanceMove;
   }
 
-  return raceMove ?? ascendanceMove ?? 15;
+  // Pas de repli plausible-mais-arbitraire : si aucune race/ascendance ne
+  // fournit de déplacement (race non assignée, ou qui ne correspond plus à
+  // rien), 0 rend le problème visible au lieu de le masquer derrière une
+  // valeur qui a l'air correcte.
+  return raceMove ?? ascendanceMove ?? 0;
 }
 
 function normalizeCreationNumber(value, fallback = 0) {
