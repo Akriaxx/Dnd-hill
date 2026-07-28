@@ -885,62 +885,9 @@ export default function CharacterListPage() {
       {/* ── Stage ── */}
       <div className="select-stage" ref={stageRef}>
         <div className="select-fog" aria-hidden="true">
-          {/* Filets dessinés à la main (pas du bruit procédural) : des
-              traits fins en double courbe, façon filament de fumée qui
-              s'entortille, plutôt qu'une masse floue. Chaque trait boucle
-              entre deux variantes de sa propre forme (SMIL, "d" animé) pour
-              la torsion, + une légère dérive/balancement en CSS. */}
-          <svg className="select-fog-svg" viewBox="0 0 1200 1000" preserveAspectRatio="none">
-            <defs>
-              <filter id="select-smoke-blur" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="5" />
-              </filter>
-            </defs>
-            <g className="select-smoke-wisps" filter="url(#select-smoke-blur)" fill="none" stroke="#fff" strokeLinecap="round">
-              <path className="select-smoke-strand select-smoke-strand--1" strokeWidth="6" strokeOpacity="0.22"
-                d="M150,1040 C120,880 190,780 140,680 C100,600 170,500 130,420">
-                <animate attributeName="d" dur="26s" repeatCount="indefinite"
-                  values="M150,1040 C120,880 190,780 140,680 C100,600 170,500 130,420;
-                          M150,1040 C100,880 170,780 120,680 C160,600 100,500 150,420;
-                          M150,1040 C120,880 190,780 140,680 C100,600 170,500 130,420" />
-              </path>
-              <path className="select-smoke-strand select-smoke-strand--2" strokeWidth="4" strokeOpacity="0.16"
-                d="M340,1040 C380,860 300,760 360,650 C400,560 320,470 370,380">
-                <animate attributeName="d" dur="33s" repeatCount="indefinite"
-                  values="M340,1040 C380,860 300,760 360,650 C400,560 320,470 370,380;
-                          M340,1040 C340,860 400,760 320,650 C360,560 380,470 330,380;
-                          M340,1040 C380,860 300,760 360,650 C400,560 320,470 370,380" />
-              </path>
-              <path className="select-smoke-strand select-smoke-strand--3" strokeWidth="7" strokeOpacity="0.25"
-                d="M560,1040 C520,850 590,740 540,630 C500,540 570,440 530,350">
-                <animate attributeName="d" dur="29s" repeatCount="indefinite"
-                  values="M560,1040 C520,850 590,740 540,630 C500,540 570,440 530,350;
-                          M560,1040 C580,850 530,740 590,630 C550,540 500,440 570,350;
-                          M560,1040 C520,850 590,740 540,630 C500,540 570,440 530,350" />
-              </path>
-              <path className="select-smoke-strand select-smoke-strand--4" strokeWidth="5" strokeOpacity="0.18"
-                d="M760,1040 C780,870 700,770 760,660 C800,570 720,480 770,390">
-                <animate attributeName="d" dur="37s" repeatCount="indefinite"
-                  values="M760,1040 C780,870 700,770 760,660 C800,570 720,480 770,390;
-                          M760,1040 C720,870 760,770 700,660 C740,570 800,480 730,390;
-                          M760,1040 C780,870 700,770 760,660 C800,570 720,480 770,390" />
-              </path>
-              <path className="select-smoke-strand select-smoke-strand--5" strokeWidth="4" strokeOpacity="0.15"
-                d="M960,1040 C920,860 990,760 940,650 C900,560 970,470 920,380">
-                <animate attributeName="d" dur="31s" repeatCount="indefinite"
-                  values="M960,1040 C920,860 990,760 940,650 C900,560 970,470 920,380;
-                          M960,1040 C980,860 930,760 1000,650 C960,560 900,470 970,380;
-                          M960,1040 C920,860 990,760 940,650 C900,560 970,470 920,380" />
-              </path>
-              <path className="select-smoke-strand select-smoke-strand--6" strokeWidth="6" strokeOpacity="0.2"
-                d="M1060,1040 C1080,880 1010,780 1060,680 C1100,600 1030,500 1070,420">
-                <animate attributeName="d" dur="24s" repeatCount="indefinite"
-                  values="M1060,1040 C1080,880 1010,780 1060,680 C1100,600 1030,500 1070,420;
-                          M1060,1040 C1020,880 1070,780 1000,680 C1040,600 1090,500 1030,420;
-                          M1060,1040 C1080,880 1010,780 1060,680 C1100,600 1030,500 1070,420" />
-              </path>
-            </g>
-          </svg>
+          <div className="select-fog-layer select-fog-layer--1" />
+          <div className="select-fog-layer select-fog-layer--2" />
+          <div className="select-fog-layer select-fog-layer--3" />
         </div>
 
         {/* Left arrow */}
