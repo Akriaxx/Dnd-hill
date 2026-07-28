@@ -40,28 +40,23 @@
 
 // ── Fumée d'ambiance derrière les cartes ────────────────────
 // Vit uniquement dans .select-stage (voir CharacterListPage.jsx) — entre
-// header et footer, jamais dessus. Pleine largeur (inset:0) pour coller
-// aux bords de l'écran sans coupure nette — un inset en dur créait une
-// ligne verticale brutale. Les flèches gauche/droite restent lisibles
-// grâce au masque horizontal ci-dessous (fondu, pas une découpe à angle
-// droit) combiné à leur propre z-index (10, > le 0 de la fumée) et leur
-// fond au survol. Colonnes verticales (pas des nappes plates) qui
-// montent, pulsent en largeur/opacité et se balancent, pour un rendu
-// fumée plutôt que brouillard statique.
+// header et footer, jamais dessus. Pleine largeur (inset:0), sans
+// overflow:hidden ni masque horizontal : un double mask-image (vertical +
+// horizontal, composité) rendait un artefact en bloc selon les
+// navigateurs — trop fragile. Un seul masque, vertical uniquement ; les
+// nappes peuvent légèrement déborder à gauche/droite du stage pendant
+// leur balancement sans créer de bord dur, puisqu'il n'y a que le même
+// fond sombre au-delà. Les flèches restent lisibles via leur propre
+// z-index (10, > le 0 de la fumée). Colonnes verticales (pas des nappes
+// plates) qui montent, pulsent en largeur/opacité et se balancent, pour
+// un rendu fumée plutôt que brouillard statique.
 .select-fog {
   position: absolute;
   inset: 0;
   z-index: 0;
-  overflow: hidden;
   pointer-events: none;
-  mask-image:
-    linear-gradient(to top, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.5) 30%, rgba(0,0,0,0.22) 55%, transparent 92%),
-    linear-gradient(to right, rgba(0,0,0,0.3) 0%, black 140px, black calc(100% - 140px), rgba(0,0,0,0.3) 100%);
-  mask-composite: intersect;
-  -webkit-mask-image:
-    linear-gradient(to top, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.5) 30%, rgba(0,0,0,0.22) 55%, transparent 92%),
-    linear-gradient(to right, rgba(0,0,0,0.3) 0%, black 140px, black calc(100% - 140px), rgba(0,0,0,0.3) 100%);
-  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to top, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.5) 30%, rgba(0,0,0,0.22) 55%, transparent 92%);
+  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.5) 30%, rgba(0,0,0,0.22) 55%, transparent 92%);
 }
 
 .select-fog-layer {
