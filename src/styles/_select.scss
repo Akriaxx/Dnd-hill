@@ -55,8 +55,11 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  mask-image: linear-gradient(to top, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.5) 30%, rgba(0,0,0,0.22) 55%, transparent 92%);
-  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.5) 30%, rgba(0,0,0,0.22) 55%, transparent 92%);
+  // Resserré plus bas qu'avant : ça doit rester proche du footer, pas
+  // s'étirer jusqu'à mi-hauteur — juste quelques volutes qui montent un
+  // peu et se balancent, pas un voile qui plane.
+  mask-image: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 22%, rgba(0,0,0,0.2) 42%, transparent 66%);
+  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 22%, rgba(0,0,0,0.2) 42%, transparent 66%);
 }
 
 .select-fog-layer {
@@ -89,22 +92,23 @@
   animation-delay: -35s;
 }
 
-// Aller-retour (pas de from/to qui saute au bouclage) : dérive + montée +
-// pulsation d'échelle/opacité mêlées, pour que ça vive et "respire" comme
-// de la fumée plutôt que de simplement glisser à plat.
+// Aller-retour (pas de from/to qui saute au bouclage) : le balancement
+// horizontal (le "vent") reste marqué, mais la montée verticale est
+// volontairement faible — la base doit rester ancrée près du footer,
+// pas décoller vers le header.
 @keyframes select-smoke-a {
   0%, 100% { transform: translate(0%, 0%) scale(1);            opacity: 1; }
-  20%      { transform: translate(14%, -10%) scale(1.12);      opacity: 0.85; }
-  45%      { transform: translate(30%, -22%) scale(0.94);      opacity: 1; }
-  70%      { transform: translate(18%, -12%) scale(1.08);      opacity: 0.8; }
-  85%      { transform: translate(6%, -4%) scale(1.02);        opacity: 0.95; }
+  20%      { transform: translate(16%, -4%) scale(1.08);       opacity: 0.9; }
+  45%      { transform: translate(32%, -8%) scale(0.96);       opacity: 1; }
+  70%      { transform: translate(20%, -5%) scale(1.05);       opacity: 0.85; }
+  85%      { transform: translate(7%, -2%) scale(1.01);        opacity: 0.95; }
 }
 
 @keyframes select-smoke-b {
   0%, 100% { transform: translate(0%, 0%) scale(1);            opacity: 1; }
-  25%      { transform: translate(-16%, -14%) scale(0.9);      opacity: 0.9; }
-  50%      { transform: translate(-28%, -24%) scale(1.1);      opacity: 0.75; }
-  75%      { transform: translate(-12%, -10%) scale(0.96);     opacity: 1; }
+  25%      { transform: translate(-18%, -5%) scale(0.95);      opacity: 0.9; }
+  50%      { transform: translate(-30%, -9%) scale(1.06);      opacity: 0.8; }
+  75%      { transform: translate(-13%, -4%) scale(0.98);      opacity: 1; }
 }
 
 // ── Card column (filter + carousel stacked) ──
