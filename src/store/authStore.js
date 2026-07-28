@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase } from '../lib/supabaseClient';
 import { sendAccountSuspended } from '../services/mailerService';
+import { useAudioStore } from './audioStore';
 
 const resolveEmail = async (identifier) => {
   if (identifier.includes('@')) return identifier;
@@ -74,6 +75,10 @@ export const useAuthStore = create(
 
         await supabase.rpc('reset_failed_login');
         set({ user: profileToUser(data.user, profile) });
+        // Le clic sur "Se connecter" est le geste utilisateur qui débloque
+        // l'autoplay avec son côté navigateur — la musique démarre en fondu
+        // pour accompagner le chargement puis l'arrivée sur la fiche.
+        useAudioStore.setState({ musicOn: true });
         return true;
       },
 

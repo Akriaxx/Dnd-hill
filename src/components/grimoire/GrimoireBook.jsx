@@ -1,6 +1,8 @@
 import { useMemo, useState, useRef } from 'react';
 import { asArray } from '../../pages/admin/adminUtils';
 import CreationInfoSelect from '../ui/CreationInfoSelect';
+import { playSfx } from '../../utils/sfx';
+import pageTurnSfx from '../../assets/audio/sfx-page-turn.mp3';
 
 const SLIDE_MS = 420;
 const OPEN_MS  = 1500;
@@ -341,6 +343,7 @@ export default function GrimoireBook({
     if (leaf) return;
     const ns = dir === 'fwd' ? spread + 1 : spread - 1;
     if (ns < 0 || ns > maxSpread) return;
+    playSfx(pageTurnSfx, 0.4);
     setLeaf({ fromSpread: spread, toSpread: ns, dir });
     setTimeout(() => { setSpread(ns); setLeaf(null); }, TURN_MS);
   }

@@ -9,6 +9,7 @@ import LoaderPage from './pages/LoaderPage';
 import CharacterListPage from './pages/CharacterListPage';
 import CharacterSheetPage from './pages/CharacterSheetPage';
 import CombatActivationOverlay from './components/combat/CombatActivationOverlay';
+import AmbiencePlayer from './components/layout/AmbiencePlayer';
 import AdminPage from './pages/AdminPage';
 import ResetPage from './pages/ResetPage';
 import UnlockPage from './pages/UnlockPage';
@@ -114,6 +115,7 @@ export default function App() {
       <ErrorTicketBridge />
       <CharacterDataBridge />
       <CombatActivationOverlay />
+      <AmbiencePlayer />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/reset" element={<ResetPage />} />

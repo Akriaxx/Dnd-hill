@@ -65,6 +65,9 @@ import { getGrimoireContext } from '../domain/grimoireCalculations';
 import { getItemIcon } from '../data/itemIcons';
 import { asArray, normalizeResourceDice, includesText } from './admin/adminUtils';
 import { AdminFilterPanel } from './admin/AdminShared';
+import { playSfx } from '../utils/sfx';
+import cardSelectSfx from '../assets/audio/sfx-card-select.mp3';
+import sheetOpenSfx from '../assets/audio/sfx-sheet-open.mp3';
 import logoEindhill from '../assets/logo/logo-eindhill-transparent.png';
 
 // prettier-ignore
@@ -744,6 +747,7 @@ export default function CharacterListPage() {
 
   const openSheet = (char) => {
     if (!char || char.__new || char.__pending) return;
+    playSfx(cardSelectSfx, 0.45);
     detailTimersRef.current.forEach(clearTimeout);
     detailTimersRef.current = [];
     setActive(char.id);
@@ -760,7 +764,10 @@ export default function CharacterListPage() {
     detailTimersRef.current.push(
       setTimeout(() => setDetailPhase('resizing'), DETAIL_CLEAN_MS),
       setTimeout(() => setDetailPhase('shifting'), DETAIL_CLEAN_MS + DETAIL_RESIZE_MS),
-      setTimeout(() => setDetailPhase('panel'), DETAIL_CLEAN_MS + DETAIL_RESIZE_MS + DETAIL_SHIFT_MS),
+      setTimeout(() => {
+        setDetailPhase('panel');
+        playSfx(sheetOpenSfx, 0.4);
+      }, DETAIL_CLEAN_MS + DETAIL_RESIZE_MS + DETAIL_SHIFT_MS),
     );
   };
 
