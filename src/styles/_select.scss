@@ -67,29 +67,49 @@
   bottom: -10%;
   width: 46%;
   height: 100%;
-  background: radial-gradient(ellipse 65% 55% at 50% 100%, rgba(255,255,255,0.3), transparent 78%);
-  filter: blur(30px);
+  overflow: hidden;
+  // border-radius irrégulier (et animé, voir select-blob-morph-*) découpe
+  // le dégradé en silhouette organique plutôt que la simple ellipse nette
+  // d'un radial-gradient seul, qui lisait comme "des ronds qui bougent".
+  border-radius: 58% 42% 63% 37% / 45% 58% 42% 55%;
+  background: radial-gradient(ellipse 70% 65% at 50% 95%, rgba(255,255,255,0.32), transparent 75%);
+  filter: blur(28px);
   transform-origin: 50% 100%;
 }
 
 .select-fog-layer--1 {
   left: -8%;
-  animation: select-smoke-a 42s ease-in-out infinite;
+  animation: select-smoke-a 42s ease-in-out infinite, select-blob-morph-1 23s ease-in-out infinite;
 }
 
 .select-fog-layer--2 {
   left: 28%;
   opacity: 0.85;
-  animation: select-smoke-b 55s ease-in-out infinite;
-  animation-delay: -18s;
+  animation: select-smoke-b 55s ease-in-out infinite, select-blob-morph-2 19s ease-in-out infinite;
+  animation-delay: -18s, -6s;
 }
 
 .select-fog-layer--3 {
   left: 60%;
   opacity: 0.7;
   width: 40%;
-  animation: select-smoke-a 65s ease-in-out infinite reverse;
-  animation-delay: -35s;
+  animation: select-smoke-a 65s ease-in-out infinite reverse, select-blob-morph-1 27s ease-in-out infinite reverse;
+  animation-delay: -35s, -12s;
+}
+
+// Les 4 valeurs de border-radius (coins) + les 4 du second groupe (axes)
+// dérivent en continu pour que la silhouette respire au lieu de rester une
+// forme figée, même organique.
+@keyframes select-blob-morph-1 {
+  0%, 100% { border-radius: 58% 42% 63% 37% / 45% 58% 42% 55%; }
+  33%      { border-radius: 42% 58% 40% 60% / 60% 40% 58% 42%; }
+  66%      { border-radius: 65% 35% 50% 50% / 40% 62% 45% 55%; }
+}
+
+@keyframes select-blob-morph-2 {
+  0%, 100% { border-radius: 48% 52% 40% 60% / 55% 45% 60% 40%; }
+  40%      { border-radius: 62% 38% 55% 45% / 40% 60% 35% 65%; }
+  75%      { border-radius: 38% 62% 60% 40% / 58% 42% 55% 45%; }
 }
 
 // Aller-retour (pas de from/to qui saute au bouclage) : le balancement
