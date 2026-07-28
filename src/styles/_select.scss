@@ -39,96 +39,121 @@
 }
 
 // ── Fumée d'ambiance derrière les cartes ────────────────────
-// Vit uniquement dans .select-stage (voir CharacterListPage.jsx) — entre
-// header et footer, jamais dessus. Pleine largeur (inset:0), sans
-// overflow:hidden ni masque horizontal : un double mask-image (vertical +
-// horizontal, composité) rendait un artefact en bloc selon les
-// navigateurs — trop fragile. Un seul masque, vertical uniquement ; les
-// nappes peuvent légèrement déborder à gauche/droite du stage pendant
-// leur balancement sans créer de bord dur, puisqu'il n'y a que le même
-// fond sombre au-delà. Les flèches restent lisibles via leur propre
-// z-index (10, > le 0 de la fumée). Colonnes verticales (pas des nappes
-// plates) qui montent, pulsent en largeur/opacité et se balancent, pour
-// un rendu fumée plutôt que brouillard statique.
+// Plusieurs nappes brumeuses se croisent doucement. Elles n'ont ni bords
+// ni silhouettes propres : le rendu reste une fumée grise diffuse sur fond
+// noir, jamais une série de formes décoratives.
 .select-fog {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  // Resserré plus bas qu'avant : ça doit rester proche du footer, pas
-  // s'étirer jusqu'à mi-hauteur — juste quelques volutes qui montent un
-  // peu et se balancent, pas un voile qui plane.
-  mask-image: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 22%, rgba(0,0,0,0.2) 42%, transparent 66%);
-  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 22%, rgba(0,0,0,0.2) 42%, transparent 66%);
+  overflow: hidden;
+  opacity: 0.78;
+  mask-image: linear-gradient(to top, #000 0%, rgba(0,0,0,0.92) 32%, rgba(0,0,0,0.42) 66%, transparent 92%);
+  -webkit-mask-image: linear-gradient(to top, #000 0%, rgba(0,0,0,0.92) 32%, rgba(0,0,0,0.42) 66%, transparent 92%);
 }
 
 .select-fog-layer {
   position: absolute;
-  bottom: -10%;
-  width: 46%;
-  height: 100%;
-  overflow: hidden;
-  // border-radius irrégulier (et animé, voir select-blob-morph-*) découpe
-  // le dégradé en silhouette organique plutôt que la simple ellipse nette
-  // d'un radial-gradient seul, qui lisait comme "des ronds qui bougent".
-  border-radius: 58% 42% 63% 37% / 45% 58% 42% 55%;
-  background: radial-gradient(ellipse 70% 65% at 50% 95%, rgba(255,255,255,0.32), transparent 75%);
+  bottom: -48%;
+  width: 68%;
+  height: 130%;
+  background:
+    radial-gradient(ellipse 19% 52% at 12% 87%, rgba(204, 210, 217, 0.26), transparent 72%),
+    radial-gradient(ellipse 25% 58% at 38% 101%, rgba(182, 190, 199, 0.19), transparent 70%),
+    radial-gradient(ellipse 18% 62% at 68% 88%, rgba(217, 222, 228, 0.2), transparent 74%),
+    radial-gradient(ellipse 23% 52% at 94% 106%, rgba(184, 192, 201, 0.15), transparent 72%);
+  filter: blur(24px) saturate(0.45);
+  transform-origin: 50% 100%;
+  will-change: transform, opacity;
+  mix-blend-mode: screen;
+}
+
+.select-fog-layer::before,
+.select-fog-layer::after {
+  content: '';
+  position: absolute;
+  inset: -16% -20%;
+  background:
+    radial-gradient(ellipse 14% 50% at 21% 78%, rgba(230, 233, 236, 0.18), transparent 73%),
+    radial-gradient(ellipse 21% 62% at 54% 94%, rgba(192, 199, 207, 0.2), transparent 72%),
+    radial-gradient(ellipse 13% 44% at 80% 69%, rgba(232, 235, 239, 0.12), transparent 70%);
   filter: blur(28px);
   transform-origin: 50% 100%;
+  animation: select-fog-curl-a 34s ease-in-out infinite;
+}
+
+.select-fog-layer::after {
+  opacity: 0.72;
+  filter: blur(36px);
+  transform: scale(1.25) translateY(8%);
+  animation-name: select-fog-curl-b;
+  animation-duration: 43s;
+  animation-delay: -16s;
 }
 
 .select-fog-layer--1 {
-  left: -8%;
-  animation: select-smoke-a 42s ease-in-out infinite, select-blob-morph-1 23s ease-in-out infinite;
+  left: -25%;
+  animation: select-fog-drift-a 46s ease-in-out infinite;
 }
 
 .select-fog-layer--2 {
-  left: 28%;
-  opacity: 0.85;
-  animation: select-smoke-b 55s ease-in-out infinite, select-blob-morph-2 19s ease-in-out infinite;
-  animation-delay: -18s, -6s;
+  left: 16%;
+  bottom: -56%;
+  opacity: 0.66;
+  transform: scale(1.08);
+  animation: select-fog-drift-b 58s ease-in-out infinite;
+  animation-delay: -25s;
 }
 
 .select-fog-layer--3 {
-  left: 60%;
-  opacity: 0.7;
-  width: 40%;
-  animation: select-smoke-a 65s ease-in-out infinite reverse, select-blob-morph-1 27s ease-in-out infinite reverse;
-  animation-delay: -35s, -12s;
+  left: 57%;
+  bottom: -51%;
+  opacity: 0.58;
+  transform: scale(0.94);
+  animation: select-fog-drift-c 67s ease-in-out infinite;
+  animation-delay: -38s;
 }
 
-// Les 4 valeurs de border-radius (coins) + les 4 du second groupe (axes)
-// dérivent en continu pour que la silhouette respire au lieu de rester une
-// forme figée, même organique.
-@keyframes select-blob-morph-1 {
-  0%, 100% { border-radius: 58% 42% 63% 37% / 45% 58% 42% 55%; }
-  33%      { border-radius: 42% 58% 40% 60% / 60% 40% 58% 42%; }
-  66%      { border-radius: 65% 35% 50% 50% / 40% 62% 45% 55%; }
+@keyframes select-fog-drift-a {
+  0%, 100% { transform: translate3d(-3%, 4%, 0) scale(1); opacity: 0.68; }
+  27%      { transform: translate3d(12%, -13%, 0) scale(1.08); opacity: 0.84; }
+  54%      { transform: translate3d(25%, -23%, 0) scale(0.94); opacity: 0.6; }
+  78%      { transform: translate3d(8%, -8%, 0) scale(1.04); opacity: 0.76; }
 }
 
-@keyframes select-blob-morph-2 {
-  0%, 100% { border-radius: 48% 52% 40% 60% / 55% 45% 60% 40%; }
-  40%      { border-radius: 62% 38% 55% 45% / 40% 60% 35% 65%; }
-  75%      { border-radius: 38% 62% 60% 40% / 58% 42% 55% 45%; }
+@keyframes select-fog-drift-b {
+  0%, 100% { transform: translate3d(0, 7%, 0) scale(1.08); opacity: 0.5; }
+  32%      { transform: translate3d(-18%, -16%, 0) scale(0.98); opacity: 0.74; }
+  63%      { transform: translate3d(-29%, -27%, 0) scale(1.12); opacity: 0.57; }
+  84%      { transform: translate3d(-10%, -9%, 0) scale(1.03); opacity: 0.7; }
 }
 
-// Aller-retour (pas de from/to qui saute au bouclage) : le balancement
-// horizontal (le "vent") reste marqué, mais la montée verticale est
-// volontairement faible — la base doit rester ancrée près du footer,
-// pas décoller vers le header.
-@keyframes select-smoke-a {
-  0%, 100% { transform: translate(0%, 0%) scale(1);            opacity: 1; }
-  20%      { transform: translate(16%, -4%) scale(1.08);       opacity: 0.9; }
-  45%      { transform: translate(32%, -8%) scale(0.96);       opacity: 1; }
-  70%      { transform: translate(20%, -5%) scale(1.05);       opacity: 0.85; }
-  85%      { transform: translate(7%, -2%) scale(1.01);        opacity: 0.95; }
+@keyframes select-fog-drift-c {
+  0%, 100% { transform: translate3d(2%, 3%, 0) scale(0.94); opacity: 0.46; }
+  25%      { transform: translate3d(-14%, -12%, 0) scale(1.05); opacity: 0.7; }
+  56%      { transform: translate3d(-29%, -22%, 0) scale(0.98); opacity: 0.52; }
+  81%      { transform: translate3d(-9%, -7%, 0) scale(1.02); opacity: 0.64; }
 }
 
-@keyframes select-smoke-b {
-  0%, 100% { transform: translate(0%, 0%) scale(1);            opacity: 1; }
-  25%      { transform: translate(-18%, -5%) scale(0.95);      opacity: 0.9; }
-  50%      { transform: translate(-30%, -9%) scale(1.06);      opacity: 0.8; }
-  75%      { transform: translate(-13%, -4%) scale(0.98);      opacity: 1; }
+@keyframes select-fog-curl-a {
+  0%, 100% { transform: rotate(-5deg) translate3d(-5%, 9%, 0) scale(1); opacity: 0.55; }
+  36%      { transform: rotate(7deg) translate3d(13%, -12%, 0) scale(1.12); opacity: 0.85; }
+  68%      { transform: rotate(-9deg) translate3d(-10%, -24%, 0) scale(0.91); opacity: 0.48; }
+}
+
+@keyframes select-fog-curl-b {
+  0%, 100% { transform: rotate(8deg) translate3d(6%, 12%, 0) scale(1.25); opacity: 0.38; }
+  42%      { transform: rotate(-6deg) translate3d(-14%, -14%, 0) scale(1.37); opacity: 0.69; }
+  74%      { transform: rotate(10deg) translate3d(12%, -27%, 0) scale(1.18); opacity: 0.42; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .select-fog-layer,
+  .select-fog-layer::before,
+  .select-fog-layer::after {
+    animation: none;
+  }
 }
 
 // ── Card column (filter + carousel stacked) ──
@@ -6835,6 +6860,13 @@ tr {
   transition: border-color 0.15s;
 
   &:focus { border-color: $gold; }
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  -moz-appearance: textfield;
 }
 
 .inv-popup-confirm {
