@@ -2644,7 +2644,6 @@ function LevelUpDiceRow({ entry }) {
               {iconEntry ? <iconEntry.Icon size={16} strokeWidth={2} /> : null}
             </span>
             <span className="levelup-dice-value">{(dice[item.key] || '—').toUpperCase()}</span>
-            <span className="levelup-dice-label">{item.label}</span>
           </div>
         );
       })}
@@ -2751,7 +2750,7 @@ function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes
 
   return (
     <div className="index-modal-backdrop">
-      <div className={`index-modal index-modal--wide${expandedKey ? ' index-modal--xwide' : ''}`}>
+      <div className={`index-modal index-modal--wide${expandedKey ? ' index-modal--xwide' : ' index-modal--picker'}`}>
         <div className="index-modal-header">
           <h3>{title}</h3>
           <button className="admin-btn" onClick={onClose}>✕ Fermer</button>
@@ -2773,7 +2772,7 @@ function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes
           {filteredEntries.length === 0 ? (
             <p style={{ opacity: 0.5, textAlign: 'center', margin: '2rem 0' }}>Aucune option disponible.</p>
           ) : (
-            <div className="entry-card-grid entry-card-grid--wide">
+            <div className="entry-card-grid levelup-picker-grid">
               {filteredEntries.map((entry) => {
                 const key = entry.key || entry.nom;
                 return (
