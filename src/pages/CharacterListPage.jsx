@@ -2740,11 +2740,17 @@ function LevelUpEntryCard({ entry, expanded, onToggle, onSelect, archetypes, ite
 function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes = [], itemClasses = [], competences = [], classCategories = [] }) {
   const [expandedKey, setExpandedKey] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [sortMode, setSortMode] = useState('categorie'); // 'categorie' | 'nom'
   const usedCategoryKeys = new Set(entries.map((entry) => entry.type).filter(Boolean));
   const availableCategories = classCategories.filter((cat) => usedCategoryKeys.has(cat.key));
-  const filteredEntries = categoryFilter
-    ? entries.filter((entry) => entry.type === categoryFilter)
-    : entries;
+  const categoryOrder = new Map(classCategories.map((cat, i) => [cat.key, i]));
+  const filteredEntries = (categoryFilter ? entries.filter((entry) => entry.type === categoryFilter) : entries)
+    .slice()
+    .sort((a, b) => (
+      sortMode === 'nom'
+        ? a.nom.localeCompare(b.nom, 'fr')
+        : (categoryOrder.get(a.type) ?? 0) - (categoryOrder.get(b.type) ?? 0) || a.nom.localeCompare(b.nom, 'fr')
+    ));
 
   return (
     <div className="index-modal-backdrop">
@@ -2754,27 +2760,46 @@ function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes
           <button className="admin-btn" onClick={onClose}>✕ Fermer</button>
         </div>
         <div className="index-form">
-          {availableCategories.length > 1 && (
-            <div className="levelup-picker-filters">
+          <div className="levelup-picker-filters">
+            {availableCategories.length > 1 && (
+              <div className="levelup-picker-filter-group">
+                <button
+                  type="button"
+                  className={`levelup-picker-filter-pill${categoryFilter === '' ? ' is-active' : ''}`}
+                  onClick={() => setCategoryFilter('')}
+                >
+                  Toutes
+                </button>
+                {availableCategories.map((cat) => (
+                  <button
+                    key={cat.key}
+                    type="button"
+                    className={`levelup-picker-filter-pill${categoryFilter === cat.key ? ' is-active' : ''}`}
+                    onClick={() => setCategoryFilter(cat.key)}
+                  >
+                    {cat.nom}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="levelup-picker-sort-group">
+              <span className="levelup-picker-sort-label">Trier :</span>
               <button
                 type="button"
-                className={`levelup-picker-filter-pill${categoryFilter === '' ? ' is-active' : ''}`}
-                onClick={() => setCategoryFilter('')}
+                className={`levelup-picker-filter-pill${sortMode === 'categorie' ? ' is-active' : ''}`}
+                onClick={() => setSortMode('categorie')}
               >
-                Toutes
+                Catégorie
               </button>
-              {availableCategories.map((cat) => (
-                <button
-                  key={cat.key}
-                  type="button"
-                  className={`levelup-picker-filter-pill${categoryFilter === cat.key ? ' is-active' : ''}`}
-                  onClick={() => setCategoryFilter(cat.key)}
-                >
-                  {cat.nom}
-                </button>
-              ))}
+              <button
+                type="button"
+                className={`levelup-picker-filter-pill${sortMode === 'nom' ? ' is-active' : ''}`}
+                onClick={() => setSortMode('nom')}
+              >
+                Nom (A→Z)
+              </button>
             </div>
-          )}
+          </div>
           {filteredEntries.length === 0 ? (
             <p style={{ opacity: 0.5, textAlign: 'center', margin: '2rem 0' }}>Aucune option disponible.</p>
           ) : (

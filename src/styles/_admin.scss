@@ -3000,8 +3000,29 @@
 .levelup-picker-filters {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
   margin-bottom: 16px;
+}
+
+.levelup-picker-filter-group,
+.levelup-picker-sort-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.levelup-picker-sort-group {
+  margin-left: auto;
+}
+
+.levelup-picker-sort-label {
+  font-family: $font-caps;
+  font-size: 10.5px;
+  letter-spacing: 1.4px;
+  color: rgba(244,240,231,0.4);
 }
 
 .levelup-picker-filter-pill {
