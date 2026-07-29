@@ -1274,9 +1274,10 @@
   inset: 0;
   background: #000;
   opacity: 0;
-  // "fade 0 to 100" demandé explicitement — assombrissement plein écran
-  // avant que quoi que ce soit d'autre n'apparaisse.
-  transition: opacity 1.4s ease;
+  // "fade 0 to 100" demandé explicitement, mais en douceur — 3s, pas de
+  // à-coup, et le message (voir .death-overlay-message) attend la fin de
+  // ce fade avant de commencer à apparaître plutôt que de le chevaucher.
+  transition: opacity 3s ease-in-out;
 }
 
 .death-overlay--fade .death-overlay-backdrop,
@@ -1302,8 +1303,8 @@
   align-items: center;
   gap: 18px;
   opacity: 0;
-  transform: scale(0.85);
-  transition: opacity 1s ease, transform 1s ease;
+  transform: scale(0.92);
+  transition: opacity 1.8s ease, transform 1.8s ease;
 }
 
 .death-overlay--reveal .death-overlay-message,
@@ -1316,8 +1317,36 @@
 // laisser place au compteur de Chance.
 .death-overlay--chance .death-overlay-message {
   opacity: 0;
-  transform: scale(0.92);
+  transform: scale(0.96);
   transition: opacity 1.2s ease, transform 1.2s ease;
+}
+
+// Bouton "Revenir ?" et compteur de Chance empilés dans la même cellule de
+// grille (comme .combat-overlay-status-stack plus haut) : les deux sont
+// montés dès le départ, juste invisibles/non-interactifs (opacity + pointer-
+// events, pas de mount/unmount) — la hauteur réservée ne change donc jamais
+// selon la phase, et "Vous êtes mort" au-dessus (centré verticalement avec
+// tout le bloc) ne se décale pas quand le bouton devient visible.
+.death-overlay-action-stack {
+  display: grid;
+}
+
+.death-overlay-return,
+.death-overlay-chance {
+  grid-area: 1 / 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.9s ease;
+}
+
+.death-overlay--button .death-overlay-return {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.death-overlay--chance .death-overlay-chance {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .death-overlay-skull {
@@ -1337,11 +1366,6 @@
   text-shadow: 0 0 40px rgba(200, 30, 30, 0.7), 0 0 80px rgba(200, 30, 30, 0.4);
 }
 
-@keyframes death-overlay-pop-in {
-  from { opacity: 0; transform: translateY(10px) scale(0.92); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
 .death-overlay-return {
   font-family: $font-caps;
   font-size: 14px;
@@ -1352,8 +1376,7 @@
   border-radius: 3px;
   padding: 12px 32px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  animation: death-overlay-pop-in 0.7s ease both;
+  transition: opacity 0.9s ease, background 0.2s ease, border-color 0.2s ease;
 
   &:hover {
     background: rgba(200, 168, 74, 0.22);
@@ -1366,7 +1389,6 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  animation: death-overlay-pop-in 0.9s ease both;
 }
 
 .death-overlay-chance-label {

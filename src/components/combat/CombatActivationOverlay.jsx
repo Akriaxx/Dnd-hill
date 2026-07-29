@@ -254,9 +254,13 @@ export default function CombatActivationOverlay() {
     clearDeathTimers();
     deathContextRef.current = { charId, chanceAtDeath: Number(chanceAtDeath) || 0 };
     setDeathPhase('fade');
-    const tFade = 1400;
-    const tReveal = tFade + 1300;
-    const tButton = tReveal + 1200;
+    // Assombrissement lent (3s, voir .death-overlay-backdrop) avant que le
+    // message ne commence même à apparaître — "reveal" attend la fin du
+    // fade plutôt que de le chevaucher, pour que ça reste doux du début à
+    // la fin au lieu de s'assombrir et d'apparaître en même temps.
+    const tFade = 3000;
+    const tReveal = tFade;
+    const tButton = tReveal + 3000;
     deathTimersRef.current.push(setTimeout(() => setDeathPhase('reveal'), tFade));
     deathTimersRef.current.push(setTimeout(() => setDeathPhase('button'), tButton));
   };
@@ -402,14 +406,23 @@ export default function CombatActivationOverlay() {
               <DeathSkullIcon />
               <h2 className="death-overlay-title">Vous êtes mort</h2>
             </div>
-            {deathPhase === 'button' && (
-              <button type="button" className="death-overlay-return" onClick={confirmDeathReturn}>
+            {/* Bouton et compteur montés dès le départ (juste invisibles,
+                voir CSS) plutôt qu'au moment de leur phase : sinon leur
+                apparition change la hauteur de .death-overlay-content, qui
+                est centré verticalement — "Vous êtes mort" se décalerait
+                vers le haut au moment même où le bouton apparaît. */}
+            <div className="death-overlay-action-stack">
+              <button
+                type="button"
+                className="death-overlay-return"
+                onClick={confirmDeathReturn}
+                disabled={deathPhase !== 'button'}
+                tabIndex={deathPhase === 'button' ? 0 : -1}
+              >
                 Revenir ?
               </button>
-            )}
-            {deathPhase === 'chance' && (
               <ChanceDeathCounter value={selectedChar?.chance ?? 0} />
-            )}
+            </div>
           </div>
         </div>
       )}
