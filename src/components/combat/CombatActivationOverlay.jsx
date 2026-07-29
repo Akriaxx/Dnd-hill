@@ -10,6 +10,54 @@ import CombatResourceGauges from './CombatResourceGauges';
 import CombatStatBlock from './CombatStatBlock';
 import CombatPanelSlot from './CombatPanelSlot';
 
+function DeathSkullIcon() {
+  return (
+    <svg className="death-overlay-skull" viewBox="0 0 64 64" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M32 4C17.9 4 7 14.6 7 27.4c0 8 4.2 14.6 9.6 19V54c0 2.2 1.8 4 4 4h4v-7h3v7h9v-7h3v7h4c2.2 0 4-1.8 4-4v-7.6c5.4-4.4 9.6-11 9.6-19C57 14.6 46.1 4 32 4Z"
+      />
+      <ellipse cx="21" cy="28" rx="6" ry="8" fill="#000" />
+      <ellipse cx="43" cy="28" rx="6" ry="8" fill="#000" />
+      <path fill="#000" d="M32 34l-4 8h8l-4-8Z" />
+      <path
+        fill="none"
+        stroke="#000"
+        strokeWidth="2"
+        d="M22 48h20M26 48v6M30 48v6M34 48v6M38 48v6"
+      />
+    </svg>
+  );
+}
+
+// Affiche d'abord la valeur au moment de la mort, marque une pause "pulse",
+// puis bascule sur la nouvelle valeur (celle déjà décrémentée dans le
+// store) — pour que la perte du point de Chance se voie, au lieu de
+// simplement apparaître déjà à sa valeur finale.
+function ChanceDeathCounter({ value }) {
+  const [displayValue, setDisplayValue] = useState(value);
+  const [pulsing, setPulsing] = useState(false);
+  const prevRef = useRef(value);
+
+  useEffect(() => {
+    if (value === prevRef.current) return undefined;
+    setPulsing(true);
+    const t = setTimeout(() => {
+      setDisplayValue(value);
+      setPulsing(false);
+    }, 500);
+    prevRef.current = value;
+    return () => clearTimeout(t);
+  }, [value]);
+
+  return (
+    <div className="death-overlay-chance">
+      <span className="death-overlay-chance-label">Chance</span>
+      <span className={`death-overlay-chance-value${pulsing ? ' is-pulsing' : ''}`}>{displayValue}</span>
+    </div>
+  );
+}
+
 // Séquence strictement séquentielle (chaque étape attend la fin de la
 // précédente) — voir styles/_combat.scss pour les transitions CSS associées :
 //   1. darken     — l'écran s'assombrit seul (fade 0 → 95%)
@@ -66,6 +114,18 @@ export default function CombatActivationOverlay() {
   const timersRef = useRef([]);
 
   const clearTimers = () => { timersRef.current.forEach(clearTimeout); timersRef.current = []; };
+
+  // deathPhase: null | 'fade' (écran qui s'assombrit) | 'reveal' ("Vous êtes
+  // mort" + crâne) | 'button' (le bouton "Revenir ?" apparaît en plus) |
+  // 'chance' (clic sur "Revenir ?" : le message s'efface, le compteur de
+  // Chance apparaît à sa place et perd 1 point). Déclenché quand la
+  // Vitalité d'un personnage passe de >0 à <=0 en combat (voir
+  // setResourceActuel) — jamais au montage sur un perso déjà à 0, ni sur
+  // une simple re-lecture de la même valeur.
+  const [deathPhase, setDeathPhase] = useState(null);
+  const deathTimersRef = useRef([]);
+  const clearDeathTimers = () => { deathTimersRef.current.forEach(clearTimeout); deathTimersRef.current = []; };
+  useEffect(() => clearDeathTimers, []);
 
   useEffect(() => {
     const wasActive = prevActiveRef.current;
@@ -182,12 +242,47 @@ export default function CombatActivationOverlay() {
     : null;
   const panelTypes = panelSelections[String(user.id)] || ['inventaire', 'competences', 'grimoire'];
 
+  // Séquence de mort : assombrissement plein écran, puis "Vous êtes mort" +
+  // crâne, puis (après un délai) le bouton "Revenir ?" apparaît. Cliquer
+  // dessus efface le message et fait apparaître le compteur de Chance, qui
+  // perd 1 point. deathContextRef capture le perso/la valeur de Chance au
+  // moment du trigger (pas relu plus tard au clic) pour que le "-1" porte
+  // sur la valeur au moment de la mort, même si autre chose modifiait la
+  // fiche entre-temps.
+  const deathContextRef = useRef({ charId: null, chanceAtDeath: 0 });
+  const triggerDeathSequence = (charId, chanceAtDeath) => {
+    clearDeathTimers();
+    deathContextRef.current = { charId, chanceAtDeath: Number(chanceAtDeath) || 0 };
+    setDeathPhase('fade');
+    const tFade = 1400;
+    const tReveal = tFade + 1300;
+    const tButton = tReveal + 1200;
+    deathTimersRef.current.push(setTimeout(() => setDeathPhase('reveal'), tFade));
+    deathTimersRef.current.push(setTimeout(() => setDeathPhase('button'), tButton));
+  };
+  const confirmDeathReturn = () => {
+    clearDeathTimers();
+    setDeathPhase('chance');
+    const { charId, chanceAtDeath } = deathContextRef.current;
+    deathTimersRef.current.push(setTimeout(() => {
+      updateCharacter(charId, { chance: Math.max(0, chanceAtDeath - 1) });
+    }, 600));
+  };
+
   // Bornée entre 0 et le max de la ressource — on ne veut pas de PV négatifs
   // ni d'un "actuel" qui dépasse le max en tapant une valeur au hasard.
   const setResourceActuel = (key, nextValue) => {
     const pool = selectedChar[key] || { actuel: 0, max: 0 };
     const clamped = Math.max(0, Math.min(pool.max, nextValue));
     updateCharacter(selectedChar.id, { [key]: { ...pool, actuel: clamped } });
+    if (key !== 'vie') return;
+    if (clamped <= 0 && pool.actuel > 0) {
+      triggerDeathSequence(selectedChar.id, selectedChar.chance ?? 0);
+    } else if (clamped > 0 && deathPhase) {
+      // Ressuscité (soin) pendant que l'écran de mort est encore affiché.
+      clearDeathTimers();
+      setDeathPhase(null);
+    }
   };
 
   // Rendu via portail directement dans <body> : n'importe quel ancêtre du
@@ -298,6 +393,26 @@ export default function CombatActivationOverlay() {
           )}
         </div>
       </div>
+
+      {deathPhase && (
+        <div className={`death-overlay death-overlay--${deathPhase}`}>
+          <div className="death-overlay-backdrop" />
+          <div className="death-overlay-content">
+            <div className="death-overlay-message">
+              <DeathSkullIcon />
+              <h2 className="death-overlay-title">Vous êtes mort</h2>
+            </div>
+            {deathPhase === 'button' && (
+              <button type="button" className="death-overlay-return" onClick={confirmDeathReturn}>
+                Revenir ?
+              </button>
+            )}
+            {deathPhase === 'chance' && (
+              <ChanceDeathCounter value={selectedChar?.chance ?? 0} />
+            )}
+          </div>
+        </div>
+      )}
     </div>,
     document.body,
   );

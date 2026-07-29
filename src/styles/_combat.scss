@@ -1254,3 +1254,144 @@
     pointer-events: auto;
   }
 }
+
+// ── Écran de mort (Vitalité <= 0 en combat) ─────────────────────────────
+// Sibling de .combat-overlay-page dans le même portail body, donc pas
+// besoin d'un z-index à 1000000+ (voir .combat-select-dropdown) : il suffit
+// de dépasser .combat-overlay (999999) puisqu'on est déjà dans son propre
+// contexte d'empilement.
+.death-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.death-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  // "fade 0 to 100" demandé explicitement — assombrissement plein écran
+  // avant que quoi que ce soit d'autre n'apparaisse.
+  transition: opacity 1.4s ease;
+}
+
+.death-overlay--fade .death-overlay-backdrop,
+.death-overlay--reveal .death-overlay-backdrop,
+.death-overlay--button .death-overlay-backdrop,
+.death-overlay--chance .death-overlay-backdrop {
+  opacity: 0.97;
+}
+
+.death-overlay-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  text-align: center;
+}
+
+.death-overlay-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 1s ease, transform 1s ease;
+}
+
+.death-overlay--reveal .death-overlay-message,
+.death-overlay--button .death-overlay-message {
+  opacity: 1;
+  transform: scale(1);
+}
+
+// Le message s'efface "petit à petit" une fois "Revenir ?" cliqué, pour
+// laisser place au compteur de Chance.
+.death-overlay--chance .death-overlay-message {
+  opacity: 0;
+  transform: scale(0.92);
+  transition: opacity 1.2s ease, transform 1.2s ease;
+}
+
+.death-overlay-skull {
+  width: 96px;
+  height: 96px;
+  color: #c8302a;
+  filter: drop-shadow(0 0 24px rgba(200, 48, 42, 0.65));
+}
+
+.death-overlay-title {
+  margin: 0;
+  font-family: $font-display;
+  font-size: 52px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #d9463d;
+  text-shadow: 0 0 40px rgba(200, 30, 30, 0.7), 0 0 80px rgba(200, 30, 30, 0.4);
+}
+
+@keyframes death-overlay-pop-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.92); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.death-overlay-return {
+  font-family: $font-caps;
+  font-size: 14px;
+  letter-spacing: 3px;
+  color: var(--gold2);
+  background: rgba(200, 168, 74, 0.1);
+  border: 1px solid rgba(200, 168, 74, 0.4);
+  border-radius: 3px;
+  padding: 12px 32px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  animation: death-overlay-pop-in 0.7s ease both;
+
+  &:hover {
+    background: rgba(200, 168, 74, 0.22);
+    border-color: var(--gold);
+  }
+}
+
+.death-overlay-chance {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  animation: death-overlay-pop-in 0.9s ease both;
+}
+
+.death-overlay-chance-label {
+  font-family: $font-caps;
+  font-size: 13px;
+  letter-spacing: 4px;
+  color: var(--dim);
+  text-transform: uppercase;
+}
+
+.death-overlay-chance-value {
+  font-family: $font-display;
+  font-size: 64px;
+  font-weight: 900;
+  color: var(--gold2);
+  transition: color 0.2s ease;
+
+  &.is-pulsing {
+    color: #d9463d;
+    animation: death-overlay-chance-pulse 0.5s ease;
+  }
+}
+
+@keyframes death-overlay-chance-pulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
