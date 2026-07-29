@@ -4100,7 +4100,31 @@ function groupedRows(rows, categories, fallbackLabel) {
     .filter((group) => group.rows.length > 0);
 }
 
-function KnowledgeCategorySection({ category, rows, onRemove }) {
+// Champ texte éditable inline (sans parsing de formule, contrairement à
+// FormulaInput) — le "Bonus"/"Source" d'une connaissance ou langue reste du
+// texte libre ("+2", "Racial"…), pas forcément un nombre.
+function InlineEditableText({ value, onCommit, placeholder }) {
+  const [draft, setDraft] = useState(value ?? '');
+  const [trackedValue, setTrackedValue] = useState(value);
+  if (value !== trackedValue) {
+    setTrackedValue(value);
+    setDraft(value ?? '');
+  }
+  const commit = () => onCommit(draft);
+  return (
+    <input
+      type="text"
+      className="sheet-inline-input"
+      value={draft}
+      placeholder={placeholder}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); commit(); } }}
+    />
+  );
+}
+
+function KnowledgeCategorySection({ category, rows, onRemove, onFieldChange }) {
   return (
     <details className="sheet-ref-category" open>
       <summary>
@@ -4119,7 +4143,11 @@ function KnowledgeCategorySection({ category, rows, onRemove }) {
             <strong>
               <SmartText text={`{knowledge.${c.nom || c.key}}`} className="sheet-plain-tag" plainTags />
             </strong>
-            <em>{c.bonus ?? '—'}</em>
+            <em>
+              {c.removable ? (
+                <InlineEditableText value={c.bonus ?? ''} placeholder="—" onCommit={(next) => onFieldChange(c.rawIndex, 'bonus', next)} />
+              ) : (c.bonus ?? '—')}
+            </em>
             <span className="apt-row-remove-cell">
               {c.removable && (
                 <button type="button" className="apt-row-remove" title="Retirer" onClick={() => onRemove(c.rawIndex)}>×</button>
@@ -4132,7 +4160,7 @@ function KnowledgeCategorySection({ category, rows, onRemove }) {
   );
 }
 
-function LanguageCategorySection({ category, rows, onRemove }) {
+function LanguageCategorySection({ category, rows, onRemove, onFieldChange }) {
   return (
     <details className="sheet-ref-category" open>
       <summary>
@@ -4152,8 +4180,16 @@ function LanguageCategorySection({ category, rows, onRemove }) {
             <strong>
               <SmartText text={`{language.${l.nom || l.key}}`} className="sheet-plain-tag" plainTags />
             </strong>
-            <span>{l.type ?? '—'}</span>
-            <em>{l.bonus ?? '—'}</em>
+            <span>
+              {l.removable ? (
+                <InlineEditableText value={l.type ?? ''} placeholder="—" onCommit={(next) => onFieldChange(l.rawIndex, 'type', next)} />
+              ) : (l.type ?? '—')}
+            </span>
+            <em>
+              {l.removable ? (
+                <InlineEditableText value={l.bonus ?? ''} placeholder="—" onCommit={(next) => onFieldChange(l.rawIndex, 'bonus', next)} />
+              ) : (l.bonus ?? '—')}
+            </em>
             <span className="apt-row-remove-cell">
               {l.removable && (
                 <button type="button" className="apt-row-remove" title="Retirer" onClick={() => onRemove(l.rawIndex)}>×</button>
@@ -4304,6 +4340,16 @@ function DetailAptitudes({ char }) {
   const removeLangue = (rawIndex) => {
     updateCharacter(char.id, { langues: rawLangues.filter((_, i) => i !== rawIndex) });
   };
+  const setConnaissanceField = (rawIndex, field, nextValue) => {
+    updateCharacter(char.id, {
+      connaissances: rawConnaissances.map((row, i) => (i === rawIndex ? { ...row, [field]: nextValue } : row)),
+    });
+  };
+  const setLangueField = (rawIndex, field, nextValue) => {
+    updateCharacter(char.id, {
+      langues: rawLangues.map((row, i) => (i === rawIndex ? { ...row, [field]: nextValue } : row)),
+    });
+  };
   const [addingKnowledge, setAddingKnowledge] = useState(false);
   const [addingLanguage, setAddingLanguage] = useState(false);
   const knowledgeGroups = groupedRows(connaissances, customKnowledgeCategories, 'Autres connaissances');
@@ -4426,7 +4472,7 @@ function DetailAptitudes({ char }) {
         {connaissances.length > 0 ? (
           <div className="apt-list-panel">
             {knowledgeGroups.map(({ category, rows }) => (
-              <KnowledgeCategorySection key={category.key} category={category} rows={rows} onRemove={removeConnaissance} />
+              <KnowledgeCategorySection key={category.key} category={category} rows={rows} onRemove={removeConnaissance} onFieldChange={setConnaissanceField} />
             ))}
           </div>
         ) : (
@@ -4452,7 +4498,7 @@ function DetailAptitudes({ char }) {
         {langues.length > 0 ? (
           <div className="apt-list-panel">
             {languageGroups.map(({ category, rows }) => (
-              <LanguageCategorySection key={category.key} category={category} rows={rows} onRemove={removeLangue} />
+              <LanguageCategorySection key={category.key} category={category} rows={rows} onRemove={removeLangue} onFieldChange={setLangueField} />
             ))}
           </div>
         ) : (
