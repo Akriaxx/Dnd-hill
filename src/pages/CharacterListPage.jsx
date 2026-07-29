@@ -4100,7 +4100,7 @@ function groupedRows(rows, categories, fallbackLabel) {
     .filter((group) => group.rows.length > 0);
 }
 
-function KnowledgeCategorySection({ category, rows }) {
+function KnowledgeCategorySection({ category, rows, onRemove }) {
   return (
     <details className="sheet-ref-category" open>
       <summary>
@@ -4112,6 +4112,7 @@ function KnowledgeCategorySection({ category, rows }) {
         <div className="apt-knowledge-head">
           <span>Connaissance</span>
           <span>Bonus</span>
+          <span />
         </div>
         {rows.map((c, i) => (
           <div className="apt-knowledge-row" key={`${c.key || c.nom}-${i}`}>
@@ -4119,6 +4120,11 @@ function KnowledgeCategorySection({ category, rows }) {
               <SmartText text={`{knowledge.${c.nom || c.key}}`} className="sheet-plain-tag" plainTags />
             </strong>
             <em>{c.bonus ?? '—'}</em>
+            <span className="apt-row-remove-cell">
+              {c.removable && (
+                <button type="button" className="apt-row-remove" title="Retirer" onClick={() => onRemove(c.rawIndex)}>×</button>
+              )}
+            </span>
           </div>
         ))}
       </div>
@@ -4126,7 +4132,7 @@ function KnowledgeCategorySection({ category, rows }) {
   );
 }
 
-function LanguageCategorySection({ category, rows }) {
+function LanguageCategorySection({ category, rows, onRemove }) {
   return (
     <details className="sheet-ref-category" open>
       <summary>
@@ -4139,6 +4145,7 @@ function LanguageCategorySection({ category, rows }) {
           <span>Langue</span>
           <span>Source</span>
           <span>Bonus</span>
+          <span />
         </div>
         {rows.map((l, i) => (
           <div className="apt-language-row" key={`${l.key || l.nom}-${i}`}>
@@ -4147,10 +4154,103 @@ function LanguageCategorySection({ category, rows }) {
             </strong>
             <span>{l.type ?? '—'}</span>
             <em>{l.bonus ?? '—'}</em>
+            <span className="apt-row-remove-cell">
+              {l.removable && (
+                <button type="button" className="apt-row-remove" title="Retirer" onClick={() => onRemove(l.rawIndex)}>×</button>
+              )}
+            </span>
           </div>
         ))}
       </div>
     </details>
+  );
+}
+
+// ── Ajout direct d'une connaissance/langue depuis la fiche, sans passer
+// par "Modifier" — datalist suggère le catalogue admin (customKnowledge/
+// customLanguages) mais accepte aussi du texte libre.
+function KnowledgeAddRow({ catalog, existingNames, onAdd }) {
+  const [nom, setNom] = useState('');
+  const [bonus, setBonus] = useState('');
+  const taken = new Set(existingNames.map((n) => String(n || '').toLowerCase().trim()));
+  const options = (catalog || []).filter((c) => c.nom && !taken.has(c.nom.toLowerCase().trim()));
+  const submit = () => {
+    const trimmed = nom.trim();
+    if (!trimmed) return;
+    onAdd(trimmed, bonus.trim());
+    setNom('');
+    setBonus('');
+  };
+  return (
+    <div className="apt-add-row">
+      <input
+        className="apt-add-input"
+        list="knowledge-catalog-options"
+        placeholder="Connaissance…"
+        value={nom}
+        onChange={(e) => setNom(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
+        autoFocus
+      />
+      <datalist id="knowledge-catalog-options">
+        {options.map((c) => <option key={c.nom} value={c.nom} />)}
+      </datalist>
+      <input
+        className="apt-add-input apt-add-input--bonus"
+        placeholder="Bonus"
+        value={bonus}
+        onChange={(e) => setBonus(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
+      />
+      <button type="button" className="btn-ghost" onClick={submit}>Ajouter</button>
+    </div>
+  );
+}
+
+function LanguageAddRow({ catalog, existingNames, onAdd }) {
+  const [nom, setNom] = useState('');
+  const [type, setType] = useState('');
+  const [bonus, setBonus] = useState('');
+  const taken = new Set(existingNames.map((n) => String(n || '').toLowerCase().trim()));
+  const options = (catalog || []).filter((c) => c.nom && !taken.has(c.nom.toLowerCase().trim()));
+  const submit = () => {
+    const trimmed = nom.trim();
+    if (!trimmed) return;
+    onAdd(trimmed, type.trim(), bonus.trim());
+    setNom('');
+    setType('');
+    setBonus('');
+  };
+  return (
+    <div className="apt-add-row">
+      <input
+        className="apt-add-input"
+        list="language-catalog-options"
+        placeholder="Langue…"
+        value={nom}
+        onChange={(e) => setNom(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
+        autoFocus
+      />
+      <datalist id="language-catalog-options">
+        {options.map((c) => <option key={c.nom} value={c.nom} />)}
+      </datalist>
+      <input
+        className="apt-add-input"
+        placeholder="Source"
+        value={type}
+        onChange={(e) => setType(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
+      />
+      <input
+        className="apt-add-input apt-add-input--bonus"
+        placeholder="Bonus"
+        value={bonus}
+        onChange={(e) => setBonus(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
+      />
+      <button type="button" className="btn-ghost" onClick={submit}>Ajouter</button>
+    </div>
   );
 }
 
@@ -4176,14 +4276,36 @@ function DetailAptitudes({ char }) {
   const customKnowledge = useAdminStore((state) => state.customKnowledge);
   const customLanguageCategories = useAdminStore((state) => state.customLanguageCategories);
   const customLanguages = useAdminStore((state) => state.customLanguages);
+  const rawConnaissances = char.connaissances ?? [];
+  const rawLangues = char.langues ?? [];
+  // rawIndex/removable : les entrées ajoutées par le joueur (les seules
+  // stockées dans char.connaissances/char.langues) restent en tête de la
+  // liste fusionnée (merge*Rows garde l'ordre, il ne fait qu'ajouter les
+  // bonus/racial à la suite) — d'où le découpage par longueur du tableau
+  // brut. Les lignes issues d'un bonus ou d'une race ne sont pas retirables.
   const connaissances = enrichRowsByCatalog(
-    mergeKnowledgeRows(char.connaissances ?? [], char.connaissancesBonus),
+    mergeKnowledgeRows(rawConnaissances, char.connaissancesBonus),
     buildEntryCatalog(customKnowledge),
-  );
+  ).map((row, i) => ({ ...row, rawIndex: i, removable: i < rawConnaissances.length }));
   const langues       = enrichRowsByCatalog(
-    mergeComputedLanguageRows(char.langues ?? [], char.languesBonus, getComputedLanguageRows(char)),
+    mergeComputedLanguageRows(rawLangues, char.languesBonus, getComputedLanguageRows(char)),
     buildEntryCatalog(customLanguages),
-  );
+  ).map((row, i) => ({ ...row, rawIndex: i, removable: i < rawLangues.length }));
+  // Ajout/retrait direct depuis la fiche, sans passer par "Modifier".
+  const addConnaissance = (nom, bonus) => {
+    updateCharacter(char.id, { connaissances: [...rawConnaissances, { nom, bonus }] });
+  };
+  const removeConnaissance = (rawIndex) => {
+    updateCharacter(char.id, { connaissances: rawConnaissances.filter((_, i) => i !== rawIndex) });
+  };
+  const addLangue = (nom, type, bonus) => {
+    updateCharacter(char.id, { langues: [...rawLangues, { nom, type, bonus }] });
+  };
+  const removeLangue = (rawIndex) => {
+    updateCharacter(char.id, { langues: rawLangues.filter((_, i) => i !== rawIndex) });
+  };
+  const [addingKnowledge, setAddingKnowledge] = useState(false);
+  const [addingLanguage, setAddingLanguage] = useState(false);
   const knowledgeGroups = groupedRows(connaissances, customKnowledgeCategories, 'Autres connaissances');
   const languageGroups = groupedRows(langues, customLanguageCategories, 'Autres langues');
   const historique    = char.historiquePerso ?? null;
@@ -4288,11 +4410,23 @@ function DetailAptitudes({ char }) {
 
       {/* ── Connaissances ── */}
       <section className="detail-section">
-        <SectionTitleWithCount title="Mes Connaissances" count={connaissances.length} />
+        <SectionTitleWithCount
+          title="Mes Connaissances"
+          count={connaissances.length}
+          addOpen={addingKnowledge}
+          onToggleAdd={() => setAddingKnowledge((v) => !v)}
+        />
+        {addingKnowledge && (
+          <KnowledgeAddRow
+            catalog={customKnowledge}
+            existingNames={rawConnaissances.map((c) => c.nom)}
+            onAdd={(nom, bonus) => { addConnaissance(nom, bonus); setAddingKnowledge(false); }}
+          />
+        )}
         {connaissances.length > 0 ? (
           <div className="apt-list-panel">
             {knowledgeGroups.map(({ category, rows }) => (
-              <KnowledgeCategorySection key={category.key} category={category} rows={rows} />
+              <KnowledgeCategorySection key={category.key} category={category} rows={rows} onRemove={removeConnaissance} />
             ))}
           </div>
         ) : (
@@ -4302,11 +4436,23 @@ function DetailAptitudes({ char }) {
 
       {/* ── Langues ── */}
       <section className="detail-section">
-        <SectionTitleWithCount title="Mes Langues" count={langues.length} />
+        <SectionTitleWithCount
+          title="Mes Langues"
+          count={langues.length}
+          addOpen={addingLanguage}
+          onToggleAdd={() => setAddingLanguage((v) => !v)}
+        />
+        {addingLanguage && (
+          <LanguageAddRow
+            catalog={customLanguages}
+            existingNames={rawLangues.map((l) => l.nom)}
+            onAdd={(nom, type, bonus) => { addLangue(nom, type, bonus); setAddingLanguage(false); }}
+          />
+        )}
         {langues.length > 0 ? (
           <div className="apt-list-panel">
             {languageGroups.map(({ category, rows }) => (
-              <LanguageCategorySection key={category.key} category={category} rows={rows} />
+              <LanguageCategorySection key={category.key} category={category} rows={rows} onRemove={removeLangue} />
             ))}
           </div>
         ) : (
@@ -4317,11 +4463,16 @@ function DetailAptitudes({ char }) {
   );
 }
 
-function SectionTitleWithCount({ title, count }) {
+function SectionTitleWithCount({ title, count, addOpen, onToggleAdd }) {
   return (
     <div className="apt-section-header">
       <h2>{title}</h2>
       <span className="apt-count-badge">{count}</span>
+      {onToggleAdd && (
+        <button type="button" className="apt-add-toggle" onClick={onToggleAdd} title="Ajouter">
+          {addOpen ? '−' : '+'}
+        </button>
+      )}
     </div>
   );
 }
