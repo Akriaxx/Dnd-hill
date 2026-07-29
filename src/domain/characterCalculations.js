@@ -500,8 +500,13 @@ export function getAptitudeBreakdown(char, aptitude) {
   };
 }
 
-export function getResourceData(char) {
-  const classDef = getClassDefinition(char) ?? {};
+// classDefOverride = classe résolue avec les données admin (custom + statique
+// fusionnées, voir getCombinedClassDefinition côté appelant) — getClassDefinition
+// seul ne lit que CLASSES, un tableau volontairement vide (voir gameData.js),
+// donc `base` retombait à 0 et tout le vie.max de départ (créé au niveau 0,
+// sans aucun level up) s'affichait à tort sous "Levelup".
+export function getResourceData(char, classDefOverride = null) {
+  const classDef = classDefOverride || getClassDefinition(char) || {};
 
   return [
     { key: 'vie', title: 'Vitalité', short: 'DDV', pool: char?.vie, base: classDef.vie || 0 },

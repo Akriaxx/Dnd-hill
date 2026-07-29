@@ -4,14 +4,19 @@ import { useCharacterStore } from '../../../store/characterStore';
 import { useAdminStore } from '../../../store/adminStore';
 import { ConfirmModal } from '../AdminShared';
 import { STAT_KEYS } from '../adminUtils';
-import { getResourceData, getStatBreakdown, signed, statLabel } from '../../../domain/characterCalculations';
+import { getClassDefinition, getResourceData, getStatBreakdown, signed, statLabel } from '../../../domain/characterCalculations';
 
 function CharacterReviewCard({ char, onApprove, onReject }) {
   const [open, setOpen] = useState(true);
-  const { customCaracteristiques } = useAdminStore();
+  const { customCaracteristiques, customClasses } = useAdminStore();
   const caracsDef = [...(customCaracteristiques || [])].sort((a, b) => (a.ordre || 0) - (b.ordre || 0));
   const caracDefsMap = Object.fromEntries(caracsDef.map((c) => [c.cle, c]));
-  const resources = getResourceData(char);
+  // getClassDefinition seul ne lit que le catalogue statique (vide, voir
+  // gameData.js) — même bug/fix que DetailStats côté fiche perso.
+  const classBase = getClassDefinition(char) || {};
+  const customClassDef = (customClasses || []).find((entry) => entry.nom === char?.classe);
+  const classDef = customClassDef ? { ...classBase, ...customClassDef } : classBase;
+  const resources = getResourceData(char, classDef);
   const stats = caracsDef.map((c) => ({
     ...getStatBreakdown(char, c.cle, caracDefsMap),
     label: c.nom,

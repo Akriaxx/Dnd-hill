@@ -3492,7 +3492,7 @@ function CaracNameCell({ carac }) {
 }
 
 function DetailStats({ char }) {
-  const { customRaces, customAscendances, customCaracteristiques } = useAdminStore();
+  const { customRaces, customAscendances, customCaracteristiques, customClasses } = useAdminStore();
   const updateCharacter = useCharacterStore((s) => s.updateCharacter);
   const movementBase = resolveMovementBase(char, customRaces, customAscendances);
   const movementChar = {
@@ -3502,9 +3502,10 @@ function DetailStats({ char }) {
       base: movementBase,
     },
   };
+  const classDef      = getCombinedClassDefinition(char, customClasses) || {};
   const combatStats   = getCombatStats(char);
   const movement      = getMovementData(movementChar);
-  const resources     = getResourceData(char);
+  const resources     = getResourceData(char, classDef);
   const pointsCarac   = char.pointsCarac ?? 0;
   // "actuel" éditable directement depuis la fiche, sans passer par le mode
   // "Modifier" — même champ (char.vie/mana/endu) que celui lu/écrit par le
@@ -3550,7 +3551,6 @@ function DetailStats({ char }) {
       deplacement: { ...(char.deplacement || {}), [field]: nextValue },
     });
   };
-  const classDef      = getClassDefinition(char) || {};
   const masteryStat   = classDef.magique || 'CHA';
   const enduranceStat = classDef.physique || 'DEX';
   const caracs = [...(customCaracteristiques || [])].sort((a, b) => (a.ordre || 0) - (b.ordre || 0));
@@ -5011,6 +5011,13 @@ function DetailInventaire({ char }) {
     base: carryingBase,
     objectBonus: getEquippedItemEffectSum(char, 'emplacements'),
   };
+  // Bonus/Malus Temp. des emplacements — persisté dans char.emplacements,
+  // même principe que setMovementTempField pour le déplacement.
+  const setEmplacementsTempField = (field, nextValue) => {
+    updateCharacter(char.id, {
+      emplacements: { ...(char.emplacements || {}), [field]: nextValue },
+    });
+  };
   const totalSlots = Math.max(1,
     (e.base ?? 0) +
     (e.bonus ?? 0) + (e.objectBonus ?? 0) + (e.tempBonus ?? 0) -
@@ -5164,10 +5171,22 @@ function DetailInventaire({ char }) {
               <td className="inv2-emp-base">{e.base ?? 50}</td>
               <td className={`inv2-emp-val${(e.bonus ?? 0) > 0 ? ' inv2-pos' : ''}`}>{e.bonus ?? 0}</td>
               <td className={`inv2-emp-val${(e.objectBonus ?? 0) > 0 ? ' inv2-pos' : ''}`}>{e.objectBonus ?? 0}</td>
-              <td className={`inv2-emp-val${(e.tempBonus ?? 0) > 0 ? ' inv2-pos' : ''}`}>{e.tempBonus ?? 0}</td>
+              <td className={`inv2-emp-val${(e.tempBonus ?? 0) > 0 ? ' inv2-pos' : ''}`}>
+                <FormulaInput
+                  className="sheet-inline-input"
+                  value={e.tempBonus ?? 0}
+                  onCommit={(next) => setEmplacementsTempField('tempBonus', next)}
+                />
+              </td>
               <td className={`inv2-emp-val${(e.malus ?? 0) > 0 ? ' inv2-neg' : ''}`}>{e.malus ?? 0}</td>
               <td className={`inv2-emp-val${(e.objectMalus ?? 0) > 0 ? ' inv2-neg' : ''}`}>{e.objectMalus ?? 0}</td>
-              <td className={`inv2-emp-val${(e.tempMalus ?? 0) > 0 ? ' inv2-neg' : ''}`}>{e.tempMalus ?? 0}</td>
+              <td className={`inv2-emp-val${(e.tempMalus ?? 0) > 0 ? ' inv2-neg' : ''}`}>
+                <FormulaInput
+                  className="sheet-inline-input"
+                  value={e.tempMalus ?? 0}
+                  onCommit={(next) => setEmplacementsTempField('tempMalus', next)}
+                />
+              </td>
             </tr>
           </tbody>
         </table>
