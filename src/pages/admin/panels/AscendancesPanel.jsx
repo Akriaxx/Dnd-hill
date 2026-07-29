@@ -177,6 +177,7 @@ function AscendanceForm({ initial, raceOptions, onSave, onCancel, onClose }) {
       nom: form.nom.trim(),
       description: form.description.trim(),
       competenceAscendance: (form.competenceAscendance || '').trim(),
+      langue: (form.langue || '').trim(),
       baseResources: { ...BLANK_ASCENDANCE.baseResources, ...(form.baseResources || {}) },
       resistanceBonuses: cleanResistanceBonuses,
       aptitudes: cleanAptitudes,
@@ -251,6 +252,15 @@ function AscendanceForm({ initial, raceOptions, onSave, onCancel, onClose }) {
               <div className="race-form-field">
                 <label>Compétence d'ascendance</label>
                 <SmartDescEditor value={form.competenceAscendance || ''} onChange={(v) => set('competenceAscendance', v)} placeholder="Ex: [ Sang ancien ] - ..." />
+              </div>
+              <div className="race-form-field">
+                <label>Langue accordée</label>
+                <p className="race-form-hint">Langue obtenue automatiquement par un personnage de cette ascendance (visible dans "Mes Langues" sur la fiche).</p>
+                <input
+                  value={form.langue || ''}
+                  onChange={(e) => set('langue', e.target.value)}
+                  placeholder="Ex: [ Mécani ] - ( +4 Ascendance ) ou [ Mécani ] - ( Ascendance )"
+                />
               </div>
             </div>
 

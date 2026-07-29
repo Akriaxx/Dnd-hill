@@ -4312,6 +4312,8 @@ function DetailAptitudes({ char }) {
   const customKnowledge = useAdminStore((state) => state.customKnowledge);
   const customLanguageCategories = useAdminStore((state) => state.customLanguageCategories);
   const customLanguages = useAdminStore((state) => state.customLanguages);
+  const customAscendances = useAdminStore((state) => state.customAscendances);
+  const ascendanceDef = getCombinedAscendanceBase(char.ascendance, customAscendances);
   const rawConnaissances = char.connaissances ?? [];
   const rawLangues = char.langues ?? [];
   // rawIndex/removable : les entrées ajoutées par le joueur (les seules
@@ -4324,7 +4326,7 @@ function DetailAptitudes({ char }) {
     buildEntryCatalog(customKnowledge),
   ).map((row, i) => ({ ...row, rawIndex: i, removable: i < rawConnaissances.length }));
   const langues       = enrichRowsByCatalog(
-    mergeComputedLanguageRows(rawLangues, char.languesBonus, getComputedLanguageRows(char)),
+    mergeComputedLanguageRows(rawLangues, char.languesBonus, getComputedLanguageRows(char, ascendanceDef)),
     buildEntryCatalog(customLanguages),
   ).map((row, i) => ({ ...row, rawIndex: i, removable: i < rawLangues.length }));
   // Ajout/retrait direct depuis la fiche, sans passer par "Modifier".

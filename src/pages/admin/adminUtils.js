@@ -191,6 +191,11 @@ export const BLANK_ASCENDANCE = {
   description: '',
   tagColor: '#bcecff',
   competenceAscendance: '',
+  // Langue accordée automatiquement par cette ascendance, format texte
+  // "[ Nom ] - ( +4 Ascendance )" ou "[ Nom ] - ( Ascendance )" pour un
+  // don complet — parsé par parseLanguageRule (characterCalculations.js),
+  // même format que ce qui existait déjà (mais jamais câblé) pour Provenance.
+  langue: '',
   bonusStats: { FOR: 0, DEX: 0, CON: 0, INT: 0, SAG: 0, CHA: 0 },
   baseResources: { vie: 0, endurance: 0, mana: 0 },
   replaceRaceStats: false,

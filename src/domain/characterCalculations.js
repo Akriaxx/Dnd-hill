@@ -549,10 +549,18 @@ function parseLanguageRule(line) {
   return { nom: name, type, bonus };
 }
 
-export function getComputedLanguageRows(char) {
+// ascendanceDefOverride = ascendance résolue avec les données admin (custom +
+// statique, voir getCombinedAscendanceBase côté appelant) — sans ça,
+// getAscendanceDefinition seul ne lit que ASCENDANCE_DATA, un tableau
+// volontairement vide (voir gameData.js), donc la langue d'ascendance ne
+// ressortait jamais. Le lookup PROVENANCE_DATA.find(...ascendance) qu'il
+// remplace cherchait en plus dans le mauvais catalogue (Provenance, pas
+// Ascendance) par-dessus le marché.
+export function getComputedLanguageRows(char, ascendanceDefOverride = null) {
+  const ascendanceDef = ascendanceDefOverride || getAscendanceDefinition(char) || {};
   return [
     parseLanguageRule(getProvenanceDefinition(char)?.langue),
-    parseLanguageRule(PROVENANCE_DATA.find((item) => item.nom === char?.ascendance)?.langue),
+    parseLanguageRule(ascendanceDef.langue),
   ].filter(Boolean);
 }
 
