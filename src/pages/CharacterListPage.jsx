@@ -3379,13 +3379,25 @@ function DetailFiche({ char }) {
                 ['Origine',     char.origine],
                 ['Historique',  char.historique],
                 ['Maîtrise',    char.maitrise || ''],
-                ['Chance',      chance],
               ].map(([label, value]) => (
                 <div className="fiche-id-row" key={label}>
                   <span className="fiche-id-label">{label}</span>
                   <span className="fiche-id-value">{value ?? '—'}</span>
                 </div>
               ))}
+              {/* Seul champ éditable de cette grille — à la différence de
+                  Classe/Origine/Historique etc. (des choix d'identité, qui
+                  passent par "Modifier"), la Chance change en cours de jeu
+                  (perdue en mourant, voir CombatActivationOverlay) et n'a
+                  pas d'autre endroit où l'ajuster à la main. */}
+              <div className="fiche-id-row">
+                <span className="fiche-id-label">Chance</span>
+                <FormulaInput
+                  className="fiche-id-value--input"
+                  value={chance}
+                  onCommit={(next) => updateCharacter(char.id, { chance: Math.max(0, next) })}
+                />
+              </div>
             </div>
 
             {/* Colonne 3 — Physique */}

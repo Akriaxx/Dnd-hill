@@ -33,6 +33,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
+  isolation: isolate;
   padding: 16px 80px 56px;
   overflow: visible;
   min-height: 0;
@@ -45,7 +46,8 @@
 .select-fog {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  // The smoke is a strict background layer: never above the cards or sheet.
+  z-index: -1;
   pointer-events: none;
   overflow: hidden;
   opacity: 0.78;
@@ -1600,6 +1602,7 @@
   border-radius: 4px;
   box-shadow: 0 20px 80px rgba(0, 0, 0, 0.36);
   overflow: hidden;
+  z-index: 40;
   animation: detail-panel-enter 0.76s cubic-bezier(0.22, 1, 0.36, 1) both;
 
   &.is-closing {
@@ -3566,6 +3569,27 @@ $tab-section-gap: 40px;   // espace entre sections
   align-items: center;
   flex: 1;
   line-height: 1.4;
+}
+
+// Chance : seule valeur éditable de cette grille (le reste passe par
+// "Modifier") — mêmes métriques que .fiche-id-value mais sans display:flex
+// (non fiable sur un <input>) et un input transparent en dessous.
+.fiche-id-value--input {
+  flex: 1;
+  min-width: 0;
+  padding: 16px 20px;
+  font-family: $font-body;
+  font-size: 16px;
+  color: $white-text;
+  line-height: 1.4;
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed transparent;
+  outline: none;
+  transition: border-color 0.15s ease;
+
+  &:hover { border-bottom-color: rgba(200,168,74,0.4); }
+  &:focus { border-bottom-color: var(--gold); }
 }
 
 .sheet-general-grid {
