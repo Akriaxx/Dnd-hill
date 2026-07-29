@@ -398,34 +398,38 @@ export default function CombatActivationOverlay() {
         </div>
       </div>
 
-      {deathPhase && (
-        <div className={`death-overlay death-overlay--${deathPhase}`}>
-          <div className="death-overlay-backdrop" />
-          <div className="death-overlay-content">
-            <div className="death-overlay-message">
-              <DeathSkullIcon />
-              <h2 className="death-overlay-title">Vous êtes mort</h2>
-            </div>
-            {/* Bouton et compteur montés dès le départ (juste invisibles,
-                voir CSS) plutôt qu'au moment de leur phase : sinon leur
-                apparition change la hauteur de .death-overlay-content, qui
-                est centré verticalement — "Vous êtes mort" se décalerait
-                vers le haut au moment même où le bouton apparaît. */}
-            <div className="death-overlay-action-stack">
-              <button
-                type="button"
-                className="death-overlay-return"
-                onClick={confirmDeathReturn}
-                disabled={deathPhase !== 'button'}
-                tabIndex={deathPhase === 'button' ? 0 : -1}
-              >
-                Revenir ?
-              </button>
-              <ChanceDeathCounter value={selectedChar?.chance ?? 0} />
-            </div>
+      {/* Toujours monté (jamais démontée/remontée), comme .combat-overlay
+          plus haut — sinon la toute première frame après un déclenchement
+          apparaît déjà avec l'opacité finale et le navigateur n'a rien à
+          transitionner (le fade "en douceur" demandé se voyait sauter
+          directement au noir). deathPhase || 'idle' donne l'état de repos
+          (backdrop opacity:0, pointer-events:none, voir CSS). */}
+      <div className={`death-overlay death-overlay--${deathPhase || 'idle'}`}>
+        <div className="death-overlay-backdrop" />
+        <div className="death-overlay-content">
+          <div className="death-overlay-message">
+            <DeathSkullIcon />
+            <h2 className="death-overlay-title">Vous êtes mort</h2>
+          </div>
+          {/* Bouton et compteur montés dès le départ (juste invisibles,
+              voir CSS) plutôt qu'au moment de leur phase : sinon leur
+              apparition change la hauteur de .death-overlay-content, qui
+              est centré verticalement — "Vous êtes mort" se décalerait
+              vers le haut au moment même où le bouton apparaît. */}
+          <div className="death-overlay-action-stack">
+            <button
+              type="button"
+              className="death-overlay-return"
+              onClick={confirmDeathReturn}
+              disabled={deathPhase !== 'button'}
+              tabIndex={deathPhase === 'button' ? 0 : -1}
+            >
+              Revenir ?
+            </button>
+            <ChanceDeathCounter value={selectedChar?.chance ?? 0} />
           </div>
         </div>
-      )}
+      </div>
     </div>,
     document.body,
   );

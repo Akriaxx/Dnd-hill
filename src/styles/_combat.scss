@@ -1260,6 +1260,9 @@
 // besoin d'un z-index à 1000000+ (voir .combat-select-dropdown) : il suffit
 // de dépasser .combat-overlay (999999) puisqu'on est déjà dans son propre
 // contexte d'empilement.
+// Toujours monté (voir CombatActivationOverlay.jsx) : pointer-events:none
+// au repos ('idle'), sinon ce plein écran invisible bloquerait tous les
+// clics en permanence dès que le composant est monté, même hors combat.
 .death-overlay {
   position: fixed;
   inset: 0;
@@ -1267,6 +1270,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: none;
+}
+
+.death-overlay--fade,
+.death-overlay--reveal,
+.death-overlay--button,
+.death-overlay--chance {
+  pointer-events: auto;
 }
 
 .death-overlay-backdrop {
@@ -1329,11 +1340,19 @@
 // tout le bloc) ne se décale pas quand le bouton devient visible.
 .death-overlay-action-stack {
   display: grid;
+  justify-items: center;
+  align-items: center;
 }
 
 .death-overlay-return,
 .death-overlay-chance {
   grid-area: 1 / 1;
+  // Sans ça, un item de grille s'étire par défaut pour remplir toute la
+  // cellule — ici la plus grande des deux (le compteur de Chance, avec ses
+  // 64px de chiffre), ce qui gonflait le bouton "Revenir ?" bien au-delà
+  // de sa taille de contenu réelle.
+  justify-self: center;
+  align-self: center;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.9s ease;
