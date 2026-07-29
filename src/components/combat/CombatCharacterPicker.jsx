@@ -20,7 +20,7 @@ export default function CombatCharacterPicker({ characters, selectedId, onSelect
   return (
     <div className="combat-char-picker" ref={wrapRef}>
       <button type="button" className="combat-char-picker-trigger" onClick={() => setOpen((v) => !v)}>
-        {selected ? selected.nom : 'Choisir un personnage'}
+        <span className="combat-char-picker-trigger-label">{selected ? selected.nom : 'Choisir un personnage'}</span>
         <span className="combat-char-picker-caret">▾</span>
       </button>
       {open && (

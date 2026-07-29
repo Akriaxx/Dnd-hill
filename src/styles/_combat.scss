@@ -65,12 +65,18 @@
   background: rgba(0, 0, 0, 0.25);
   color: $white-text;
   cursor: pointer;
-  white-space: nowrap;
   transition: border-color 0.15s ease;
 
   &:hover {
     border-color: $gold;
   }
+}
+
+.combat-char-picker-trigger-label {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .combat-char-picker-caret {
@@ -1142,8 +1148,10 @@
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
-  width: max-content;
-  min-width: 380px;
+  // Largeur fixe plutôt que max-content : sinon la carte se redimensionne
+  // à chaque sélection selon la longueur du nom du personnage choisi (le
+  // trigger du picker, en dessous, n'a pas de largeur propre).
+  width: 420px;
   margin-top: 26px;
   padding: 30px 40px;
   border: 1px solid rgba(200, 168, 74, 0.4);
@@ -1206,7 +1214,16 @@
 // Le sélecteur de personnage partage ses classes avec la barre d'outils de
 // l'écran de combat complet (.combat-page-toolbar, plus compacte) — on
 // agrandit uniquement dans ce contexte pour rester lisible à cette échelle.
+// La carte a maintenant une largeur fixe (voir .combat-overlay-picker) —
+// le picker doit remplir sa part de la rangée au lieu de suivre la largeur
+// naturelle du texte, avec troncature si un nom est trop long pour tenir.
+.combat-overlay-picker .combat-char-picker {
+  flex: 1;
+  min-width: 0;
+}
+
 .combat-overlay-picker .combat-char-picker-trigger {
+  width: 100%;
   font-size: 15px;
   padding: 11px 18px;
 }

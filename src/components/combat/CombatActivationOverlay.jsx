@@ -268,9 +268,18 @@ export default function CombatActivationOverlay() {
     clearDeathTimers();
     setDeathPhase('chance');
     const { charId, chanceAtDeath } = deathContextRef.current;
+    const tSave = 600;
+    // ChanceDeathCounter pulse ~500ms après le changement de valeur, puis
+    // une pause pour laisser le temps de voir le nouveau chiffre avant que
+    // tout s'efface. deathPhase(null) suffit à tout fermer : le compteur
+    // (et le fond noir) repassent en --idle, ce qui les fait disparaître en
+    // fondu — l'écran de combat en dessous n'a jamais été démonté pendant
+    // la séquence, il redevient donc visible/cliquable tel qu'il était.
+    const tClose = tSave + 500 + 1400;
     deathTimersRef.current.push(setTimeout(() => {
       updateCharacter(charId, { chance: Math.max(0, chanceAtDeath - 1) });
-    }, 600));
+    }, tSave));
+    deathTimersRef.current.push(setTimeout(() => setDeathPhase(null), tClose));
   };
 
   // Bornée entre 0 et le max de la ressource — on ne veut pas de PV négatifs
