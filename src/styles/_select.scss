@@ -6239,6 +6239,7 @@ tr {
 
 .inv2-emp-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
 
   th {
