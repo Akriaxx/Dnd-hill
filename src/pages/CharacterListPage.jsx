@@ -4144,9 +4144,7 @@ function KnowledgeCategorySection({ category, rows, onRemove, onFieldChange }) {
               <SmartText text={`{knowledge.${c.nom || c.key}}`} className="sheet-plain-tag" plainTags />
             </strong>
             <em>
-              {c.removable ? (
-                <InlineEditableText value={c.bonus ?? ''} placeholder="—" onCommit={(next) => onFieldChange(c.rawIndex, 'bonus', next)} />
-              ) : (c.bonus ?? '—')}
+              <InlineEditableText value={c.bonus ?? ''} placeholder="—" onCommit={(next) => onFieldChange(c, 'bonus', next)} />
             </em>
             <span className="apt-row-remove-cell">
               {c.removable && (
@@ -4181,14 +4179,10 @@ function LanguageCategorySection({ category, rows, onRemove, onFieldChange }) {
               <SmartText text={`{language.${l.nom || l.key}}`} className="sheet-plain-tag" plainTags />
             </strong>
             <span>
-              {l.removable ? (
-                <InlineEditableText value={l.type ?? ''} placeholder="—" onCommit={(next) => onFieldChange(l.rawIndex, 'type', next)} />
-              ) : (l.type ?? '—')}
+              <InlineEditableText value={l.type ?? ''} placeholder="—" onCommit={(next) => onFieldChange(l, 'type', next)} />
             </span>
             <em>
-              {l.removable ? (
-                <InlineEditableText value={l.bonus ?? ''} placeholder="—" onCommit={(next) => onFieldChange(l.rawIndex, 'bonus', next)} />
-              ) : (l.bonus ?? '—')}
+              <InlineEditableText value={l.bonus ?? ''} placeholder="—" onCommit={(next) => onFieldChange(l, 'bonus', next)} />
             </em>
             <span className="apt-row-remove-cell">
               {l.removable && (
@@ -4320,15 +4314,29 @@ function DetailAptitudes({ char }) {
   // stockées dans char.connaissances/char.langues) restent en tête de la
   // liste fusionnée (merge*Rows garde l'ordre, il ne fait qu'ajouter les
   // bonus/racial à la suite) — d'où le découpage par longueur du tableau
-  // brut. Les lignes issues d'un bonus ou d'une race ne sont pas retirables.
+  // brut. Les lignes issues d'un bonus/d'une race ne sont pas retirables,
+  // mais leur bonus (et source, pour les langues) reste éditable via un
+  // override par nom (connaissancesBonusOverrides/languesBonusOverrides) —
+  // ex: une langue accordée par l'ascendance dont on veut ajuster le bonus
+  // sans toucher la définition de l'ascendance elle-même.
+  const connaissancesBonusOverrides = char.connaissancesBonusOverrides || {};
+  const languesBonusOverrides = char.languesBonusOverrides || {};
   const connaissances = enrichRowsByCatalog(
     mergeKnowledgeRows(rawConnaissances, char.connaissancesBonus),
     buildEntryCatalog(customKnowledge),
-  ).map((row, i) => ({ ...row, rawIndex: i, removable: i < rawConnaissances.length }));
+  ).map((row, i) => {
+    const removable = i < rawConnaissances.length;
+    const override = removable ? null : connaissancesBonusOverrides[normalizeLocalKey(row.nom || row.key)];
+    return { ...row, ...(override || {}), rawIndex: i, removable };
+  });
   const langues       = enrichRowsByCatalog(
     mergeComputedLanguageRows(rawLangues, char.languesBonus, getComputedLanguageRows(char, ascendanceDef)),
     buildEntryCatalog(customLanguages),
-  ).map((row, i) => ({ ...row, rawIndex: i, removable: i < rawLangues.length }));
+  ).map((row, i) => {
+    const removable = i < rawLangues.length;
+    const override = removable ? null : languesBonusOverrides[normalizeLocalKey(row.nom || row.key)];
+    return { ...row, ...(override || {}), rawIndex: i, removable };
+  });
   // Ajout/retrait direct depuis la fiche, sans passer par "Modifier".
   const addConnaissance = (nom, bonus) => {
     updateCharacter(char.id, { connaissances: [...rawConnaissances, { nom, bonus }] });
@@ -4342,14 +4350,34 @@ function DetailAptitudes({ char }) {
   const removeLangue = (rawIndex) => {
     updateCharacter(char.id, { langues: rawLangues.filter((_, i) => i !== rawIndex) });
   };
-  const setConnaissanceField = (rawIndex, field, nextValue) => {
+  const setConnaissanceField = (row, field, nextValue) => {
+    if (row.removable) {
+      updateCharacter(char.id, {
+        connaissances: rawConnaissances.map((r, i) => (i === row.rawIndex ? { ...r, [field]: nextValue } : r)),
+      });
+      return;
+    }
+    const key = normalizeLocalKey(row.nom || row.key);
     updateCharacter(char.id, {
-      connaissances: rawConnaissances.map((row, i) => (i === rawIndex ? { ...row, [field]: nextValue } : row)),
+      connaissancesBonusOverrides: {
+        ...connaissancesBonusOverrides,
+        [key]: { ...(connaissancesBonusOverrides[key] || {}), [field]: nextValue },
+      },
     });
   };
-  const setLangueField = (rawIndex, field, nextValue) => {
+  const setLangueField = (row, field, nextValue) => {
+    if (row.removable) {
+      updateCharacter(char.id, {
+        langues: rawLangues.map((r, i) => (i === row.rawIndex ? { ...r, [field]: nextValue } : r)),
+      });
+      return;
+    }
+    const key = normalizeLocalKey(row.nom || row.key);
     updateCharacter(char.id, {
-      langues: rawLangues.map((row, i) => (i === rawIndex ? { ...row, [field]: nextValue } : row)),
+      languesBonusOverrides: {
+        ...languesBonusOverrides,
+        [key]: { ...(languesBonusOverrides[key] || {}), [field]: nextValue },
+      },
     });
   };
   const [addingKnowledge, setAddingKnowledge] = useState(false);
