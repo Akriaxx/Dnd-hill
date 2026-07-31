@@ -126,6 +126,11 @@ export default function CombatActivationOverlay() {
   const deathTimersRef = useRef([]);
   const clearDeathTimers = () => { deathTimersRef.current.forEach(clearTimeout); deathTimersRef.current = []; };
   useEffect(() => clearDeathTimers, []);
+  // Doit rester avant le `if (!user) return null;` plus bas — un hook
+  // déclaré après un retour conditionnel casse les Rules of Hooks dès que
+  // `user` passe de null à défini entre deux rendus (juste après le login,
+  // avant que l'auth ne soit résolue) : voir triggerDeathSequence.
+  const deathContextRef = useRef({ charId: null, chanceAtDeath: 0 });
 
   useEffect(() => {
     const wasActive = prevActiveRef.current;
@@ -245,11 +250,10 @@ export default function CombatActivationOverlay() {
   // Séquence de mort : assombrissement plein écran, puis "Vous êtes mort" +
   // crâne, puis (après un délai) le bouton "Revenir ?" apparaît. Cliquer
   // dessus efface le message et fait apparaître le compteur de Chance, qui
-  // perd 1 point. deathContextRef capture le perso/la valeur de Chance au
-  // moment du trigger (pas relu plus tard au clic) pour que le "-1" porte
-  // sur la valeur au moment de la mort, même si autre chose modifiait la
-  // fiche entre-temps.
-  const deathContextRef = useRef({ charId: null, chanceAtDeath: 0 });
+  // perd 1 point. deathContextRef (déclaré plus haut, avant le early return)
+  // capture le perso/la valeur de Chance au moment du trigger (pas relu plus
+  // tard au clic) pour que le "-1" porte sur la valeur au moment de la mort,
+  // même si autre chose modifiait la fiche entre-temps.
   const triggerDeathSequence = (charId, chanceAtDeath) => {
     clearDeathTimers();
     deathContextRef.current = { charId, chanceAtDeath: Number(chanceAtDeath) || 0 };
