@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export const DEFAULT_MUSIC_VOLUME = 0.3;
+export const DEFAULT_MUSIC_VOLUME = 0.1;
 
 // Préférences musique/ambiance : purement locales au navigateur (comme
 // useCombatStore), pas besoin de les synchroniser via Supabase. La musique

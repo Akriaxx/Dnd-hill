@@ -4697,16 +4697,18 @@ function LanguageCategorySection({ category, rows, onRemove, onFieldChange }) {
 
 // ── Ajout direct d'une connaissance/langue depuis la fiche, sans passer
 // par "Modifier" — datalist suggère le catalogue admin (customKnowledge/
-// customLanguages) mais accepte aussi du texte libre.
+// customLanguages) ; le nom saisi doit correspondre à une entrée du
+// catalogue (comparaison insensible à la casse), impossible d'ajouter du
+// texte libre qui n'existe pas côté admin.
 function KnowledgeAddRow({ catalog, existingNames, onAdd }) {
   const [nom, setNom] = useState('');
   const [bonus, setBonus] = useState('');
   const taken = new Set(existingNames.map((n) => String(n || '').toLowerCase().trim()));
   const options = (catalog || []).filter((c) => c.nom && !taken.has(c.nom.toLowerCase().trim()));
+  const match = options.find((c) => c.nom.toLowerCase().trim() === nom.trim().toLowerCase());
   const submit = () => {
-    const trimmed = nom.trim();
-    if (!trimmed) return;
-    onAdd(trimmed, bonus.trim());
+    if (!match) return;
+    onAdd(match.nom, bonus.trim());
     setNom('');
     setBonus('');
   };
@@ -4731,7 +4733,7 @@ function KnowledgeAddRow({ catalog, existingNames, onAdd }) {
         onChange={(e) => setBonus(e.target.value)}
         onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
       />
-      <button type="button" className="btn-ghost" onClick={submit}>Ajouter</button>
+      <button type="button" className="btn-ghost" disabled={!match} onClick={submit}>Ajouter</button>
     </div>
   );
 }
@@ -4742,10 +4744,10 @@ function LanguageAddRow({ catalog, existingNames, onAdd }) {
   const [bonus, setBonus] = useState('');
   const taken = new Set(existingNames.map((n) => String(n || '').toLowerCase().trim()));
   const options = (catalog || []).filter((c) => c.nom && !taken.has(c.nom.toLowerCase().trim()));
+  const match = options.find((c) => c.nom.toLowerCase().trim() === nom.trim().toLowerCase());
   const submit = () => {
-    const trimmed = nom.trim();
-    if (!trimmed) return;
-    onAdd(trimmed, type.trim(), bonus.trim());
+    if (!match) return;
+    onAdd(match.nom, type.trim(), bonus.trim());
     setNom('');
     setType('');
     setBonus('');
@@ -4778,7 +4780,7 @@ function LanguageAddRow({ catalog, existingNames, onAdd }) {
         onChange={(e) => setBonus(e.target.value)}
         onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
       />
-      <button type="button" className="btn-ghost" onClick={submit}>Ajouter</button>
+      <button type="button" className="btn-ghost" disabled={!match} onClick={submit}>Ajouter</button>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
 import { useCharacterStore } from './store/characterStore';
 import { isDevServerNoise, useAdminStore, hydrateGameData, hydrateRoles, hydrateStates } from './store/adminStore';
+import { hydrateCombat } from './store/combatStore';
 import { canAccessAdmin } from './auth/permissions';
 import LoginPage from './pages/LoginPage';
 import LoaderPage from './pages/LoaderPage';
@@ -41,6 +42,7 @@ function CharacterDataBridge() {
     hydrateGameData();
     hydrateRoles();
     hydrateStates();
+    hydrateCombat();
   }, [userId, fetchCharacters, fetchPendingCharacterCreations]);
 
   return null;
