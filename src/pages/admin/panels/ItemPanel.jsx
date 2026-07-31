@@ -13,6 +13,7 @@ import {
   ITEM_EQUIP_SLOTS,
   ITEM_SIMPLE_EFFECTS,
   ITEM_SIMPLE_EFFECT_GROUPS,
+  ITEM_USE_RESOURCE_OPTIONS,
   ITEM_EFFECT_STAT_KEYS,
   TEMP_ITEM_CATEGORIES,
   TEMP_ITEMS,
@@ -36,7 +37,7 @@ function ItemIcon({ item }) {
   return entry ? <entry.Icon size={20} strokeWidth={1.6} /> : null;
 }
 
-function ItemEffectBuilder({ value, onChange, aptitudeOptions, resistanceOptions, onlyKey = null }) {
+function ItemEffectBuilder({ value, onChange, aptitudeOptions, resistanceOptions, onlyKey = null, consumable = false, useResource = '', onUseResourceChange }) {
   const effects = normalizeItemEffects(value);
   const setEffects = (next) => onChange(normalizeItemEffects(next));
   const setSimple = (key, nextValue) => setEffects({ ...effects, simple: { ...effects.simple, [key]: itemEffectValue(nextValue) } });
@@ -80,27 +81,54 @@ function ItemEffectBuilder({ value, onChange, aptitudeOptions, resistanceOptions
     </div>
   );
 
+  const simpleGroup = ITEM_SIMPLE_EFFECT_GROUPS.find((group) => group.label === onlyKey);
+
+  const isResourceGroup = simpleGroup && simpleGroup.label === 'Ressources';
+
   return (
     <div className="item-effect-builder">
-      {(!onlyKey || onlyKey === 'simple') && (
+      {isResourceGroup && consumable && (
         <div className="item-effect-panel">
-          <div className="item-effect-panel-head"><span>Ressource</span></div>
-          {ITEM_SIMPLE_EFFECT_GROUPS.map((group) => (
-            <div className="item-effect-subgroup" key={group.label}>
-              <div className="item-effect-subgroup-head">{group.label}</div>
-              <div className="item-effect-grid item-effect-grid--simple">
-                {group.keys.map((key) => {
-                  const effect = ITEM_SIMPLE_EFFECTS.find((e) => e.key === key);
-                  return (
-                    <label className="item-effect-cell" key={key}>
-                      <span>{effect.label}</span>
-                      <input type="number" value={effects.simple[key] ?? 0} onChange={(event) => setSimple(key, event.target.value)} />
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+          <div className="item-effect-panel-head"><span>Ressource visée</span></div>
+          <p className="item-effect-hint">
+            Pas de montant fixe : le joueur saisit le résultat de son jet dans le pop-up d'utilisation, qui s'ajoute à sa valeur actuelle.
+          </p>
+          <div className="item-use-resource-toggle">
+            <span
+              className="item-use-resource-thumb"
+              style={{
+                width: `${100 / ITEM_USE_RESOURCE_OPTIONS.length}%`,
+                transform: `translateX(${Math.max(0, ITEM_USE_RESOURCE_OPTIONS.findIndex((option) => option.key === useResource)) * 100}%)`,
+                opacity: useResource ? 1 : 0,
+              }}
+            />
+            {ITEM_USE_RESOURCE_OPTIONS.map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                className={`item-use-resource-btn${useResource === option.key ? ' is-active' : ''}`}
+                onClick={() => onUseResourceChange(useResource === option.key ? '' : option.key)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {simpleGroup && !(isResourceGroup && consumable) && (
+        <div className="item-effect-panel">
+          <div className="item-effect-panel-head"><span>{simpleGroup.label}</span></div>
+          <div className="item-effect-grid item-effect-grid--simple">
+            {simpleGroup.keys.map((key) => {
+              const effect = ITEM_SIMPLE_EFFECTS.find((e) => e.key === key);
+              return (
+                <label className="item-effect-cell" key={key}>
+                  <span>{effect.label}</span>
+                  <input type="number" value={effects.simple[key] ?? 0} onChange={(event) => setSimple(key, event.target.value)} />
+                </label>
+              );
+            })}
+          </div>
         </div>
       )}
       {(!onlyKey || onlyKey === 'stats') && (
@@ -126,13 +154,28 @@ function ItemEffectBuilder({ value, onChange, aptitudeOptions, resistanceOptions
   );
 }
 
-function ItemEffectsPanel({ effects, onChange, aptitudeOptions, resistanceOptions }) {
+function ItemEffectsPanel({ effects, onChange, aptitudeOptions, resistanceOptions, consumable = false, useResource = '', onUseResourceChange }) {
   const [selected, setSelected] = useState(null);
+  const normalized = normalizeItemEffects(effects);
+  // Un badge de compte par tuile : la seule confirmation visuelle qu'une
+  // saisie a bien été prise en compte (il n'y a pas de bouton "valider" —
+  // chaque champ écrit directement dans itemForm.effects, sauvegardé avec
+  // le reste de l'item via "Enregistrer"/"Créer l'entrée").
   const categories = [
-    { key: 'simple', label: 'Ressource' },
-    { key: 'stats', label: 'Caractéristiques' },
-    { key: 'aptitudes', label: 'Aptitudes' },
-    { key: 'resistances', label: 'Résistances' },
+    ...ITEM_SIMPLE_EFFECT_GROUPS.map((group) => ({
+      key: group.label,
+      label: group.label,
+      count: group.label === 'Ressources' && consumable
+        ? (useResource ? 1 : undefined)
+        : group.keys.filter((key) => Number(normalized.simple[key]) !== 0).length || undefined,
+    })),
+    {
+      key: 'stats',
+      label: 'Caractéristiques',
+      count: ITEM_EFFECT_STAT_KEYS.filter((key) => Number(normalized.stats[key]) !== 0).length || undefined,
+    },
+    { key: 'aptitudes', label: 'Aptitudes', count: normalized.aptitudes.length || undefined },
+    { key: 'resistances', label: 'Résistances', count: normalized.resistances.length || undefined },
   ];
 
   if (selected) {
@@ -145,10 +188,14 @@ function ItemEffectsPanel({ effects, onChange, aptitudeOptions, resistanceOption
             aptitudeOptions={aptitudeOptions}
             resistanceOptions={resistanceOptions}
             onlyKey={selected}
+            consumable={consumable}
+            useResource={useResource}
+            onUseResourceChange={onUseResourceChange}
           />
         </div>
         <div className="admin-effects-panel-actions">
-          <button type="button" className="admin-btn" onClick={() => setSelected(null)}>‹ Retour à la liste</button>
+          <button type="button" className="admin-btn" onClick={() => setSelected(null)}>‹ Retour</button>
+          <button type="button" className="race-form-save-btn" onClick={() => setSelected(null)}>✓ Valider</button>
         </div>
       </>
     );
@@ -188,6 +235,7 @@ export default function ItemPanel() {
 
   const setItem = (key, value) => setItemForm((c) => ({ ...c, [key]: value }));
   const setItemEffects = (nextEffects) => setItem('effects', normalizeItemEffects(nextEffects));
+  const setUseResource = (nextResource) => setItem('useResource', nextResource);
   const setConditionEffects = (nextEffects) => setItem('conditionEffects', normalizeItemEffects(nextEffects));
   const rootCategories = getRootItemCategories(categories);
   const itemRootId = getRootItemCategoryId(categories, itemForm.categoryId);
@@ -217,7 +265,10 @@ export default function ItemPanel() {
       effects: normalizeItemEffects(itemForm.effects),
       usable: Boolean(itemForm.consumable),
       useText: itemForm.consumable ? itemForm.useText : '',
+      useResource: itemForm.consumable ? (itemForm.useResource || '') : '',
       equipSlot: itemForm.equipable ? itemForm.equipSlot : '',
+      deuxMains: itemForm.equipable && itemForm.equipSlot === 'arme' ? Boolean(itemForm.deuxMains) : false,
+      actif: itemForm.equipable && itemForm.equipSlot === 'custom' ? Boolean(itemForm.actif) : false,
       classeId: itemForm.equipable ? itemForm.classeId : null,
       conditionEffects: itemForm.equipable ? normalizeItemEffects(itemForm.conditionEffects) : null,
     };
@@ -352,6 +403,24 @@ export default function ItemPanel() {
                         <option key={slot.key || 'none'} value={slot.key}>{slot.label}</option>
                       ))}
                     </select>
+                    {itemForm.equipSlot === 'arme' && (
+                      <>
+                        <label style={{ marginTop: '10px' }}>Prise</label>
+                        <select value={itemForm.deuxMains ? 'deux' : 'une'} onChange={(e) => setItem('deuxMains', e.target.value === 'deux')}>
+                          <option value="une">Une main</option>
+                          <option value="deux">Deux mains</option>
+                        </select>
+                      </>
+                    )}
+                    {itemForm.equipSlot === 'custom' && (
+                      <>
+                        <label style={{ marginTop: '10px' }}>Actif / Passif</label>
+                        <select value={itemForm.actif ? 'actif' : 'passif'} onChange={(e) => setItem('actif', e.target.value === 'actif')}>
+                          <option value="passif">Passif (toujours actif une fois équipé)</option>
+                          <option value="actif">Actif (à activer sur la fiche)</option>
+                        </select>
+                      </>
+                    )}
                   </div>
                   <div className="comp-form-field comp-form-field--grow">
                     <label>Classe d'équipement</label>
@@ -360,7 +429,7 @@ export default function ItemPanel() {
                       {relevantItemClasses.map((cls) => <option key={cls.id} value={cls.id}>{cls.nom}</option>)}
                     </select>
                     {relevantItemClasses.length === 0 && (
-                      <span style={{ fontSize: '0.8em', opacity: 0.6 }}>Aucune classe d'équipement pour cette catégorie (Économie → Classe).</span>
+                      <span style={{ fontSize: 'calc(0.8em + 2px)', opacity: 0.6 }}>Aucune classe d'équipement pour cette catégorie (Économie → Classe).</span>
                     )}
                   </div>
                 </div>
@@ -390,6 +459,9 @@ export default function ItemPanel() {
                 onChange={setItemEffects}
                 aptitudeOptions={aptitudeOptions}
                 resistanceOptions={resistanceOptions}
+                consumable={Boolean(itemForm.consumable)}
+                useResource={itemForm.useResource || ''}
+                onUseResourceChange={setUseResource}
               />
             </div>
           )}
@@ -513,7 +585,7 @@ export default function ItemPanel() {
 
       {filtered.filter((i) => !i.categoryId || !categories.find((c) => c.id === i.categoryId)).length > 0 && (
         <div style={{ marginTop: '1rem' }}>
-          <p style={{ opacity: 0.6, fontSize: '0.85em', marginBottom: '0.5rem' }}>Sans catégorie</p>
+          <p style={{ opacity: 0.6, fontSize: 'calc(0.85em + 2px)', marginBottom: '0.5rem' }}>Sans catégorie</p>
           <SectionGrid>
             {filtered.filter((i) => !i.categoryId || !categories.find((c) => c.id === i.categoryId)).map((item) => (
               <AdminCard

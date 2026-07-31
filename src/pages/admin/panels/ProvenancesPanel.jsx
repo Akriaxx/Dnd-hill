@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useAdminStore } from '../../../store/adminStore';
 import SmartDescEditor from '../../../components/admin/SmartDescEditor';
-import { ConfirmModal, AdminFilterPanel, TagColorPicker, IdentityRowCard } from '../AdminShared';
+import { ConfirmModal, AdminFilterPanel, TagColorPicker, IdentityRowCard, MaitriseLockFields } from '../AdminShared';
 import { asArray, slugifyKey, includesText } from '../adminUtils';
 
-function ProvenanceModal({ initial, existingKeys, onClose, onSave }) {
+function ProvenanceModal({ initial, existingKeys, originOptions, onClose, onSave }) {
   const [form, setForm] = useState(() => ({
     nom: '',
     key: '',
@@ -12,6 +12,7 @@ function ProvenanceModal({ initial, existingKeys, onClose, onSave }) {
     description: '',
     ...(initial || {}),
     races: Array.isArray(initial?.races) ? initial.races : [],
+    allowedOrigineKeys: Array.isArray(initial?.allowedOrigineKeys) ? initial.allowedOrigineKeys : [],
   }));
   const [error, setError] = useState('');
   const set = (key, value) => { setForm((f) => ({ ...f, [key]: value })); setError(''); };
@@ -45,6 +46,15 @@ function ProvenanceModal({ initial, existingKeys, onClose, onSave }) {
                 <SmartDescEditor value={form.description || ''} onChange={(v) => set('description', v)} />
               </div>
             </div>
+            <div className="race-form-section race-form-section--wide">
+              <MaitriseLockFields
+                value={form.allowedOrigineKeys}
+                maitrises={originOptions}
+                onChange={(v) => set('allowedOrigineKeys', v)}
+                label="Origines autorisées"
+                hint="Laissez vide pour autoriser toutes les origines. Une origine elle-même restreinte à d'autres provenances (voir son propre formulaire) reste filtrée par sa propre règle en plus de celle-ci."
+              />
+            </div>
             {error && <div className="player-field-error">{error}</div>}
           </div>
           <div className="race-form-footer">
@@ -60,10 +70,15 @@ function ProvenanceModal({ initial, existingKeys, onClose, onSave }) {
 export default function ProvenancesPanel() {
   const {
     customProvenances,
+    customOrigins,
     addProvenance,
     updateProvenance,
     deleteProvenance,
   } = useAdminStore();
+  const originOptions = asArray(customOrigins).map((origin) => ({
+    key: origin.key || slugifyKey(origin.nom),
+    label: origin.nom,
+  }));
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingProvenance, setEditingProvenance] = useState(null);
@@ -96,6 +111,7 @@ export default function ProvenancesPanel() {
         <ProvenanceModal
           initial={editingProvenance}
           existingKeys={new Set(entries.map((p) => p.key))}
+          originOptions={originOptions}
           onClose={() => { setEditingProvenance(null); setShowForm(false); }}
           onSave={handleSave}
         />

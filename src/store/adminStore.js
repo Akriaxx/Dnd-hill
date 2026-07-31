@@ -24,6 +24,60 @@ const syncRoleToSupabase = async ({ key, label, power, system = false, permissio
 
 const asArray = (value) => (Array.isArray(value) ? value : []);
 
+// Id numérique unique et croissant. Un simple `Date.now()` collisionne dès
+// que plusieurs entrées sont créées dans la même milliseconde (ex: un script
+// qui ajoute plusieurs objets d'affilée, ou deux clics rapprochés) — deux
+// entrées avec le même id cassent le rendu (clés React dupliquées) et les
+// actions update/delete qui ciblent "l'entrée dont l'id est X" en visent
+// alors plusieurs à la fois.
+let lastEntityId = 0;
+const nextEntityId = () => {
+  lastEntityId = Math.max(Date.now(), lastEntityId + 1);
+  return lastEntityId;
+};
+
+// Supprimer une catégorie qui a des enfants (parentId === id) sans reparenter
+// ces derniers les orphelinait silencieusement : leur parentId pointait vers
+// un id qui n'existe plus nulle part, donc ni la liste de la catégorie
+// racine ni le fallback "Sans catégorie" (qui ne rattrape que les catégories
+// réellement absentes, pas les enfants d'une branche cassée) ne les
+// affichaient — l'entrée existait toujours dans le store mais devenait
+// invisible dans tous les panneaux admin. On remonte donc les enfants d'un
+// cran (vers le grand-parent, ou racine si la catégorie supprimée en était
+// une) avant de filtrer.
+const removeCategoryWithReparenting = (categories, id) => {
+  const list = categories || [];
+  const deleted = list.find((c) => c.id === id);
+  return list
+    .filter((c) => c.id !== id)
+    .map((c) => (c.parentId === id ? { ...c, parentId: deleted?.parentId ?? null } : c));
+};
+
+// Sauvegarde locale automatique (navigateur) du blob game_data, en plus de
+// Supabase — aucune config nécessaire, survit même si la base est vidée par
+// un bug. Ne remplace pas Supabase (c'est par appareil/navigateur), mais
+// donne un filet gratuit et immédiat.
+const LOCAL_BACKUP_KEY = 'eindhill-game-data-autobackup';
+export const LOCAL_BACKUP_MAX = 5;
+
+const pushLocalGameDataBackup = (gameData) => {
+  try {
+    const existing = JSON.parse(localStorage.getItem(LOCAL_BACKUP_KEY) || '[]');
+    const next = [{ savedAt: new Date().toISOString(), data: gameData }, ...existing].slice(0, LOCAL_BACKUP_MAX);
+    localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(next));
+  } catch (e) {
+    console.error('local game_data backup failed', e);
+  }
+};
+
+export const getLocalGameDataBackups = () => {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_BACKUP_KEY) || '[]');
+  } catch {
+    return [];
+  }
+};
+
 const TICKET_DEDUPE_WINDOW_MS = 5 * 60 * 1000;
 const ADMIN_STORE_VERSION = 3;
 const SECURITY_STATE_KEYS = [
@@ -223,7 +277,7 @@ export const useAdminStore = create(
         set((state) => ({
           customRaceCategories: [
             ...(state.customRaceCategories || []),
-            { ...category, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...category, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -236,12 +290,12 @@ export const useAdminStore = create(
 
       deleteRaceCategory: (id) =>
         set((state) => ({
-          customRaceCategories: (state.customRaceCategories || []).filter((category) => category.id !== id),
+          customRaceCategories: removeCategoryWithReparenting(state.customRaceCategories, id),
         })),
 
       addRace: (race) =>
         set((state) => ({
-          customRaces: [...state.customRaces, { ...race, id: Date.now(), custom: true }],
+          customRaces: [...state.customRaces, { ...race, id: nextEntityId(), custom: true }],
         })),
 
       updateRace: (id, patch) =>
@@ -267,7 +321,7 @@ export const useAdminStore = create(
         set((state) => ({
           customAscendances: [
             ...(state.customAscendances || []),
-            { ...ascendance, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...ascendance, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -295,7 +349,7 @@ export const useAdminStore = create(
         set((state) => ({
           customCompetenceCategories: [
             ...(state.customCompetenceCategories || []),
-            { ...category, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...category, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -308,14 +362,14 @@ export const useAdminStore = create(
 
       deleteCompetenceCategory: (id) =>
         set((state) => ({
-          customCompetenceCategories: (state.customCompetenceCategories || []).filter((category) => category.id !== id),
+          customCompetenceCategories: removeCategoryWithReparenting(state.customCompetenceCategories, id),
         })),
 
       customCompetences: [],
 
       addCompetence: (comp) =>
         set((state) => ({
-          customCompetences: [...state.customCompetences, { ...comp, id: Date.now() }],
+          customCompetences: [...state.customCompetences, { ...comp, id: nextEntityId() }],
         })),
 
       updateCompetence: (id, patch) =>
@@ -335,7 +389,7 @@ export const useAdminStore = create(
         set((state) => ({
           customKnowledgeCategories: [
             ...(state.customKnowledgeCategories || []),
-            { ...category, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...category, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -348,7 +402,7 @@ export const useAdminStore = create(
 
       deleteKnowledgeCategory: (id) =>
         set((state) => ({
-          customKnowledgeCategories: (state.customKnowledgeCategories || []).filter((category) => category.id !== id),
+          customKnowledgeCategories: removeCategoryWithReparenting(state.customKnowledgeCategories, id),
         })),
 
       customKnowledge: [],
@@ -358,7 +412,7 @@ export const useAdminStore = create(
         set((state) => ({
           customKnowledge: [
             ...(state.customKnowledge || []),
-            { ...knowledge, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...knowledge, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -388,7 +442,7 @@ export const useAdminStore = create(
         set((state) => ({
           customOriginCategories: [
             ...(state.customOriginCategories || []),
-            { ...category, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...category, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -401,14 +455,14 @@ export const useAdminStore = create(
 
       deleteOriginCategory: (id) =>
         set((state) => ({
-          customOriginCategories: (state.customOriginCategories || []).filter((category) => category.id !== id),
+          customOriginCategories: removeCategoryWithReparenting(state.customOriginCategories, id),
         })),
 
       addOrigin: (origin) =>
         set((state) => ({
           customOrigins: [
             ...(state.customOrigins || []),
-            { ...origin, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...origin, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -437,7 +491,7 @@ export const useAdminStore = create(
         set((state) => ({
           customProvenances: [
             ...(state.customProvenances || []),
-            { ...provenance, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...provenance, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -467,7 +521,7 @@ export const useAdminStore = create(
         set((state) => ({
           customHistoriqueCategories: [
             ...(state.customHistoriqueCategories || []),
-            { ...category, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...category, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -480,14 +534,14 @@ export const useAdminStore = create(
 
       deleteHistoriqueCategory: (id) =>
         set((state) => ({
-          customHistoriqueCategories: (state.customHistoriqueCategories || []).filter((category) => category.id !== id),
+          customHistoriqueCategories: removeCategoryWithReparenting(state.customHistoriqueCategories, id),
         })),
 
       addHistorique: (historique) =>
         set((state) => ({
           customHistoriques: [
             ...(state.customHistoriques || []),
-            { ...historique, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...historique, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -515,7 +569,7 @@ export const useAdminStore = create(
         set((state) => ({
           customLanguageCategories: [
             ...(state.customLanguageCategories || []),
-            { ...category, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...category, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -528,7 +582,7 @@ export const useAdminStore = create(
 
       deleteLanguageCategory: (id) =>
         set((state) => ({
-          customLanguageCategories: (state.customLanguageCategories || []).filter((category) => category.id !== id),
+          customLanguageCategories: removeCategoryWithReparenting(state.customLanguageCategories, id),
         })),
 
       customLanguages: [],
@@ -537,7 +591,7 @@ export const useAdminStore = create(
         set((state) => ({
           customLanguages: [
             ...(state.customLanguages || []),
-            { ...language, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...language, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -560,7 +614,7 @@ export const useAdminStore = create(
         set((state) => ({
           customAptitudeCategories: [
             ...(state.customAptitudeCategories || []),
-            { ...category, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...category, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -573,7 +627,7 @@ export const useAdminStore = create(
 
       deleteAptitudeCategory: (id) =>
         set((state) => ({
-          customAptitudeCategories: (state.customAptitudeCategories || []).filter((category) => category.id !== id),
+          customAptitudeCategories: removeCategoryWithReparenting(state.customAptitudeCategories, id),
         })),
 
       customAptitudes: [],
@@ -583,7 +637,7 @@ export const useAdminStore = create(
         set((state) => ({
           customAptitudes: [
             ...(state.customAptitudes || []),
-            { ...aptitude, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...aptitude, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -611,7 +665,7 @@ export const useAdminStore = create(
         set((state) => ({
           customClassCategories: [
             ...(state.customClassCategories || []),
-            { ...category, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...category, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -624,7 +678,7 @@ export const useAdminStore = create(
 
       deleteClassCategory: (id) =>
         set((state) => ({
-          customClassCategories: (state.customClassCategories || []).filter((category) => category.id !== id),
+          customClassCategories: removeCategoryWithReparenting(state.customClassCategories, id),
         })),
 
       // Classes et sous-classes créées/modifiées par le MJ
@@ -635,7 +689,7 @@ export const useAdminStore = create(
         set((state) => ({
           customClasses: [
             ...(state.customClasses || []),
-            { ...classDef, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...classDef, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -663,7 +717,7 @@ export const useAdminStore = create(
         set((state) => ({
           customSubclasses: [
             ...(state.customSubclasses || []),
-            { ...subclass, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...subclass, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -690,7 +744,7 @@ export const useAdminStore = create(
 
       addGameplayIndexCategory: (category) =>
         set((state) => ({
-          gameplayIndexCategories: [...(state.gameplayIndexCategories || []), { ...category, id: Date.now() }],
+          gameplayIndexCategories: [...(state.gameplayIndexCategories || []), { ...category, id: nextEntityId() }],
         })),
 
       updateGameplayIndexCategory: (id, patch) =>
@@ -702,7 +756,7 @@ export const useAdminStore = create(
 
       deleteGameplayIndexCategory: (id) =>
         set((state) => ({
-          gameplayIndexCategories: (state.gameplayIndexCategories || []).filter((category) => category.id !== id),
+          gameplayIndexCategories: removeCategoryWithReparenting(state.gameplayIndexCategories, id),
         })),
 
       gameplayIndex: [],
@@ -710,7 +764,7 @@ export const useAdminStore = create(
 
       addGameplayIndex: (entry) =>
         set((state) => ({
-          gameplayIndex: [...state.gameplayIndex, { ...entry, id: Date.now() }],
+          gameplayIndex: [...state.gameplayIndex, { ...entry, id: nextEntityId() }],
         })),
 
       updateGameplayIndex: (id, patch) =>
@@ -740,7 +794,7 @@ export const useAdminStore = create(
         set((state) => ({
           customLevelRules: [
             ...(state.customLevelRules || []),
-            { ...rule, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...rule, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -769,7 +823,7 @@ export const useAdminStore = create(
         set((state) => ({
           customSpellRanks: [
             ...(state.customSpellRanks || []),
-            { ...rank, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...rank, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -792,7 +846,7 @@ export const useAdminStore = create(
         set((state) => ({
           customSpellTypes: [
             ...(state.customSpellTypes || []),
-            { ...type, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...type, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -815,7 +869,7 @@ export const useAdminStore = create(
         set((state) => ({
           customSpellZones: [
             ...(state.customSpellZones || []),
-            { ...zone, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...zone, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -838,7 +892,7 @@ export const useAdminStore = create(
         set((state) => ({
           customActionTypes: [
             ...(state.customActionTypes || []),
-            { ...entry, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...entry, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -861,7 +915,7 @@ export const useAdminStore = create(
         set((state) => ({
           customSpecialites: [
             ...(state.customSpecialites || []),
-            { ...entry, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...entry, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -884,7 +938,7 @@ export const useAdminStore = create(
         set((state) => ({
           customCaracteristiques: [
             ...(state.customCaracteristiques || []),
-            { ...carac, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...carac, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -908,7 +962,7 @@ export const useAdminStore = create(
         set((state) => ({
           customResistanceCategories: [
             ...(state.customResistanceCategories || []),
-            { ...category, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...category, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -921,14 +975,14 @@ export const useAdminStore = create(
 
       deleteResistanceCategory: (id) =>
         set((state) => ({
-          customResistanceCategories: (state.customResistanceCategories || []).filter((c) => c.id !== id),
+          customResistanceCategories: removeCategoryWithReparenting(state.customResistanceCategories, id),
         })),
 
       addResistanceEntry: (entry) =>
         set((state) => ({
           customResistanceEntries: [
             ...(state.customResistanceEntries || []),
-            { ...entry, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...entry, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -951,7 +1005,7 @@ export const useAdminStore = create(
         set((state) => ({
           customMaitriseCategories: [
             ...(state.customMaitriseCategories || []),
-            { ...category, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...category, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -964,7 +1018,7 @@ export const useAdminStore = create(
 
       deleteMaitriseCategory: (id) =>
         set((state) => ({
-          customMaitriseCategories: (state.customMaitriseCategories || []).filter((c) => c.id !== id),
+          customMaitriseCategories: removeCategoryWithReparenting(state.customMaitriseCategories, id),
         })),
 
       // Entrées de maîtrise créées par le MJ
@@ -974,7 +1028,7 @@ export const useAdminStore = create(
         set((state) => ({
           customMaitriseEntries: [
             ...(state.customMaitriseEntries || []),
-            { ...entry, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...entry, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -1000,7 +1054,7 @@ export const useAdminStore = create(
         set((state) => ({
           customArchetypes: [
             ...(state.customArchetypes || []),
-            { ...entry, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...entry, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -1129,7 +1183,7 @@ export const useAdminStore = create(
         set((state) => ({
           customItemCategories: [
             ...(state.customItemCategories || []),
-            { ...category, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...category, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -1142,7 +1196,7 @@ export const useAdminStore = create(
 
       deleteItemCategory: (id) =>
         set((state) => ({
-          customItemCategories: (state.customItemCategories || []).filter((c) => c.id !== id),
+          customItemCategories: removeCategoryWithReparenting(state.customItemCategories, id),
         })),
 
       // Entrées d'objets (économie)
@@ -1152,7 +1206,7 @@ export const useAdminStore = create(
         set((state) => ({
           customItems: [
             ...(state.customItems || []),
-            { ...item, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...item, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -1175,7 +1229,7 @@ export const useAdminStore = create(
         set((state) => ({
           customItemClasses: [
             ...(state.customItemClasses || []),
-            { ...entry, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...entry, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -1198,7 +1252,7 @@ export const useAdminStore = create(
         set((state) => ({
           customItemRarities: [
             ...(state.customItemRarities || []),
-            { ...entry, id: Date.now(), custom: true, createdAt: new Date().toISOString() },
+            { ...entry, id: nextEntityId(), custom: true, createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -1223,7 +1277,7 @@ export const useAdminStore = create(
             ...(state.playerAccounts || []),
             {
               ...account,
-              id: Date.now(),
+              id: nextEntityId(),
               createdAt: new Date().toISOString(),
             },
           ],
@@ -1258,7 +1312,7 @@ export const useAdminStore = create(
         const newRole = {
           ...role,
           power,
-          id: Date.now(),
+          id: nextEntityId(),
           custom: true,
           createdAt: new Date().toISOString(),
         };
@@ -1359,7 +1413,7 @@ export const useAdminStore = create(
         set((state) => ({
           terminalLogs: [
             {
-              id: Date.now() + Math.random(),
+              id: nextEntityId(),
               level: log.level || 'info',
               message: log.message || '',
               stack: log.stack || '',
@@ -1379,7 +1433,7 @@ export const useAdminStore = create(
           const now = Date.now();
           const nowIso = new Date(now).toISOString();
           const nextTicket = {
-            id: Date.now() + Math.random(),
+            id: nextEntityId(),
             title: ticket.title || 'Erreur applicative',
             description: ticket.description || '',
             severity: ticket.severity || 'error',
@@ -1466,10 +1520,20 @@ export const useAdminStore = create(
   ),
 );
 
+// Tant que le blob game_data n'a pas été chargé depuis Supabase, le store
+// contient les valeurs par défaut (quasi vides) déclarées dans create().
+// Le subscribe plus bas ne doit JAMAIS pousser cet état par défaut vers
+// Supabase — sinon le moindre set() survenant avant la fin du fetch (ex:
+// addTerminalLog() déclenché par un console.error de bruit dev, voir
+// ErrorTicketBridge dans App.jsx) écrase silencieusement toutes les
+// races/classes/etc. existantes par des tableaux vides.
+let gameDataHydrated = false;
+
 // Charge le blob game_data depuis Supabase dans le store — à appeler une
 // fois qu'un utilisateur est authentifié (RLS: lecture réservée aux
 // comptes connectés).
 export const hydrateGameData = async () => {
+  gameDataHydrated = false;
   const { data, error } = await supabase.from('game_data').select('data').eq('id', 1).maybeSingle();
   if (error) { console.error('game_data fetch failed', error); return; }
   const payload = data?.data || {};
@@ -1479,6 +1543,10 @@ export const hydrateGameData = async () => {
       return next;
     }, {}),
   );
+  const hydratedGameData = pickGameDataState(useAdminStore.getState());
+  lastGameDataJson = JSON.stringify(hydratedGameData);
+  gameDataHydrated = true;
+  pushLocalGameDataBackup(hydratedGameData);
 };
 
 // Charge les rôles et leurs droits depuis Supabase (tables roles /
@@ -1555,12 +1623,14 @@ export const hydrateStates = async () => {
 let lastGameDataJson = null;
 let pushGameDataTimer = null;
 useAdminStore.subscribe((state) => {
+  if (!gameDataHydrated) return;
   const nextGameData = pickGameDataState(state);
   const nextJson = JSON.stringify(nextGameData);
   if (nextJson === lastGameDataJson) return;
   lastGameDataJson = nextJson;
   clearTimeout(pushGameDataTimer);
   pushGameDataTimer = setTimeout(() => {
+    pushLocalGameDataBackup(nextGameData);
     supabase.from('game_data').update({ data: nextGameData }).eq('id', 1)
       .then(({ error }) => { if (error) console.error('game_data update failed', error); });
   }, 300);

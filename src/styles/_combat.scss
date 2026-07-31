@@ -21,7 +21,7 @@
 // ── Footer toggle (MJ/dev) ─────────────────────────────────────
 .combat-mode-toggle {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   color: var(--dim);
   background: transparent;
@@ -57,7 +57,7 @@
   align-items: center;
   gap: 6px;
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1.5px;
   padding: 6px 12px;
   border: 1px solid $border2;
@@ -81,7 +81,7 @@
 
 .combat-char-picker-caret {
   color: var(--dim);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .combat-char-picker-dropdown {
@@ -108,7 +108,7 @@
   background: transparent;
   color: $white-text;
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1px;
   cursor: pointer;
 
@@ -124,7 +124,7 @@
 .combat-char-picker-empty {
   padding: 10px 12px;
   color: var(--dim);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 // ── Page combat ─────────────────────────────────────────────────
@@ -151,7 +151,7 @@
 // flottant de la cinématique cède la place à celui-ci).
 .combat-page-title {
   font-family: $font-display;
-  font-size: 34px;
+  font-size: 36px;
   letter-spacing: 3px;
   color: $white-text;
   text-align: center;
@@ -188,7 +188,7 @@
 // doré appuyé à côté d'un sélecteur terne.
 .combat-page-toolbar-quit {
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1.5px;
   padding: 6px 12px;
   border: 1px solid $border2;
@@ -245,7 +245,7 @@
 
 .combat-block-title {
   font-family: $font-caps;
-  font-size: 13px;
+  font-size: 15px;
   letter-spacing: 3px;
   color: var(--gold);
   text-align: center;
@@ -295,7 +295,7 @@
 
 .combat-resource-label {
   font-family: $font-caps;
-  font-size: 13px;
+  font-size: 15px;
   letter-spacing: 1px;
   line-height: 1.4;
   color: var(--gold);
@@ -367,7 +367,7 @@
 
 // Le "/max" reste discret : c'est l'actuel qu'on regarde et qu'on modifie.
 .combat-resource-max {
-  font-size: 17px;
+  font-size: 19px;
   color: var(--dim);
 }
 
@@ -375,7 +375,7 @@
   @extend %combat-edit-field;
   width: 64px;
   color: $white-text;
-  font-size: 27px;
+  font-size: 29px;
   font-weight: 700;
   padding: 5px 2px;
 }
@@ -388,7 +388,7 @@
 
   span {
     font-family: $font-caps;
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
     color: var(--dim);
@@ -399,7 +399,7 @@
   @extend %combat-edit-field;
   width: 50px;
   color: var(--gold);
-  font-size: 15px;
+  font-size: 17px;
   padding: 5px 2px;
 }
 
@@ -468,7 +468,7 @@
 
 .combat-stat-name {
   font-family: $font-caps;
-  font-size: 13px;
+  font-size: 15px;
   letter-spacing: 0.3px;
   line-height: 1.2;
   color: $white-text;
@@ -485,7 +485,7 @@
 
 .combat-stat-figure-label {
   font-family: $font-caps;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.8px;
   text-transform: uppercase;
   color: var(--dim);
@@ -495,7 +495,7 @@
   text-align: center;
   color: $white-text;
   font-family: $font-caps;
-  font-size: 16px;
+  font-size: 18px;
   min-width: 20px;
 }
 
@@ -504,7 +504,7 @@
   color: var(--gold);
   font-family: $font-caps;
   font-weight: 700;
-  font-size: 17px;
+  font-size: 19px;
   min-width: 22px;
 }
 
@@ -512,7 +512,7 @@
   @extend %combat-edit-field;
   width: 46px;
   color: var(--gold);
-  font-size: 15px;
+  font-size: 17px;
   padding: 4px 2px;
 }
 
@@ -529,7 +529,7 @@
   border-top: 1px solid $border2;
 
   .combat-stat-name {
-    font-size: 15px;
+    font-size: 17px;
   }
 }
 
@@ -590,7 +590,7 @@
   border-radius: 2px;
   color: $white-text;
   font-family: $font-caps;
-  font-size: 13px;
+  font-size: 15px;
   letter-spacing: 1.5px;
   padding: 8px 10px;
   cursor: pointer;
@@ -603,7 +603,7 @@
 
 .combat-select-caret {
   color: var(--dim);
-  font-size: 9px;
+  font-size: 11px;
   flex-shrink: 0;
 }
 
@@ -633,7 +633,7 @@
   background: transparent;
   color: $white-text;
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1px;
   cursor: pointer;
 
@@ -656,7 +656,7 @@
 
 .combat-panel-section h4 {
   font-family: $font-caps;
-  font-size: 13px;
+  font-size: 15px;
   letter-spacing: 2px;
   color: var(--gold);
   opacity: 0.75;
@@ -685,21 +685,87 @@
 
 .combat-panel-item-name {
   font-family: $font-body;
-  font-size: 15px;
+  font-size: 17px;
   color: $white-text;
 }
 
 .combat-panel-item-meta {
   font-family: $font-caps;
-  font-size: 13px;
+  font-size: 15px;
   letter-spacing: 1px;
   color: var(--dim);
   white-space: nowrap;
 }
 
+// Toggle ON/OFF d'un objet racial actif (voir CombatGadgetsPanel et
+// DetailStats/CharacterListPage.jsx, même source de vérité char.gadgetsActifs) :
+// un slider plutôt qu'une case à cocher brute — cadre fin rouge inactif,
+// vert actif. La checkbox réelle reste dans le DOM (accessibilité/clic)
+// mais visuellement masquée ; .gadget-toggle-track est son frère immédiat
+// pour que le sélecteur `:checked +` fonctionne.
+.gadget-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.gadget-toggle-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gadget-toggle-track {
+  position: relative;
+  flex-shrink: 0;
+  width: 38px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid #ff6f6f;
+  background: rgba(255, 111, 111, 0.08);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.gadget-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ff6f6f;
+  transition: transform 0.15s, background 0.15s;
+}
+
+.gadget-toggle-input:checked + .gadget-toggle-track {
+  border-color: #40d684;
+  background: rgba(64, 214, 132, 0.08);
+
+  .gadget-toggle-thumb {
+    transform: translateX(18px);
+    background: #40d684;
+  }
+}
+
+.gadget-toggle-text {
+  font-family: $font-caps;
+  font-size: 15px;
+  letter-spacing: 1px;
+  color: #ff6f6f;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+
+.gadget-toggle-input:checked ~ .gadget-toggle-text {
+  color: #40d684;
+}
+
 .combat-panel-item-action {
   font-family: $font-caps;
-  font-size: 13px;
+  font-size: 15px;
   letter-spacing: 1px;
   padding: 7px 14px;
   border: 1px solid $gold;
@@ -741,7 +807,7 @@
 
 .combat-panel-item-figure-label {
   font-family: $font-caps;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.8px;
   text-transform: uppercase;
   color: var(--dim);
@@ -750,14 +816,14 @@
 .combat-panel-item-op {
   color: var(--dim);
   font-family: $font-caps;
-  font-size: 15px;
+  font-size: 17px;
   padding-bottom: 6px;
 }
 
 .combat-panel-item-base {
   color: $white-text;
   font-family: $font-caps;
-  font-size: 16px;
+  font-size: 18px;
   min-width: 20px;
   text-align: center;
 }
@@ -766,7 +832,7 @@
   color: var(--gold);
   font-family: $font-caps;
   font-weight: 700;
-  font-size: 17px;
+  font-size: 19px;
   min-width: 22px;
   text-align: center;
 }
@@ -775,20 +841,20 @@
   @extend %combat-edit-field;
   width: 50px;
   color: var(--gold);
-  font-size: 15px;
+  font-size: 17px;
   padding: 4px 2px;
 }
 
 .combat-panel-text {
   color: $text;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.6;
   margin: 0;
 }
 
 .combat-panel-empty {
   color: var(--dim);
-  font-size: 14px;
+  font-size: 16px;
   font-style: italic;
 }
 
@@ -840,14 +906,14 @@
 
 .combat-equip-slot-label {
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1.5px;
   color: var(--dim);
 }
 
 .combat-equip-slot-item {
   font-family: $font-body;
-  font-size: 14px;
+  font-size: 16px;
   color: $white-text;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -898,13 +964,13 @@
 
 .combat-equip-picker-item-name {
   font-family: $font-body;
-  font-size: 15px;
+  font-size: 17px;
   color: $white-text;
 }
 
 .combat-equip-picker-item-action {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1px;
   color: var(--gold);
   white-space: nowrap;
@@ -1033,7 +1099,7 @@
 
   h2 {
     font-family: $font-display;
-    font-size: 34px;
+    font-size: 36px;
     letter-spacing: 3px;
     color: $white-text;
     margin: 0;
@@ -1090,7 +1156,7 @@
 .combat-overlay-status {
   grid-area: 1 / 1;
   font-family: $font-caps;
-  font-size: 16px;
+  font-size: 18px;
   letter-spacing: 5px;
   color: #e87e6b;
   margin: 0;
@@ -1168,7 +1234,7 @@
 
   h3 {
     font-family: $font-caps;
-    font-size: 20px;
+    font-size: 22px;
     letter-spacing: 2.5px;
     color: var(--gold);
     margin: 0 0 18px;
@@ -1176,7 +1242,7 @@
 
   p {
     color: var(--dim);
-    font-size: 16px;
+    font-size: 18px;
     margin: 0 0 16px;
   }
 }
@@ -1192,7 +1258,7 @@
 .combat-overlay-picker-confirm,
 .combat-overlay-picker > button {
   font-family: $font-caps;
-  font-size: 15px;
+  font-size: 17px;
   letter-spacing: 1.5px;
   padding: 13px 22px;
   border: 1px solid $gold;
@@ -1224,12 +1290,12 @@
 
 .combat-overlay-picker .combat-char-picker-trigger {
   width: 100%;
-  font-size: 15px;
+  font-size: 17px;
   padding: 11px 18px;
 }
 
 .combat-overlay-picker .combat-char-picker-caret {
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .combat-overlay-picker .combat-char-picker-dropdown {
@@ -1237,7 +1303,7 @@
 }
 
 .combat-overlay-picker .combat-char-picker-option {
-  font-size: 14px;
+  font-size: 16px;
   padding: 11px 14px;
 }
 
@@ -1395,7 +1461,7 @@
 .death-overlay-title {
   margin: 0;
   font-family: $font-display;
-  font-size: 52px;
+  font-size: 54px;
   font-weight: 900;
   letter-spacing: 4px;
   color: #d9463d;
@@ -1404,7 +1470,7 @@
 
 .death-overlay-return {
   font-family: $font-caps;
-  font-size: 14px;
+  font-size: 16px;
   letter-spacing: 3px;
   color: var(--gold2);
   background: rgba(200, 168, 74, 0.1);
@@ -1429,7 +1495,7 @@
 
 .death-overlay-chance-label {
   font-family: $font-caps;
-  font-size: 13px;
+  font-size: 15px;
   letter-spacing: 4px;
   color: var(--dim);
   text-transform: uppercase;
@@ -1437,7 +1503,7 @@
 
 .death-overlay-chance-value {
   font-family: $font-display;
-  font-size: 64px;
+  font-size: 66px;
   font-weight: 900;
   color: var(--gold2);
   transition: color 0.2s ease;

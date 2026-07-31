@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabaseClient';
+import { sendPasswordResetLink } from '../services/mailerService';
 import logo from '../assets/logo/logo-eindhill.png';
 
 export default function LoginPage() {
@@ -62,14 +63,20 @@ export default function LoginPage() {
       }
       email = lookupEmail;
     }
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset`,
+    // Le lien vient bien de Supabase (generateLink type: recovery, même
+    // mécanisme que resetPasswordForEmail) — seul l'envoi change : on le
+    // pousse via EmailJS pour un mail cohérent avec le reste de l'app
+    // plutôt que le template Supabase par défaut. Voir
+    // docs/supabase/request-password-reset-edge-function.ts.
+    const { data, error } = await supabase.functions.invoke('request-password-reset', {
+      body: { email, redirectTo: `${window.location.origin}/reset` },
     });
-    if (error) {
-      setResetError(error.message);
+    if (error || data?.error) {
+      setResetError(data?.error || error.message);
       setResetSending(false);
       return;
     }
+    sendPasswordResetLink({ to: email, username: id, resetUrl: data.resetUrl }).catch(() => {});
     setResetDone(true);
     setResetSending(false);
   };

@@ -87,6 +87,7 @@ export default function LevelingPanel() {
       key: form.key || `level-${Number(form.level) || 0}`,
       baseClass: isLevelZero ? (form.baseClass || 'Explorateur') : (sortedRules[0]?.baseClass || 'Explorateur'),
       characterPoints: Number(form.characterPoints) || 0,
+      expRequired: isLevelZero ? 0 : Number(form.expRequired) || 0,
       unlockClass: canConfigureClassUnlock ? Boolean(form.unlockClass) : false,
       unlockSubclass: canConfigureSubclassUnlock ? Boolean(form.unlockSubclass) : false,
       unlockMaitrise: canConfigureMaitriseUnlock ? Boolean(form.unlockMaitrise) : false,
@@ -146,6 +147,9 @@ export default function LevelingPanel() {
                   {Number(rule.characterPoints) !== 0 && (
                     <span className="entry-card-tag">{Number(rule.characterPoints) > 0 ? '+' : ''}{rule.characterPoints} point(s) de carac</span>
                   )}
+                  {level > 0 && Number(rule.expRequired) > 0 && (
+                    <span className="entry-card-tag">{rule.expRequired} EXP requis</span>
+                  )}
                   {rule.unlockClass && <span className="entry-card-tag">Déblocage classe</span>}
                   {rule.unlockSubclass && <span className="entry-card-tag">Déblocage sous-classe</span>}
                   {rule.unlockMaitrise && <span className="entry-card-tag">Déblocage maîtrise</span>}
@@ -181,6 +185,12 @@ export default function LevelingPanel() {
                   <label>Points de carac</label>
                   <input type="number" value={form.characterPoints} onChange={(e) => set('characterPoints', e.target.value)} />
                 </div>
+                {!isLevelZero && (
+                  <div className="comp-form-field">
+                    <label>EXP requis pour ce niveau</label>
+                    <input type="number" min="0" value={form.expRequired ?? 0} onChange={(e) => set('expRequired', e.target.value)} />
+                  </div>
+                )}
               </div>
 
               <div className="comp-form-field">

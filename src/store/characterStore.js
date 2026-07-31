@@ -78,6 +78,10 @@ export const useCharacterStore = create((set, get) => ({
       const endu = safeResource(c.endu);
       const patch = {
         niveau: (c.niveau ?? 0) + 1,
+        // Consommée, pas remise à zéro : un surplus au-dessus du seuil
+        // requis reste acquis pour la progression suivante (voir
+        // expRequired injecté dans rewards par DetailFiche avant l'appel).
+        exp: Math.max(0, (c.exp ?? 0) - (rewards.expRequired || 0)),
         vie:  { ...c.vie,  max: vie.max  + (rewards.vie  || 0), actuel: vie.actuel  + (rewards.vie  || 0) },
         mana: { ...c.mana, max: mana.max + (rewards.mana || 0), actuel: mana.actuel + (rewards.mana || 0) },
         endu: { ...c.endu, max: endu.max + (rewards.endu || 0), actuel: endu.actuel + (rewards.endu || 0) },
@@ -112,6 +116,14 @@ export const useCharacterStore = create((set, get) => ({
 
   updateCharacter: (id, patch) =>
     applyCharacterUpdate(set, get, id, (c) => ({ ...c, ...patch })),
+
+  // Attribution d'EXP côté MJ (manuelle ou en boucle pour un envoi groupé,
+  // voir GrantExperienceModal) — amount peut être négatif pour corriger une
+  // erreur, clampé à 0 minimum.
+  grantExperience: (charId, amount) =>
+    applyCharacterUpdate(set, get, charId, (c) => ({
+      ...c, exp: Math.max(0, (c.exp ?? 0) + (Number(amount) || 0)),
+    })),
 
   addCharacter: async (character) => {
     const payload = {
@@ -243,6 +255,81 @@ export const useCharacterStore = create((set, get) => ({
         equipement: { ...(c.equipement ?? {}), [slot]: null },
       };
     }),
+
+  // Une arme à deux mains (item.deuxMains) occupe arme1 ET arme2 en même
+  // temps (voir EquipementPanel — "Main droite"/"Main gauche"). Ce qui
+  // occupait chaque main avant est rendu à l'inventaire, sans doublon si
+  // c'était déjà la même arme à deux mains dans les deux mains.
+  equipTwoHanded: (charId, item) =>
+    applyCharacterUpdate(set, get, charId, (c) => {
+      const inv = c.inventaire ?? [];
+      if (!inv.some((i) => String(i.id) === String(item.id))) return c;
+      const prevArme1 = c.equipement?.arme1 ?? null;
+      const prevArme2 = c.equipement?.arme2 ?? null;
+      const nextInv = inv.filter((i) => String(i.id) !== String(item.id));
+      if (prevArme1) nextInv.push({ ...prevArme1, slotIndex: undefined });
+      if (prevArme2 && String(prevArme2.id) !== String(prevArme1?.id)) {
+        nextInv.push({ ...prevArme2, slotIndex: undefined });
+      }
+      return {
+        ...c,
+        inventaire: nextInv,
+        equipement: { ...(c.equipement ?? {}), arme1: item, arme2: item },
+      };
+    }),
+
+  // Déséquipe une arme à deux mains depuis l'une ou l'autre main : vide les
+  // deux slots mais ne rend qu'une seule copie à l'inventaire.
+  unequipTwoHandedToInventory: (charId) =>
+    applyCharacterUpdate(set, get, charId, (c) => {
+      const equipped = c.equipement?.arme1 ?? c.equipement?.arme2;
+      if (!equipped) return c;
+      return {
+        ...c,
+        inventaire: [...(c.inventaire ?? []), { ...equipped, slotIndex: undefined }],
+        equipement: { ...(c.equipement ?? {}), arme1: null, arme2: null },
+      };
+    }),
+
+  // Gadgets (objets equipSlot 'custom' réservés à une race/ascendance, voir
+  // le bouton dédié dans EquipementPanel) : même mécanisme que les sacs
+  // (char.gadgetsEquipes, tableau indexé par emplacement) — équiper retire
+  // l'item de l'inventaire, ce qui occupait déjà le slot y retourne.
+  equipGadget: (charId, slotIndex, item) =>
+    applyCharacterUpdate(set, get, charId, (c) => {
+      const inv = c.inventaire ?? [];
+      if (!inv.some((i) => String(i.id) === String(item.id))) return c;
+      const slots = [...(c.gadgetsEquipes ?? [])];
+      const previouslyEquipped = slots[slotIndex] ?? null;
+      let nextInv = inv.filter((i) => String(i.id) !== String(item.id));
+      if (previouslyEquipped) nextInv = [...nextInv, { ...previouslyEquipped, slotIndex: undefined }];
+      slots[slotIndex] = item;
+      return { ...c, inventaire: nextInv, gadgetsEquipes: slots };
+    }),
+
+  unequipGadget: (charId, slotIndex) =>
+    applyCharacterUpdate(set, get, charId, (c) => {
+      const slots = [...(c.gadgetsEquipes ?? [])];
+      const equipped = slots[slotIndex];
+      if (!equipped) return c;
+      slots[slotIndex] = null;
+      const gadgetsActifs = { ...(c.gadgetsActifs ?? {}) };
+      delete gadgetsActifs[equipped.id];
+      return {
+        ...c,
+        inventaire: [...(c.inventaire ?? []), { ...equipped, slotIndex: undefined }],
+        gadgetsEquipes: slots,
+        gadgetsActifs,
+      };
+    }),
+
+  // Bascule l'activation d'un gadget "actif" (voir BLANK_ITEM.actif) — un
+  // gadget passif n'a pas d'entrée ici, son bonus s'applique toujours.
+  toggleGadgetActive: (charId, itemId) =>
+    applyCharacterUpdate(set, get, charId, (c) => ({
+      ...c,
+      gadgetsActifs: { ...(c.gadgetsActifs ?? {}), [itemId]: !c.gadgetsActifs?.[itemId] },
+    })),
 
   addSpell: (charId, spell) =>
     applyCharacterUpdate(set, get, charId, (c) => ({

@@ -32,7 +32,7 @@ export default function InventoryTab({ char }) {
       <section>
         <h2 className="section-heading">
           Inventaire
-          <span style={{ fontSize: 12, color: 'var(--dim)', fontFamily: 'var(--font-caps)', letterSpacing: 1, fontWeight: 400 }}>
+          <span style={{ fontSize: 14, color: 'var(--dim)', fontFamily: 'var(--font-caps)', letterSpacing: 1, fontWeight: 400 }}>
             {char.inventaire.length} objets · {totalWeight.toFixed(1)} kg
           </span>
         </h2>
@@ -57,20 +57,20 @@ export default function InventoryTab({ char }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <button
                         className="btn-ghost"
-                        style={{ padding: '2px 8px', fontSize: 14 }}
+                        style={{ padding: '2px 8px', fontSize: 16 }}
                         onClick={() => item.qte > 1 && updateInventoryItem(char.id, item.id, { qte: item.qte - 1 })}
                       >−</button>
                       <span className="item-qty">{item.qte}</span>
                       <button
                         className="btn-ghost"
-                        style={{ padding: '2px 8px', fontSize: 14 }}
+                        style={{ padding: '2px 8px', fontSize: 16 }}
                         onClick={() => updateInventoryItem(char.id, item.id, { qte: item.qte + 1 })}
                       >+</button>
                     </div>
                   </td>
                   <td><span className="item-weight">{item.poids} kg</span></td>
                   <td><span className={`item-rarity ${item.rarete}`}>{RARITY_LABELS[item.rarete]}</span></td>
-                  <td style={{ color: 'var(--dim)', fontSize: 12, maxWidth: 220 }}>{item.desc}</td>
+                  <td style={{ color: 'var(--dim)', fontSize: 14, maxWidth: 220 }}>{item.desc}</td>
                   <td>
                     <button
                       className="btn-danger"

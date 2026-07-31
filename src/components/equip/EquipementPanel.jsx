@@ -1,12 +1,14 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
-  HardHat, Shield, Wind, Hand, Link2, Footprints, Gem, Sword,
-  Package, LayoutGrid, Circle,
+  HardHat, Shield, Wind, Hand, Link2, Footprints, Gem, Sword, BowArrow,
+  Package, LayoutGrid, Circle, Cpu,
 } from 'lucide-react';
 import ItemEffectSummary from '../admin/ItemEffectSummary';
 import { useCharacterStore } from '../../store/characterStore';
 import { useAdminStore } from '../../store/adminStore';
 import { APTITUDES, RESISTANCES_DEF } from '../../data/gameData';
+import { resolveLiveItem, getGadgetSlotCount, getGadgetSlotLabel, getGadgetItemCategoryId } from '../../domain/characterCalculations';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -20,8 +22,9 @@ export const EQUIP_SLOTS_DEF = [
   { key: 'ceinture', label: 'Ceinture', accepts: ['ceinture'],              area: 'ceinture' },
   { key: 'bague2',   label: 'Bijou 2',  accepts: ['bague', 'bijou', 'cou'], area: 'bijou2'   },
   { key: 'bottes',   label: 'Bottes',   accepts: ['bottes'],                area: 'bottes'   },
-  { key: 'arme1',    label: 'Arme 1',   accepts: ['arme'],                  area: 'arme1'    },
-  { key: 'arme2',    label: 'Arme 2',   accepts: ['arme'],                  area: 'arme2'    },
+  { key: 'arme1',        label: 'Main droite',      accepts: ['arme'],           area: 'arme1'        },
+  { key: 'armeDistance', label: 'Arme à distance',  accepts: ['armeDistance'],   area: 'armeDistance' },
+  { key: 'arme2',        label: 'Main gauche',      accepts: ['arme'],           area: 'arme2'        },
 ];
 
 export const INV_CATEGORIES = [
@@ -36,7 +39,11 @@ export const INV_CATEGORIES = [
   { key: 'arme',     label: 'Arme',     color: '#e08080' },
 ];
 
-const BIJOU_SLOTS = new Set(['bijou', 'bague', 'cou']);
+// 'bague1'/'bague2' n'existent pas dans ITEM_EQUIP_SLOTS (le builder d'item
+// ne propose que 'bijou') — gardés ici en filet de sécurité pour d'anciens
+// items dont le equipSlot avait été écrasé par la clé de doll (bug corrigé,
+// voir slotAcceptsItem/handleSlotDrop).
+const BIJOU_SLOTS = new Set(['bijou', 'bague', 'cou', 'bague1', 'bague2']);
 
 export const RARITY_COLOR = {
   common: 'var(--dim)', uncommon: '#4ac87a', rare: '#4a7ac8',
@@ -104,11 +111,27 @@ export function getItemEffectLookupOptions(customAptitudes = [], customResistanc
   return { aptitudeOptions, resistanceOptions };
 }
 
+// D'anciens items équipés avant le fix de handleSlotDrop/EquipSlotBox ont
+// leur equipSlot figé sur une clé de doll précise (ex: 'arme1', 'bague2')
+// au lieu de la valeur canonique choisie dans le builder ('arme', 'bijou').
+// On les réconcilie ici pour que le matching reste correct même sur ces
+// items legacy, sans réintroduire de regroupement par catégorie pour les
+// items sains (armeDistance reste exclusif, volontairement absent d'ici).
+const LEGACY_SLOT_ALIASES = { arme1: 'arme', arme2: 'arme', bague1: 'bijou', bague2: 'bijou' };
+
 export function slotAcceptsItem(slotDef, item) {
   if (!slotDef || !item) return false;
-  const rawType = String(item.equipSlot ?? item.type ?? '').toLowerCase();
-  const normalized = normalizeEquipType(rawType);
-  return slotDef.key === rawType || slotDef.accepts.includes(rawType) || slotDef.accepts.includes(normalized);
+  // Le match dépend uniquement du "Slot équipable" choisi dans le builder
+  // d'item (item.equipSlot), pas d'une catégorie dérivée/normalisée : sinon
+  // une arme à distance (equipSlot: 'armeDistance') se retrouve compatible
+  // avec les slots Arme 1/Arme 2 (accepts: ['arme']) via normalizeEquipType,
+  // qui regroupe volontairement tout ce qui commence par "arme" pour
+  // l'affichage des onglets d'inventaire — un regroupement d'affichage,
+  // pas une règle d'équipement. Pas de .toLowerCase() non plus : des clés
+  // comme "armeDistance" sont en camelCase.
+  const raw = String(item.equipSlot ?? item.type ?? '');
+  const rawType = LEGACY_SLOT_ALIASES[raw] || raw;
+  return slotDef.key === rawType || slotDef.accepts.includes(rawType);
 }
 
 // ── Sub-components ───────────────────────────────────────────────────────────
@@ -127,6 +150,7 @@ export function SlotIcon({ slotKey }) {
     case 'bague2':   return <Gem        {...props} />;
     case 'arme1':
     case 'arme2':    return <Sword      {...props} />;
+    case 'armeDistance': return <BowArrow {...props} />;
     default:         return <Package    {...props} />;
   }
 }
@@ -149,7 +173,7 @@ export function CatSVG({ catKey, color = 'currentColor' }) {
   }
 }
 
-export function EquipSlotBox({ slotDef, equippedItem, onDrop, onUnequip, dragOver, onDragOver, onDragLeave, itemEffectOptions }) {
+export function EquipSlotBox({ slotDef, equippedItem, onDrop, dragOver, onDragOver, onDragLeave, itemEffectOptions }) {
   const isEmpty = !equippedItem?.nom;
   return (
     <div
@@ -171,18 +195,21 @@ export function EquipSlotBox({ slotDef, equippedItem, onDrop, onUnequip, dragOve
           className="eqdoll-slot-filled"
           draggable
           onDragStart={(e) => {
+            // On ne réécrit plus equipSlot/type avec la clé de doll ici :
+            // ça écrasait définitivement le "Slot équipable" d'origine de
+            // l'item (ex: un bijou devenait "bague1" pour toujours, même
+            // remis à l'inventaire — voir slotAcceptsItem).
             const payload = {
               type: 'slot',
               slotKey: slotDef.key,
-              item: { ...equippedItem, equipSlot: slotDef.key, type: normalizeEquipType(slotDef.key) },
+              item: { ...equippedItem },
             };
             e.dataTransfer.effectAllowed = 'move';
             e.dataTransfer.setData('application/json', JSON.stringify(payload));
             _dndPayload = payload;
           }}
           onDragEnd={() => { _dndPayload = null; }}
-          onClick={onUnequip}
-          title="Cliquer pour déséquiper"
+          title="Glisser vers l'inventaire pour déséquiper"
         >
           <span className="eqdoll-item-name" style={{ color: RARITY_COLOR[equippedItem.rarete] || 'var(--gold2)' }}>
             {equippedItem.nom}
@@ -190,7 +217,7 @@ export function EquipSlotBox({ slotDef, equippedItem, onDrop, onUnequip, dragOve
           {equippedItem.desc && (
             <span className="eqdoll-item-desc">{equippedItem.desc}</span>
           )}
-          <ItemEffectSummary item={equippedItem} {...itemEffectOptions} mode="compact" />
+          <ItemEffectSummary item={equippedItem} {...itemEffectOptions} mode="button" />
         </div>
       )}
     </div>
@@ -200,17 +227,62 @@ export function EquipSlotBox({ slotDef, equippedItem, onDrop, onUnequip, dragOve
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function EquipementPanel({ char }) {
-  const { equipItem, unequipSlot, equipFromInventory, unequipToInventory } = useCharacterStore();
+  const {
+    equipItem, unequipSlot, equipFromInventory, unequipToInventory,
+    equipTwoHanded, unequipTwoHandedToInventory,
+    equipGadget, unequipGadget,
+  } = useCharacterStore();
   const { customAptitudes, customResistanceEntries } = useAdminStore();
   const liveChar = useCharacterStore((s) => s.getCharacter(char.id)) ?? char;
   const [dropOver, setDropOver]   = useState(null);
   const [catFilter, setCatFilter] = useState('tout');
+  const [gadgetsPanelOpen, setGadgetsPanelOpen] = useState(false);
+  const [gadgetPickerSlot, setGadgetPickerSlot] = useState(null);
 
   const itemEffectOptions = getItemEffectLookupOptions(customAptitudes, customResistanceEntries);
-  const equip      = liveChar.equipement ?? {};
-  const inventaire = liveChar.inventaire ?? [];
+  // Résout chaque item (équipé/en inventaire) contre le catalogue courant
+  // (voir resolveLiveItem) : une copie en jeu n'est plus figée au moment où
+  // elle a été ajoutée, un item édité dans l'admin se répercute partout.
+  const equip = Object.fromEntries(
+    Object.entries(liveChar.equipement ?? {}).map(([slot, item]) => [slot, item ? resolveLiveItem(item) : item])
+  );
+  const inventaire = (liveChar.inventaire ?? []).map(resolveLiveItem);
 
-  const equippableItems = inventaire.filter((i) => getItemEquipType(i));
+  // Les sacs (equipSlot 'sac') se gèrent exclusivement via le panneau "Sac"
+  // de l'inventaire, et les Gadgets (equipSlot 'custom') via le panneau
+  // dédié ci-dessous — ni l'un ni l'autre n'a de place sur la poupée.
+  const equippableItems = inventaire.filter((i) => {
+    const type = getItemEquipType(i);
+    return type && type !== 'sac' && type !== 'custom';
+  });
+
+  // Objets raciaux : emplacements accordés par la race + l'ascendance du
+  // personnage (getGadgetSlotCount), le bouton n'apparaît que si ce total
+  // est positif. Le pool proposable = uniquement les items equipSlot
+  // 'custom' de LA catégorie d'item choisie sur la race/ascendance
+  // (getGadgetItemCategoryId) — le lien se fait depuis la race, pas par un
+  // verrouillage de races côté catégorie.
+  const gadgetSlotCount = getGadgetSlotCount(liveChar);
+  const gadgetLabel = getGadgetSlotLabel(liveChar);
+  const gadgetItemCategoryId = getGadgetItemCategoryId(liveChar);
+  const gadgetSlots = Array.from({ length: gadgetSlotCount }, (_, i) => {
+    const item = liveChar.gadgetsEquipes?.[i] ?? null;
+    return item ? resolveLiveItem(item) : null;
+  });
+  const availableGadgetItems = gadgetItemCategoryId == null
+    ? []
+    : inventaire.filter((i) => i.equipSlot === 'custom' && String(i.categoryId) === String(gadgetItemCategoryId));
+
+  const equipGadgetToSlot = (slotIndex, itemId) => {
+    const item = inventaire.find((i) => String(i.id) === String(itemId));
+    if (!item) return;
+    equipGadget(char.id, slotIndex, item);
+    setGadgetPickerSlot(null);
+  };
+  const unequipGadgetSlot = (slotIndex) => {
+    if (!gadgetSlots[slotIndex]) return;
+    unequipGadget(char.id, slotIndex);
+  };
 
   const filteredItems = catFilter === 'tout'
     ? equippableItems
@@ -219,6 +291,24 @@ export default function EquipementPanel({ char }) {
       : equippableItems.filter((i) => normalizeEquipType(i.equipSlot) === catFilter);
 
   const presentCats = new Set(equippableItems.map((i) => normalizeEquipType(i.equipSlot)));
+
+  // Seul chemin de déséquipement de la poupée : glisser vers l'inventaire
+  // (plus de clic direct — trop facile de retirer un item par erreur, ex. en
+  // fermant le popover "Effets", voir ItemEffectSummary). Une arme à deux
+  // mains occupe arme1 ET arme2 avec le même item : la retirer d'une seule
+  // main via unequipToInventory laisserait l'autre main "orpheline" et
+  // dupliquerait l'item si elle était ensuite retirée aussi — d'où ce même
+  // garde-fou que gérait auparavant EquipSlotBox.onUnequip.
+  const unequipSlotToInventory = (slotKey) => {
+    const isLinkedTwoHanded = (slotKey === 'arme1' || slotKey === 'arme2')
+      && equip.arme1 && equip.arme2
+      && String(equip.arme1.id) === String(equip.arme2.id);
+    if (isLinkedTwoHanded) {
+      unequipTwoHandedToInventory(char.id);
+    } else {
+      unequipToInventory(char.id, slotKey);
+    }
+  };
 
   const handleSlotDrop = (e, slotDef) => {
     let parsedPayload = null;
@@ -230,12 +320,15 @@ export default function EquipementPanel({ char }) {
     if (payload.type === 'inv') {
       const item = payload.item;
       if (!slotAcceptsItem(slotDef, item)) return;
-      equipFromInventory(char.id, slotDef.key, {
-        ...item,
-        type: getItemEquipType(item),
-        equipSlot: slotDef.key,
-        desc: item.desc ?? '',
-      });
+      // On garde item.equipSlot/type tels quels : les écraser avec la clé
+      // de doll (ex: 'bague1') corrompait le "Slot équipable" d'origine de
+      // l'item de façon permanente, même après un déséquipement.
+      const itemToEquip = { ...item, desc: item.desc ?? '' };
+      if (item.deuxMains && (slotDef.key === 'arme1' || slotDef.key === 'arme2')) {
+        equipTwoHanded(char.id, itemToEquip);
+      } else {
+        equipFromInventory(char.id, slotDef.key, itemToEquip);
+      }
     } else if (payload.type === 'slot') {
       if (payload.slotKey === slotDef.key) { _dndPayload = null; return; }
       const srcEquipped = payload.item ?? equip[payload.slotKey];
@@ -273,6 +366,19 @@ export default function EquipementPanel({ char }) {
         <div className="eqdoll-body">
           <div className="eqdoll-title">Mon Équipement</div>
           <div className="eqdoll-slots-grid">
+            {gadgetSlotCount > 0 && (
+              <button
+                type="button"
+                className="eqdoll-slot eqdoll-gadget-btn"
+                data-area="gadgets"
+                onClick={() => setGadgetsPanelOpen(true)}
+                title={gadgetLabel}
+              >
+                <Cpu size={20} />
+                <span>{gadgetLabel}</span>
+                <span className="eqdoll-gadget-btn-count">{gadgetSlots.filter(Boolean).length}/{gadgetSlotCount}</span>
+              </button>
+            )}
             {EQUIP_SLOTS_DEF.map((slotDef) => (
               <EquipSlotBox
                 key={slotDef.key}
@@ -282,7 +388,6 @@ export default function EquipementPanel({ char }) {
                 onDragOver={(e) => handleSlotDragOver(e, slotDef)}
                 onDragLeave={() => setDropOver(null)}
                 onDrop={(e) => handleSlotDrop(e, slotDef)}
-                onUnequip={() => unequipToInventory(char.id, slotDef.key)}
                 itemEffectOptions={itemEffectOptions}
               />
             ))}
@@ -310,7 +415,7 @@ export default function EquipementPanel({ char }) {
           </div>
 
           <div className="eqdoll-inv-hint">
-            Glisser vers un emplacement pour équiper · Cliquer sur un équipé pour le retirer
+            Glisser vers un emplacement pour équiper · Glisser un équipé vers ici pour le retirer
           </div>
 
           <div
@@ -320,7 +425,7 @@ export default function EquipementPanel({ char }) {
               e.preventDefault();
               setDropOver(null);
               const payload = _dndPayload;
-              if (payload?.type === 'slot') unequipToInventory(char.id, payload.slotKey);
+              if (payload?.type === 'slot') unequipSlotToInventory(payload.slotKey);
               _dndPayload = null;
             }}
           >
@@ -357,7 +462,7 @@ export default function EquipementPanel({ char }) {
                     </span>
                   </div>
                   {item.desc && <p className="eqdoll-inv-item-desc">{item.desc}</p>}
-                  <ItemEffectSummary item={item} {...itemEffectOptions} mode="compact" />
+                  <ItemEffectSummary item={item} {...itemEffectOptions} mode="button" />
                 </div>
               );
             })}
@@ -365,6 +470,54 @@ export default function EquipementPanel({ char }) {
         </div>
 
       </div>
+
+      {gadgetsPanelOpen && createPortal(
+        <div className="index-modal-backdrop" onClick={() => { setGadgetsPanelOpen(false); setGadgetPickerSlot(null); }}>
+          <div className="index-confirm-modal inv-bag-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="index-modal-header">
+              <h3>Mes {gadgetLabel}</h3>
+              <button className="admin-btn" onClick={() => { setGadgetsPanelOpen(false); setGadgetPickerSlot(null); }}>✕ Fermer</button>
+            </div>
+            <div className="inv-bag-hint">
+              Seuls les objets "Race Custom" compatibles avec cette race peuvent être équipés ici. Un objet équipé quitte l'inventaire.
+              Les objets passifs appliquent toujours leur bonus ; les objets actifs doivent être activés depuis l'onglet Stats ou le panneau Combat.
+            </div>
+            <div className="inv-bag-slots">
+              {gadgetSlots.map((gadgetItem, slotIndex) => (
+                <div key={slotIndex} className={`inv-bag-slot${gadgetItem ? ' is-filled' : ''}`}>
+                  {gadgetItem ? (
+                    <>
+                      <div className="inv-bag-slot-main">
+                        <strong>{gadgetItem.nom}</strong>
+                        <span className="eqdoll-gadget-type">{gadgetItem.actif ? 'Actif' : 'Passif'}</span>
+                        {gadgetItem.desc && <span className="inv-bag-slot-desc">{gadgetItem.desc}</span>}
+                        <ItemEffectSummary item={gadgetItem} {...itemEffectOptions} mode="button" />
+                      </div>
+                      <button className="inv-bag-slot-remove" title="Retirer" onClick={() => unequipGadgetSlot(slotIndex)}>✕</button>
+                    </>
+                  ) : gadgetPickerSlot === slotIndex ? (
+                    <div className="inv-bag-slot-picker">
+                      {availableGadgetItems.length === 0 ? (
+                        <p className="inv-bag-slot-empty-hint">Aucun objet racial disponible dans l'inventaire.</p>
+                      ) : availableGadgetItems.map((item) => (
+                        <button key={item.id} className="inv-bag-slot-picker-item" onClick={() => equipGadgetToSlot(slotIndex, item.id)}>
+                          {item.nom}
+                        </button>
+                      ))}
+                      <button className="inv-bag-slot-picker-cancel" onClick={() => setGadgetPickerSlot(null)}>Annuler</button>
+                    </div>
+                  ) : (
+                    <button className="inv-bag-slot-add" onClick={() => setGadgetPickerSlot(slotIndex)}>
+                      <span>+ Emplacement libre</span>
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

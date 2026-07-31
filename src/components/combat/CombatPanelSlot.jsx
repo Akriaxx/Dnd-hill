@@ -8,6 +8,8 @@ import CombatCompetencesPanel from './panels/CombatCompetencesPanel';
 import CombatGrimoirePanel from './panels/CombatGrimoirePanel';
 import CombatEquipementPanel from './panels/CombatEquipementPanel';
 import CombatInventoryPanel from './panels/CombatInventoryPanel';
+import CombatGadgetsPanel from './panels/CombatGadgetsPanel';
+import { getGadgetSlotLabel } from '../../domain/characterCalculations';
 
 // Même ensemble que les onglets de la fiche complète (voir DETAIL_TABS dans
 // CharacterListPage.jsx) — un panneau condensé peut afficher n'importe
@@ -22,6 +24,7 @@ const PANEL_COMPONENTS = {
   grimoire: CombatGrimoirePanel,
   equipement: CombatEquipementPanel,
   inventaire: CombatInventoryPanel,
+  gadgets: CombatGadgetsPanel,
 };
 
 const PANEL_LABELS = {
@@ -34,19 +37,23 @@ const PANEL_LABELS = {
   grimoire: 'Grimoire',
   equipement: 'Équipement',
   inventaire: 'Inventaire',
+  gadgets: 'Objets raciaux',
 };
-
-// Un panneau condensé (P1/P2/P3) : le joueur choisit librement, via le
-// sélecteur en en-tête, quel contenu y afficher.
-const PANEL_OPTIONS = Object.keys(PANEL_COMPONENTS).map((key) => ({ value: key, label: PANEL_LABELS[key] }));
 
 export default function CombatPanelSlot({ char, type, onTypeChange }) {
   const Content = PANEL_COMPONENTS[type] || CombatInventoryPanel;
+  // Le libellé "gadgets" dépend du personnage (le MJ le nomme par
+  // race/ascendance — voir getGadgetSlotLabel) : construit par personnage
+  // plutôt qu'en constante de module, à la différence des autres panneaux.
+  const panelOptions = Object.keys(PANEL_COMPONENTS).map((key) => ({
+    value: key,
+    label: key === 'gadgets' ? getGadgetSlotLabel(char) : PANEL_LABELS[key],
+  }));
 
   return (
     <div className="combat-panel">
       <div className="combat-panel-header">
-        <CombatSelect value={type} options={PANEL_OPTIONS} onChange={onTypeChange} />
+        <CombatSelect value={type} options={panelOptions} onChange={onTypeChange} />
       </div>
       <Content char={char} />
     </div>

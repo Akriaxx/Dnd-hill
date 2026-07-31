@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { SmartText } from './SmartDescEditor';
 
 const SIMPLE_EFFECT_GROUPS = [
@@ -19,6 +21,16 @@ const SIMPLE_EFFECT_GROUPS = [
       ['resistancePhysique', 'Résistance physique', 'resistance.physique'],
       ['resistanceMagique', 'Résistance magique', 'resistance.magique'],
       ['esquive', 'Esquive', 'stat.Esquive'],
+    ],
+  },
+  // ITEM_SIMPLE_EFFECTS (itemUtils.js) inclut aussi emplacements/déplacement
+  // (ex: un sac +15 emplacements) — absents ici jusqu'à présent, donc jamais
+  // affichés dans aucun badge "Confère" malgré un bonus bien appliqué.
+  {
+    title: 'Autres',
+    keys: [
+      ['emplacements', 'Emplacements'],
+      ['deplacement', 'Déplacement'],
     ],
   },
 ];
@@ -91,6 +103,11 @@ export function buildItemEffectGroups(item, { aptitudeOptions = [], resistanceOp
   const groups = [];
 
   SIMPLE_EFFECT_GROUPS.forEach((group) => {
+    // Un consommable n'a plus de montant fixe pour Vitalité/Mana/Endurance
+    // (voir item.useResource) — une éventuelle valeur figée en base est une
+    // donnée obsolète qu'on n'affiche plus, pour ne pas spoiler le résultat
+    // du jet de dé au joueur.
+    if (group.title === 'Ressources' && item?.consumable) return;
     const entries = group.keys
       .map(([key, fallback, tag]) => ({ key, value: asNumber(effects.simple[key]), fallback, tag }))
       .filter((entry) => entry.value !== 0);
@@ -138,35 +155,96 @@ export function buildItemEffectGroups(item, { aptitudeOptions = [], resistanceOp
   return groups;
 }
 
+function EffectGroupsList({ groups }) {
+  return (
+    <div className="item-confers-groups">
+      {groups.map((group) => (
+        <div className="item-confers-group" key={group.title}>
+          <span className="item-confers-group-title">{group.title}</span>
+          <span className="item-confers-list">
+            {group.entries.map((entry) => (
+              <EffectEntry
+                key={entry.key}
+                value={entry.value}
+                tag={entry.tag}
+                fallback={entry.fallback}
+              />
+            ))}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Panneau flottant ancré près du bouton "Effets" (voir mode="button") — même
+// mécanisme que CaracTooltip (StatsTab.jsx) : position fixe calculée depuis
+// getBoundingClientRect au clic, portée par un portail pour échapper aux
+// conteneurs scrollables (.eqdoll-body/.eqdoll-inv-list). Un fond transparent
+// plein écran capte le clic extérieur pour fermer.
+function ItemEffectsPopover({ groups, anchorRect, onClose }) {
+  const width = 300;
+  const prefersLeft = anchorRect.left + width > window.innerWidth - 16;
+  const left = prefersLeft ? Math.max(16, anchorRect.right - width) : anchorRect.left;
+  const prefersUp = window.innerHeight - anchorRect.bottom < 240;
+  const top = prefersUp ? anchorRect.top - 8 : anchorRect.bottom + 8;
+  const transformOrigin = prefersUp ? 'translateY(-100%)' : 'none';
+
+  return createPortal(
+    <>
+      {/* Portail : le clic bulle à travers l'arbre React (pas le DOM) jusqu'aux
+          parents du bouton "Effets" (ex: .eqdoll-slot-filled) — stopPropagation
+          impératif ici pour ne pas déclencher leurs handlers de clic. */}
+      <div className="item-effects-popover-backdrop" onClick={(e) => { e.stopPropagation(); onClose(); }} />
+      <div
+        className="item-effects-popover"
+        style={{ top, left, width, transform: transformOrigin }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <span className="item-confers-label">Effets</span>
+        <EffectGroupsList groups={groups} />
+      </div>
+    </>,
+    document.body
+  );
+}
+
 export default function ItemEffectSummary({
   item,
   aptitudeOptions = [],
   resistanceOptions = [],
   mode = 'full',
 }) {
+  const [open, setOpen] = useState(false);
+  const [anchorRect, setAnchorRect] = useState(null);
   const groups = buildItemEffectGroups(item, { aptitudeOptions, resistanceOptions });
   if (groups.length === 0) return null;
 
+  if (mode === 'button') {
+    return (
+      <>
+        <button
+          type="button"
+          className="item-effects-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            setAnchorRect(e.currentTarget.getBoundingClientRect());
+            setOpen((v) => !v);
+          }}
+        >
+          Effets
+        </button>
+        {open && anchorRect && (
+          <ItemEffectsPopover groups={groups} anchorRect={anchorRect} onClose={() => setOpen(false)} />
+        )}
+      </>
+    );
+  }
+
   return (
     <div className={`item-confers item-confers--${mode}`}>
-      <button className="item-confers-label" type="button">Confère</button>
-      <div className="item-confers-groups">
-        {groups.map((group) => (
-          <div className="item-confers-group" key={group.title}>
-            <span className="item-confers-group-title">{group.title}</span>
-            <span className="item-confers-list">
-              {group.entries.map((entry) => (
-                <EffectEntry
-                  key={entry.key}
-                  value={entry.value}
-                  tag={entry.tag}
-                  fallback={entry.fallback}
-                />
-              ))}
-            </span>
-          </div>
-        ))}
-      </div>
+      <span className="item-confers-label">Confère</span>
+      <EffectGroupsList groups={groups} />
     </div>
   );
 }

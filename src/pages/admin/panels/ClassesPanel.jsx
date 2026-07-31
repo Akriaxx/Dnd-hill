@@ -146,16 +146,6 @@ function ClassFormModal({ initial, races, classCategories, caracteristiques, equ
               />
             </div>
             <div className="race-form-section race-form-section--wide">
-              <div className="race-form-section-title">Emplacement de sac</div>
-              <p className="race-form-hint">Nombre de cases d'inventaire de base pour cette classe (les objets — un sac par exemple — peuvent en ajouter par-dessus).</p>
-              <div className="race-form-row">
-                <div className="race-form-field race-form-field--sm">
-                  <label>Emplacements</label>
-                  <input type="number" min={0} value={form.emplacements ?? 0} onChange={(e) => set('emplacements', Number(e.target.value) || 0)} />
-                </div>
-              </div>
-            </div>
-            <div className="race-form-section race-form-section--wide">
               <div className="race-form-section-title">Dés de ressource</div>
               <p className="race-form-hint">Au passage de niveau, le joueur choisit une ressource et lance le dé associé.</p>
               <ResourceDiceFields value={form.resourceDice} onChange={(v) => set('resourceDice', v)} />

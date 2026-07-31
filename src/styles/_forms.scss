@@ -39,7 +39,7 @@
 
 .login-title {
   font-family: $font-display;
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 900;
   color: $white-text;
   letter-spacing: 3px;
@@ -49,7 +49,7 @@
 
 .login-sub {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 5px;
   color: var(--gold);
   opacity: 0.65;
@@ -63,7 +63,7 @@
   label {
     display: block;
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 3px;
     color: var(--dim);
     margin-bottom: 6px;
@@ -77,7 +77,7 @@
     color: var(--text);
     padding: 9px 14px;
     font-family: $font-body;
-    font-size: 14px;
+    font-size: 16px;
     outline: none;
     transition: border-color 0.15s;
 
@@ -95,7 +95,7 @@
   border-radius: 2px;
   color: var(--gold);
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 3px;
   transition: all 0.15s;
 
@@ -111,7 +111,7 @@
 }
 
 .form-error {
-  font-size: 12px;
+  font-size: 14px;
   color: #e05555;
   margin-top: 10px;
   text-align: center;
@@ -122,7 +122,7 @@
 // ── Generic button styles ──
 .btn-ghost {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   padding: 5px 14px;
   border: 1px solid $border2;
@@ -140,7 +140,7 @@
 
 .btn-danger {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   padding: 5px 14px;
   border: 1px solid rgba(224, 85, 85, 0.4);
@@ -165,7 +165,7 @@
 
 .sheet-tab {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   padding: 8px 20px;
   border: 1px solid transparent;
@@ -191,11 +191,11 @@
 .inventory-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 15px;
 
   th {
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 2px;
     color: var(--dim);
     padding: 8px 12px;
@@ -217,14 +217,14 @@
 
 .item-name {
   font-family: $font-display;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: $white-text;
 }
 
 .item-qty {
   font-family: $font-display;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 900;
   color: var(--gold2);
   text-align: center;
@@ -232,12 +232,12 @@
 
 .item-weight {
   color: var(--dim);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .item-rarity {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1px;
 
   &.common    { color: var(--dim); }
@@ -303,7 +303,7 @@
     background: rgba(200, 168, 74, 0.08);
     color: $white-text;
     font-family: $font-display;
-    font-size: 20px;
+    font-size: 22px;
     letter-spacing: 1.5px;
   }
 }
@@ -328,7 +328,7 @@
     border-right: 1px solid rgba(58, 46, 24, 0.8);
     color: var(--dim);
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 2px;
     text-transform: uppercase;
   }
@@ -342,7 +342,7 @@
     color: $white-text;
     padding: 0 14px;
     font-family: $font-display;
-    font-size: 16px;
+    font-size: 18px;
     outline: none;
 
     &:focus {
@@ -373,7 +373,7 @@
   > strong {
     color: $white-text;
     font-family: $font-display;
-    font-size: 18px;
+    font-size: 20px;
   }
 
   label {
@@ -384,7 +384,7 @@
   span {
     color: var(--dim);
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
   }
@@ -396,7 +396,7 @@
     color: var(--gold2);
     padding: 7px 9px;
     font-family: $font-display;
-    font-size: 16px;
+    font-size: 18px;
     outline: none;
   }
 }
@@ -408,7 +408,7 @@
   }
 
   .create-section h2 {
-    font-size: 22px;
+    font-size: 24px;
     padding: 16px 20px;
   }
 
@@ -421,12 +421,12 @@
     min-height: 60px;
 
     > span {
-      font-size: 13px;
+      font-size: 15px;
     }
 
     input,
     select {
-      font-size: 17px;
+      font-size: 19px;
     }
   }
 
@@ -481,7 +481,7 @@
     color: $white-text;
     padding: 0 14px;
     font-family: $font-body;
-    font-size: 14px;
+    font-size: 16px;
     outline: none;
 
     &:focus {
@@ -506,7 +506,7 @@
     border-right: 1px solid rgba(58, 46, 24, 0.7);
     color: var(--gold);
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 2px;
     text-transform: uppercase;
   }
@@ -529,7 +529,7 @@
 
 .spell-level {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 3px;
   color: var(--gold);
   opacity: 0.7;
@@ -538,7 +538,7 @@
 
 .spell-name {
   font-family: $font-display;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 900;
   color: $white-text;
   margin-bottom: 8px;
@@ -553,7 +553,7 @@
 
 .spell-tag {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1.5px;
   padding: 2px 8px;
   border: 1px solid $border2;
@@ -562,7 +562,7 @@
 }
 
 .spell-desc {
-  font-size: 13px;
+  font-size: 15px;
   color: var(--text);
   line-height: 1.5;
 }
@@ -575,7 +575,7 @@
   background: none;
   border: none;
   font-family: $font-caps;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 2px;
   color: rgba(200,168,74,0.38);
   text-align: center;
@@ -587,7 +587,7 @@
 
 .login-reset-desc {
   font-family: $font-body;
-  font-size: 13px;
+  font-size: 15px;
   color: rgba(224,212,184,0.5);
   line-height: 1.6;
   margin: 0 0 20px;

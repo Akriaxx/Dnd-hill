@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { useAdminStore } from '../../../store/adminStore';
+import { useAdminStore, getLocalGameDataBackups, LOCAL_BACKUP_MAX } from '../../../store/adminStore';
 import { ConfirmModal } from '../AdminShared';
 
 export default function StorageJsonPanel() {
@@ -10,22 +10,34 @@ export default function StorageJsonPanel() {
   const [status, setStatus] = useState('');
   const [pendingImport, setPendingImport] = useState(null);
   const [confirmPurge, setConfirmPurge] = useState(false);
+  const [autoBackups, setAutoBackups] = useState(() => getLocalGameDataBackups());
 
   const countSnapshotRows = (snapshot) => Object.values(snapshot?.data || snapshot || {})
     .reduce((sum, value) => sum + (Array.isArray(value) ? value.length : 0), 0);
 
-  const downloadSnapshot = () => {
-    const snapshot = exportGameDataSnapshot();
+  const downloadJson = (snapshot, filenameSuffix) => {
     const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `eindhill-game-data-${new Date().toISOString().slice(0, 10)}.json`;
+    link.download = `eindhill-game-data-${filenameSuffix}.json`;
     document.body.appendChild(link);
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+  };
+
+  const downloadSnapshot = () => {
+    const snapshot = exportGameDataSnapshot();
+    downloadJson(snapshot, new Date().toISOString().slice(0, 10));
     setStatus(`Export JSON prêt : ${countSnapshotRows(snapshot)} entrée(s) sauvegardée(s).`);
+  };
+
+  const downloadAutoBackup = (backup) => {
+    downloadJson(
+      { schema: 'eindhill-game-data-json', version: 1, exportedAt: backup.savedAt, data: backup.data },
+      backup.savedAt.replace(/[:.]/g, '-')
+    );
   };
 
   const handleImportFile = async (event) => {
@@ -97,6 +109,34 @@ export default function StorageJsonPanel() {
           Pour une modification multi-utilisateurs fiable, on basculera ensuite vers Supabase.
         </p>
       </div>
+
+      <div className="storage-card">
+        <div className="storage-card-main">
+          <span className="builder-soon-kicker">Automatique</span>
+          <h3>Sauvegardes automatiques (ce navigateur)</h3>
+          <p>
+            À chaque modification des données gameplay, une copie est aussi gardée dans ce navigateur
+            (les {LOCAL_BACKUP_MAX} dernières). Indépendant de Supabase : utile si la base est vidée par erreur.
+            Reste uniquement sur cet appareil — pense aussi à l'export manuel si tu changes d'ordinateur.
+          </p>
+        </div>
+        <div className="storage-actions">
+          <button className="admin-btn" onClick={() => setAutoBackups(getLocalGameDataBackups())}>Actualiser</button>
+        </div>
+      </div>
+
+      {autoBackups.length > 0 ? (
+        <ul className="storage-autobackup-list">
+          {autoBackups.map((backup) => (
+            <li key={backup.savedAt}>
+              <span>{new Date(backup.savedAt).toLocaleString('fr-FR')} — {countSnapshotRows(backup.data)} entrée(s)</span>
+              <button className="admin-btn" onClick={() => downloadAutoBackup(backup)}>Télécharger</button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="storage-status">Aucune sauvegarde automatique pour l'instant.</p>
+      )}
 
       {pendingImport && (
         <ConfirmModal

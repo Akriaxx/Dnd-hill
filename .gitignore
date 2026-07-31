@@ -32,3 +32,6 @@ dist-ssr
 .claude/
 .codex-remote-attachments/
 .vercel
+
+# Sauvegardes manuelles de game_data (données, pas du code)
+backups/

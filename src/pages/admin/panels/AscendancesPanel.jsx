@@ -1,16 +1,18 @@
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import { ASCENDANCE_DATA, APTITUDES, APT_CATEGORIES, RESISTANCES_DEF } from '../../../data/gameData';
 import { useAdminStore } from '../../../store/adminStore';
 import SmartDescEditor from '../../../components/admin/SmartDescEditor';
 import {
   ConfirmModal, AdminFilterPanel, CategoryAccordionList,
-  TagColorPicker, EffectsPanel, GameplayEffectsToggle,
+  TagColorPicker, EffectsPanel, GameplayEffectsToggle, BonusChoicesEditor,
 } from '../AdminShared';
 import { useGameplayEffectsPanel, useMatchedHeight } from '../adminEffectsPanelHooks';
 import {
-  asArray, slugifyKey, uniqueOptions,
+  asArray, slugifyKey, uniqueOptions, mergeTemporaryRows,
   STAT_KEYS, BLANK_ASCENDANCE, RACE_RESOURCE_KEYS, hasAnyIdentityEffects,
 } from '../adminUtils';
+import { getCaracteristiqueCatalog, getAptitudeCatalog, getResistanceCatalog } from '../../../domain/bonusChoiceDomains';
+import { TEMP_ITEM_CATEGORIES, getRootItemCategories, getItemCategoryChildren } from '../itemUtils';
 
 function buildAptitudeOptions(customAptitudeCategories, customAptitudes, storedHiddenAptitudeKeys) {
   const aptitudeCategories = [
@@ -42,10 +44,19 @@ function buildAptitudeOptions(customAptitudeCategories, customAptitudes, storedH
   return { aptitudeCategories, options };
 }
 
-function buildResistanceOptions() {
-  return Object.entries(RESISTANCES_DEF).flatMap(([groupKey, group]) =>
+// RESISTANCES_DEF (gameData.js) est vide par conception — voir RacesPanel.jsx
+// pour le même correctif (merge customResistanceEntries/Categories).
+function buildResistanceOptions(customResistanceEntries = [], customResistanceCategories = []) {
+  const staticOptions = Object.entries(RESISTANCES_DEF).flatMap(([groupKey, group]) =>
     (group.items || []).map((name) => ({ key: `${groupKey}:${slugifyKey(name)}`, group: group.label, name }))
   );
+  const categoryLabel = (categoryKey) => customResistanceCategories.find((c) => c.key === categoryKey)?.label || categoryKey;
+  const customOptions = asArray(customResistanceEntries).map((entry) => ({
+    key: `${entry.categoryKey}:${entry.key || slugifyKey(entry.label)}`,
+    group: categoryLabel(entry.categoryKey),
+    name: entry.label,
+  }));
+  return [...staticOptions, ...customOptions];
 }
 
 // Défini hors du composant (pas une closure recréée à chaque rendu) :
@@ -66,12 +77,18 @@ function AscendanceForm({ initial, raceOptions, onSave, onCancel, onClose }) {
   const customAptitudes = useAdminStore((state) => state.customAptitudes);
   const storedHiddenAptitudeKeys = useAdminStore((state) => state.hiddenAptitudeKeys);
   const customProvenances = useAdminStore((state) => state.customProvenances);
+  const customResistanceEntries = useAdminStore((state) => state.customResistanceEntries);
+  const customResistanceCategories = useAdminStore((state) => state.customResistanceCategories);
+  const customCaracteristiques = useAdminStore((state) => state.customCaracteristiques);
+  const customItemCategories = useAdminStore((state) => state.customItemCategories) || [];
+  const itemCategories = mergeTemporaryRows(TEMP_ITEM_CATEGORIES, customItemCategories);
+  const itemCategoryRoots = getRootItemCategories(itemCategories);
 
   const provenanceOptions = asArray(customProvenances).map((p) => ({ key: p.key || slugifyKey(p.nom), nom: p.nom, tagColor: p.tagColor }));
   const languageOptions = asArray(customLanguages);
   const languageCategories = asArray(customLanguageCategories);
   const { aptitudeCategories, options: aptitudeOptions } = buildAptitudeOptions(customAptitudeCategories, customAptitudes, storedHiddenAptitudeKeys);
-  const resistanceOptions = buildResistanceOptions();
+  const resistanceOptions = buildResistanceOptions(customResistanceEntries, customResistanceCategories);
   const resistanceByKey = new Map(resistanceOptions.map((o) => [o.key, o]));
   const aptitudeByKey = new Map(aptitudeOptions.map((a) => [a.key || slugifyKey(a.nom), a]));
   const languageByKey = new Map(languageOptions.map((l) => [l.key || slugifyKey(l.nom), l]));
@@ -93,6 +110,7 @@ function AscendanceForm({ initial, raceOptions, onSave, onCancel, onClose }) {
     resistanceBonuses: Array.isArray(asc?.resistanceBonuses) ? asc.resistanceBonuses : [],
     aptitudes: Array.isArray(asc?.aptitudes) ? asc.aptitudes : [],
     langues: Array.isArray(asc?.langues) ? asc.langues : [],
+    bonusChoices: Array.isArray(asc?.bonusChoices) ? asc.bonusChoices : [],
   });
 
   const [form, setForm] = useState(() => normalizeInitial(initial));
@@ -106,6 +124,7 @@ function AscendanceForm({ initial, raceOptions, onSave, onCancel, onClose }) {
   const [aptitudePanelOpen, setAptitudePanelOpen] = useState(false);
   const [languagePanelOpen, setLanguagePanelOpen] = useState(false);
   const [provenancePanelOpen, setProvenancePanelOpen] = useState(false);
+  const [bonusChoicesPanelOpen, setBonusChoicesPanelOpen] = useState(false);
   // Stats/Ressources sont de simples grilles de nombres (pas besoin d'un
   // gros panneau plein écran comme résistances/aptitudes/langues) : elles
   // se déplient directement dans le panneau "Effets gameplay" lui-même,
@@ -142,8 +161,11 @@ function AscendanceForm({ initial, raceOptions, onSave, onCancel, onClose }) {
     const key = aptitude.key || slugifyKey(aptitude.nom);
     const exists = current.aptitudes.some((r) => (r.key || slugifyKey(r.nom)) === key);
     if (exists) return { ...current, aptitudes: current.aptitudes.filter((r) => (r.key || slugifyKey(r.nom)) !== key) };
-    return { ...current, aptitudes: [...current.aptitudes, { key, nom: aptitude.nom, categoryKey: aptitude.categoryKey || aptitude.cat || 'general', stat: aptitude.stat || '' }] };
+    return { ...current, aptitudes: [...current.aptitudes, { key, nom: aptitude.nom, categoryKey: aptitude.categoryKey || aptitude.cat || 'general', stat: aptitude.stat || '', value: 1 }] };
   });
+  const setAptitudeValue = (aptitudeKey, value) => setForm((current) => ({
+    ...current, aptitudes: current.aptitudes.map((r) => (r.key || slugifyKey(r.nom)) === aptitudeKey ? { ...r, value } : r),
+  }));
   const removeAptitude = (aptitudeKey) => setForm((current) => ({
     ...current, aptitudes: current.aptitudes.filter((r) => (r.key || slugifyKey(r.nom)) !== aptitudeKey),
   }));
@@ -170,7 +192,7 @@ function AscendanceForm({ initial, raceOptions, onSave, onCancel, onClose }) {
     const cleanAptitudes = form.aptitudes.filter((r) => r.key || r.nom).map((r) => {
       const key = r.key || slugifyKey(r.nom);
       const opt = aptitudeByKey.get(key);
-      return { key, nom: opt?.nom || r.nom, categoryKey: opt?.categoryKey || opt?.cat || r.categoryKey || 'general', stat: opt?.stat || r.stat || '' };
+      return { key, nom: opt?.nom || r.nom, categoryKey: opt?.categoryKey || opt?.cat || r.categoryKey || 'general', stat: opt?.stat || r.stat || '', value: Number(r.value) || 1 };
     });
     onSave({
       ...form,
@@ -208,6 +230,7 @@ function AscendanceForm({ initial, raceOptions, onSave, onCancel, onClose }) {
     { key: 'aptitudes', label: 'Aptitudes', count: form.aptitudes.length, onOpen: () => setSelectedEffectCategory('aptitudes') },
     { key: 'langues', label: 'Langues', count: form.langues.length, onOpen: () => setSelectedEffectCategory('langues') },
     { key: 'provenances', label: 'Provenances', count: selectedProvenanceKeys.length, onOpen: () => setSelectedEffectCategory('provenances') },
+    { key: 'bonusChoices', label: 'Choix du joueur', count: form.bonusChoices.length, onOpen: () => setBonusChoicesPanelOpen(true) },
   ];
 
   const languageGroups = languageCategories.length > 0
@@ -254,13 +277,84 @@ function AscendanceForm({ initial, raceOptions, onSave, onCancel, onClose }) {
                 <SmartDescEditor value={form.competenceAscendance || ''} onChange={(v) => set('competenceAscendance', v)} placeholder="Ex: [ Sang ancien ] - ..." />
               </div>
               <div className="race-form-field">
+                <label>Objets raciaux</label>
+                <div className="race-form-row">
+                  <div className="race-form-field race-form-field--sm">
+                    <label>Emplacements</label>
+                    <input type="number" min={0} max={20} value={form.gadgetSlots ?? 0} onChange={(e) => set('gadgetSlots', Number(e.target.value) || 0)} />
+                  </div>
+                  <div className="race-form-field race-form-field--grow">
+                    <label>Nom (ex: Mutation, Gadget, Greffe...)</label>
+                    <input
+                      value={form.gadgetSlotsLabel || ''}
+                      onChange={(e) => set('gadgetSlotsLabel', e.target.value)}
+                      placeholder="Reprend celui de la race si vide"
+                    />
+                  </div>
+                </div>
+                <div className="race-form-field">
+                  <label>Catégorie d'item liée</label>
+                  <select value={form.gadgetItemCategoryId ?? ''} onChange={(e) => set('gadgetItemCategoryId', e.target.value ? Number(e.target.value) : null)}>
+                    <option value="">— Reprend celle de la race —</option>
+                    {itemCategoryRoots.map((root) => (
+                      <Fragment key={root.id}>
+                        <option value={root.id}>{root.nom}</option>
+                        {getItemCategoryChildren(itemCategories, root.id).map((child) => (
+                          <option key={child.id} value={child.id}>— {child.nom}</option>
+                        ))}
+                      </Fragment>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="race-form-field">
                 <label>Langue accordée</label>
                 <p className="race-form-hint">Langue obtenue automatiquement par un personnage de cette ascendance (visible dans "Mes Langues" sur la fiche).</p>
-                <input
-                  value={form.langue || ''}
-                  onChange={(e) => set('langue', e.target.value)}
-                  placeholder="Ex: [ Mécani ] - ( +4 Ascendance ) ou [ Mécani ] - ( Ascendance )"
-                />
+                <div className="race-form-row" style={{ alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                  <select
+                    value={form.langueAccordee?.key || ''}
+                    onChange={(e) => {
+                      const found = languageOptions.find((l) => (l.key || slugifyKey(l.nom)) === e.target.value);
+                      set('langueAccordee', found ? {
+                        key: found.key || slugifyKey(found.nom),
+                        nom: found.nom,
+                        complet: form.langueAccordee?.complet ?? true,
+                        bonus: form.langueAccordee?.bonus ?? 4,
+                      } : null);
+                    }}
+                  >
+                    <option value="">— Aucune —</option>
+                    {languageOptions.map((l) => (
+                      <option key={l.key || slugifyKey(l.nom)} value={l.key || slugifyKey(l.nom)}>{l.nom}</option>
+                    ))}
+                  </select>
+                  {form.langueAccordee && (
+                    <>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <input
+                          type="checkbox"
+                          checked={form.langueAccordee.complet}
+                          onChange={(e) => set('langueAccordee', { ...form.langueAccordee, complet: e.target.checked })}
+                        />
+                        Don complet
+                      </label>
+                      {!form.langueAccordee.complet && (
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          Bonus
+                          <input
+                            type="number"
+                            min={1}
+                            value={form.langueAccordee.bonus}
+                            onChange={(e) => set('langueAccordee', { ...form.langueAccordee, bonus: Number(e.target.value) || 0 })}
+                          />
+                        </label>
+                      )}
+                    </>
+                  )}
+                </div>
+                {languageOptions.length === 0 && (
+                  <p className="race-form-hint" style={{ opacity: 0.6 }}>Aucune langue créée pour l'instant (section Langues).</p>
+                )}
               </div>
             </div>
 
@@ -281,16 +375,16 @@ function AscendanceForm({ initial, raceOptions, onSave, onCancel, onClose }) {
             </div>
             <div className="race-resistance-panel-body">
               <div className="race-resistance-picker">
-                {Object.entries(RESISTANCES_DEF).map(([groupKey, group]) => (
-                  <div className="race-resistance-group" key={groupKey}>
-                    <div className="race-resistance-group-title">{group.label}</div>
+                {Object.entries(resistanceOptions.reduce((groups, option) => {
+                  (groups[option.group] ??= []).push(option);
+                  return groups;
+                }, {})).map(([groupLabel, options]) => (
+                  <div className="race-resistance-group" key={groupLabel}>
+                    <div className="race-resistance-group-title">{groupLabel}</div>
                     <div className="race-resistance-chip-grid">
-                      {(group.items || []).map((name) => {
-                        const option = { key: `${groupKey}:${slugifyKey(name)}`, group: group.label, name };
-                        return (
-                          <button type="button" key={option.key} className={`race-resistance-chip${selectedResistanceKeys.has(option.key) ? ' is-selected' : ''}`} onClick={() => toggleResistance(option)}>{name}</button>
-                        );
-                      })}
+                      {options.map((option) => (
+                        <button type="button" key={option.key} className={`race-resistance-chip${selectedResistanceKeys.has(option.key) ? ' is-selected' : ''}`} onClick={() => toggleResistance(option)}>{option.name}</button>
+                      ))}
                     </div>
                   </div>
                 ))}
@@ -365,6 +459,7 @@ function AscendanceForm({ initial, raceOptions, onSave, onCancel, onClose }) {
                         <strong>{apt?.nom || row.nom || key}</strong>
                         <span>{cat?.nom || 'Aptitude'}{(apt?.stat || row.stat) ? ` · ${apt?.stat || row.stat}` : ''}</span>
                       </div>
+                      <input className="race-resistance-value" type="number" value={row.value ?? 1} onChange={(e) => setAptitudeValue(key, Number(e.target.value) || 0)} />
                       <button className="admin-btn admin-btn--danger race-builder-remove" onClick={() => removeAptitude(key)}>Retirer</button>
                     </div>
                   );
@@ -463,6 +558,27 @@ function AscendanceForm({ initial, raceOptions, onSave, onCancel, onClose }) {
                   );
                 })}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {bonusChoicesPanelOpen && (
+        <div className="race-resistance-panel-backdrop">
+          <div className="race-resistance-panel">
+            <div className="race-resistance-panel-head">
+              <div><h4>Choix du joueur</h4><p>Ex: Demi-Ein "Résistance +20% Chaos OU Lumière au choix".</p></div>
+              <button className="admin-btn" onClick={() => setBonusChoicesPanelOpen(false)}>✕ Fermer</button>
+            </div>
+            <div className="race-resistance-panel-body">
+              <BonusChoicesEditor
+                value={form.bonusChoices}
+                onChange={(v) => set('bonusChoices', v)}
+                domainCatalogs={{
+                  caracteristique: getCaracteristiqueCatalog(customCaracteristiques),
+                  aptitude: getAptitudeCatalog({ customAptitudes, customAptitudeCategories }),
+                  resistance: getResistanceCatalog({ customResistanceEntries, customResistanceCategories }),
+                }}
+              />
             </div>
           </div>
         </div>

@@ -11,6 +11,7 @@ export const PERMISSIONS = Object.freeze({
   viewTerminal: 'viewTerminal',
   manageStorage: 'manageStorage',
   manageCombat: 'manageCombat',
+  manageExperience: 'manageExperience',
 });
 
 export const PERMISSION_LABELS = Object.freeze({
@@ -26,6 +27,7 @@ export const PERMISSION_LABELS = Object.freeze({
   [PERMISSIONS.viewTerminal]: 'Voir le terminal développeur',
   [PERMISSIONS.manageStorage]: 'Gérer le stockage JSON',
   [PERMISSIONS.manageCombat]: 'Lancer le mode combat',
+  [PERMISSIONS.manageExperience]: "Gérer l'expérience",
 });
 
 export const ROLE_KEYS = Object.freeze({
@@ -64,6 +66,7 @@ export const DEFAULT_ACCOUNT_ROLES = Object.freeze([
       [PERMISSIONS.managePlayers]: true,
       [PERMISSIONS.manageStorage]: true,
       [PERMISSIONS.manageCombat]: true,
+      [PERMISSIONS.manageExperience]: true,
     },
   },
   {
@@ -200,6 +203,9 @@ export const canManageCombat = (user, customRoles = [], systemRoleOverrides = {}
 
 export const canReviewCharacterCreations = (user, customRoles = [], systemRoleOverrides = {}) =>
   hasPermission(user, PERMISSIONS.reviewCharacterCreations, customRoles, systemRoleOverrides);
+
+export const canManageExperience = (user, customRoles = [], systemRoleOverrides = {}) =>
+  hasPermission(user, PERMISSIONS.manageExperience, customRoles, systemRoleOverrides);
 
 export const ownsCharacter = (user, character) =>
   Boolean(user && character && (

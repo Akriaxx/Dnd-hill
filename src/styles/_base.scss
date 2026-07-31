@@ -12,7 +12,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: $font-body;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.6;
 }
 
@@ -26,12 +26,16 @@ button { cursor: pointer; }
   padding: 1px 7px;
   border-radius: 3px;
   border: 1px solid;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1px;
   font-weight: 700;
   vertical-align: middle;
   margin: 0 2px;
   line-height: 1.5;
+  // span (pas <button>, pour rester valide imbriqué dans un autre bouton —
+  // voir SmartDescEditor.jsx) : le curseur pointer par défaut des <button>
+  // ne s'applique plus, on le redéclare ici.
+  cursor: pointer;
 }
 
 @keyframes fadeIn {

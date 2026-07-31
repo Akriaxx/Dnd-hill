@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { useAdminStore } from '../../../store/adminStore';
 import SmartDescEditor from '../../../components/admin/SmartDescEditor';
-import { ConfirmModal, AdminFilterPanel, SectionGrid, AdminCard, DetailLine } from '../AdminShared';
-import { asArray, includesText, mergeTemporaryRows } from '../adminUtils';
+import { ConfirmModal, AdminFilterPanel, SectionGrid, AdminCard, DetailLine, RaceLockFields } from '../AdminShared';
+import { asArray, includesText, mergeTemporaryRows, getRaceOptionsForLocks } from '../adminUtils';
 import { BLANK_ITEM_CLASS, TEMP_ITEM_CATEGORIES, getRootItemCategories, normalizeItemCategoryId } from '../itemUtils';
 
 export default function ItemClassePanel() {
-  const { customItemClasses, customItemCategories, addItemClass, updateItemClass, deleteItemClass } = useAdminStore();
+  const { customItemClasses, customItemCategories, customRaces, addItemClass, updateItemClass, deleteItemClass } = useAdminStore();
   const classes = asArray(customItemClasses);
   const itemCategories = mergeTemporaryRows(TEMP_ITEM_CATEGORIES, customItemCategories);
   const rootCategories = getRootItemCategories(itemCategories);
   const rootNameFor = (id) => rootCategories.find((c) => normalizeItemCategoryId(c.id) === normalizeItemCategoryId(id))?.nom;
+  const raceLockOptions = getRaceOptionsForLocks(customRaces);
 
   const [showForm, setShowForm] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
@@ -24,8 +25,9 @@ export default function ItemClassePanel() {
 
   const handleSave = () => {
     if (!canSave) return;
-    if (editingClass) updateItemClass(editingClass.id, form);
-    else addItemClass(form);
+    const payload = { ...form, allowedRaces: asArray(form.allowedRaces) };
+    if (editingClass) updateItemClass(editingClass.id, payload);
+    else addItemClass(payload);
     setForm(BLANK_ITEM_CLASS);
     setEditingClass(null);
     setShowForm(false);
@@ -63,13 +65,20 @@ export default function ItemClassePanel() {
                   <option value="">— Choisir (Armure, Arme…) —</option>
                   {rootCategories.map((cat) => <option key={cat.id} value={cat.id}>{cat.nom}</option>)}
                 </select>
-                <span style={{ fontSize: '0.8em', opacity: 0.6 }}>
+                <span style={{ fontSize: 'calc(0.8em + 2px)', opacity: 0.6 }}>
                   La catégorie d'objet équipable (Armure, Arme…) à laquelle cette classe d'équipement se rattache — c'est elle que les classes de personnage autorisent ou non.
                 </span>
               </div>
               <div className="comp-form-field">
                 <label>Description</label>
                 <SmartDescEditor value={form.description} onChange={(value) => set('description', value)} placeholder="Description de la classe d'équipement..." />
+              </div>
+              <div className="comp-form-field">
+                <label>Verrouillage par race</label>
+                <span style={{ fontSize: 'calc(0.8em + 2px)', opacity: 0.6 }}>
+                  Réserve tous les items de cette classe aux races cochées (ex: "Modules Unathopiens" — voir slot d'équipement "Race Custom"). Laisser vide pour toutes les races.
+                </span>
+                <RaceLockFields value={asArray(form.allowedRaces)} races={raceLockOptions} onChange={(v) => set('allowedRaces', v)} />
               </div>
               <div className="comp-form-footer">
                 <button className="admin-btn" onClick={cancelForm}>Annuler</button>
@@ -109,6 +118,12 @@ export default function ItemClassePanel() {
             onDelete={() => setConfirmDelete({ title: 'Supprimer la classe', message: `Supprimer "${cls.nom}" ?`, dangerLabel: 'Supprimer', onConfirm: () => deleteItemClass(cls.id) })}
           >
             <DetailLine label="Catégorie racine" value={rootNameFor(cls.rootCategoryId) || '—'} />
+            {asArray(cls.allowedRaces).length > 0 && (
+              <DetailLine
+                label="Races"
+                value={asArray(cls.allowedRaces).map((k) => raceLockOptions.find((r) => r.key === k)?.nom || k).join(', ')}
+              />
+            )}
           </AdminCard>
         ))}
       </SectionGrid>

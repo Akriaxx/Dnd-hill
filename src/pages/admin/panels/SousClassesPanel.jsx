@@ -3,20 +3,41 @@ import { useAdminStore } from '../../../store/adminStore';
 import SmartDescEditor from '../../../components/admin/SmartDescEditor';
 import {
   ConfirmModal, AdminFilterPanel, CategoryAccordionList,
-  ResourceDiceFields, RaceLockFields,
+  ResourceDiceFields, RaceLockFields, BonusChoicesEditor,
 } from '../AdminShared';
 import {
   asArray, slugifyKey, includesText, uniqueOptions,
   BLANK_SUBCLASS_FORM,
   normalizeResourceDice, resourceDiceSummary, getRaceOptionsForLocks,
 } from '../adminUtils';
+import { getCaracteristiqueCatalog, getAptitudeCatalog, getResistanceCatalog } from '../../../domain/bonusChoiceDomains';
 
 function SubclassFormModal({ initial, classes, classCategories, races, archetypes, onClose, onSave }) {
-  const [form, setForm] = useState(() => ({
-    ...BLANK_SUBCLASS_FORM,
-    ...(initial || {}),
-    resourceDice: normalizeResourceDice(initial || BLANK_SUBCLASS_FORM),
-  }));
+  const customCaracteristiques = useAdminStore((state) => state.customCaracteristiques);
+  const customAptitudes = useAdminStore((state) => state.customAptitudes);
+  const customAptitudeCategories = useAdminStore((state) => state.customAptitudeCategories);
+  const customResistanceEntries = useAdminStore((state) => state.customResistanceEntries);
+  const customResistanceCategories = useAdminStore((state) => state.customResistanceCategories);
+  const domainCatalogs = {
+    caracteristique: getCaracteristiqueCatalog(customCaracteristiques),
+    aptitude: getAptitudeCatalog({ customAptitudes, customAptitudeCategories }),
+    resistance: getResistanceCatalog({ customResistanceEntries, customResistanceCategories }),
+  };
+  const [form, setForm] = useState(() => {
+    const merged = { ...BLANK_SUBCLASS_FORM, ...(initial || {}) };
+    // Des sous-classes plus anciennes peuvent avoir stocké `classe` comme le
+    // nom affiché de la classe ("Barde") plutôt que sa clé/slug ("barde") —
+    // le <select> ci-dessous n'offre que des <option value> en clé/slug, donc
+    // sans cette résolution la classe parente apparaît comme non choisie à
+    // l'édition alors qu'elle est bien enregistrée. On la normalise ici une
+    // bonne fois pour toutes ; l'enregistrement suivant écrit la forme canonique.
+    const matchedClass = classes.find((c) => (c.key || slugifyKey(c.nom)) === merged.classe || c.nom === merged.classe);
+    return {
+      ...merged,
+      classe: matchedClass ? (matchedClass.key || slugifyKey(matchedClass.nom)) : merged.classe,
+      resourceDice: normalizeResourceDice(initial || BLANK_SUBCLASS_FORM),
+    };
+  });
   const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   const canSave = form.nom.trim().length > 0 && form.classe.length > 0;
 
@@ -154,27 +175,19 @@ function SubclassFormModal({ initial, classes, classCategories, races, archetype
               )}
             </div>
 
-            <div className="race-form-section race-form-section--wide">
-              <div className="race-form-section-title">Emplacement de sac</div>
-              <label className="index-value-toggle" style={{ marginBottom: '0.75rem' }}>
-                <input type="checkbox" checked={Boolean(form.replaceClassEmplacements)} onChange={(e) => set('replaceClassEmplacements', e.target.checked)} />
-                Remplacer les emplacements de la classe parente
-              </label>
-              {form.replaceClassEmplacements ? (
-                <div className="race-form-row">
-                  <div className="race-form-field race-form-field--sm">
-                    <label>Emplacements</label>
-                    <input type="number" min={0} value={form.emplacements ?? 0} onChange={(e) => set('emplacements', Number(e.target.value) || 0)} />
-                  </div>
-                </div>
-              ) : (
-                <p className="race-form-hint" style={{ opacity: 0.6 }}>Les emplacements de la classe parente sont utilisés.</p>
-              )}
-            </div>
 
             <div className="race-form-section race-form-section--wide">
               <div className="race-form-section-title">Verrou de race</div>
               <RaceLockFields value={form.allowedRaces} races={races} onChange={(v) => set('allowedRaces', v)} />
+            </div>
+
+            <div className="race-form-section race-form-section--wide">
+              <div className="race-form-section-title">Choix du joueur</div>
+              <BonusChoicesEditor
+                value={form.bonusChoices}
+                onChange={(v) => set('bonusChoices', v)}
+                domainCatalogs={domainCatalogs}
+              />
             </div>
           </div>
           <div className="race-form-footer">

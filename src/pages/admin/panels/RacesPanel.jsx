@@ -1,16 +1,18 @@
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import { RACE_DATA, APTITUDES, APT_CATEGORIES, RESISTANCES_DEF } from '../../../data/gameData';
 import { useAdminStore } from '../../../store/adminStore';
 import SmartDescEditor from '../../../components/admin/SmartDescEditor';
 import {
   ConfirmModal, AdminFilterPanel, CategoryAccordionList,
-  TagColorPicker, EffectsPanel, KnowledgeCategoryModal, GameplayEffectsToggle,
+  TagColorPicker, EffectsPanel, KnowledgeCategoryModal, GameplayEffectsToggle, BonusChoicesEditor,
 } from '../AdminShared';
 import { useGameplayEffectsPanel, useMatchedHeight } from '../adminEffectsPanelHooks';
 import {
-  asArray, slugifyKey,
+  asArray, slugifyKey, mergeTemporaryRows,
   STAT_KEYS, BLANK_RACE, RACE_RESOURCE_KEYS, hasAnyIdentityEffects,
 } from '../adminUtils';
+import { getCaracteristiqueCatalog, getAptitudeCatalog, getResistanceCatalog } from '../../../domain/bonusChoiceDomains';
+import { TEMP_ITEM_CATEGORIES, getRootItemCategories, getItemCategoryChildren } from '../itemUtils';
 
 function buildAptitudeOptions(customAptitudeCategories, customAptitudes, storedHiddenAptitudeKeys) {
   const aptitudeCategories = [
@@ -42,15 +44,30 @@ function buildAptitudeOptions(customAptitudeCategories, customAptitudes, storedH
   return { aptitudeCategories, options };
 }
 
-function buildResistanceOptions() {
-  return Object.entries(RESISTANCES_DEF).flatMap(([groupKey, group]) =>
+// RESISTANCES_DEF (gameData.js) est vide par conception — les vraies
+// résistances viennent de customResistanceEntries/customResistanceCategories
+// (admin store), comme pour ItemPanel.jsx. Sans ce merge, ce picker n'a
+// jamais eu la moindre option à proposer.
+function buildResistanceOptions(customResistanceEntries = [], customResistanceCategories = []) {
+  const staticOptions = Object.entries(RESISTANCES_DEF).flatMap(([groupKey, group]) =>
     (group.items || []).map((name) => ({ key: `${groupKey}:${slugifyKey(name)}`, group: group.label, name }))
   );
+  const categoryLabel = (categoryKey) => customResistanceCategories.find((c) => c.key === categoryKey)?.label || categoryKey;
+  const customOptions = asArray(customResistanceEntries).map((entry) => ({
+    key: `${entry.categoryKey}:${entry.key || slugifyKey(entry.label)}`,
+    group: categoryLabel(entry.categoryKey),
+    name: entry.label,
+  }));
+  return [...staticOptions, ...customOptions];
 }
 
-function ResistancePanel({ title, desc, resistanceBonuses, onClose, onToggle, onSet, onRemove }) {
-  const resistanceOptions = buildResistanceOptions();
+function ResistancePanel({ title, desc, resistanceBonuses, customResistanceEntries, customResistanceCategories, onClose, onToggle, onSet, onRemove }) {
+  const resistanceOptions = buildResistanceOptions(customResistanceEntries, customResistanceCategories);
   const resistanceByKey = new Map(resistanceOptions.map((o) => [o.key, o]));
+  const groupedOptions = resistanceOptions.reduce((groups, option) => {
+    (groups[option.group] ??= []).push(option);
+    return groups;
+  }, {});
   const selectedKeys = new Set(resistanceBonuses.map((r) => r.resistanceKey));
   return (
     <div className="race-resistance-panel-backdrop">
@@ -61,18 +78,15 @@ function ResistancePanel({ title, desc, resistanceBonuses, onClose, onToggle, on
         </div>
         <div className="race-resistance-panel-body">
           <div className="race-resistance-picker">
-            {Object.entries(RESISTANCES_DEF).map(([groupKey, group]) => (
-              <div className="race-resistance-group" key={groupKey}>
-                <div className="race-resistance-group-title">{group.label}</div>
+            {Object.entries(groupedOptions).map(([groupLabel, options]) => (
+              <div className="race-resistance-group" key={groupLabel}>
+                <div className="race-resistance-group-title">{groupLabel}</div>
                 <div className="race-resistance-chip-grid">
-                  {(group.items || []).map((name) => {
-                    const option = { key: `${groupKey}:${slugifyKey(name)}`, group: group.label, name };
-                    return (
-                      <button type="button" key={option.key} className={`race-resistance-chip${selectedKeys.has(option.key) ? ' is-selected' : ''}`} onClick={() => onToggle(option)}>
-                        {name}
-                      </button>
-                    );
-                  })}
+                  {options.map((option) => (
+                    <button type="button" key={option.key} className={`race-resistance-chip${selectedKeys.has(option.key) ? ' is-selected' : ''}`} onClick={() => onToggle(option)}>
+                      {option.name}
+                    </button>
+                  ))}
                 </div>
               </div>
             ))}
@@ -105,7 +119,7 @@ function ResistancePanel({ title, desc, resistanceBonuses, onClose, onToggle, on
   );
 }
 
-function AptitudePanel({ title, desc, selected, aptitudeCategories, aptitudeOptions, onClose, onToggle, onRemove }) {
+function AptitudePanel({ title, desc, selected, aptitudeCategories, aptitudeOptions, onClose, onToggle, onSetValue, onRemove }) {
   const aptitudeByKey = new Map(aptitudeOptions.map((a) => [a.key || slugifyKey(a.nom), a]));
   const selectedKeys = new Set(selected.map((r) => r.key || slugifyKey(r.nom)));
   return (
@@ -152,6 +166,7 @@ function AptitudePanel({ title, desc, selected, aptitudeCategories, aptitudeOpti
                     <strong>{apt?.nom || row.nom || key}</strong>
                     <span>{cat?.nom || 'Aptitude'}{(apt?.stat || row.stat) ? ` · ${apt?.stat || row.stat}` : ''}</span>
                   </div>
+                  <input className="race-resistance-value" type="number" value={row.value ?? 1} onChange={(e) => onSetValue(key, Number(e.target.value) || 0)} />
                   <button className="admin-btn admin-btn--danger race-builder-remove" onClick={() => onRemove(key)}>Retirer</button>
                 </div>
               );
@@ -239,6 +254,12 @@ function RaceForm({ initial, onSave, onCancel }) {
   const storedHiddenAptitudeKeys = useAdminStore((state) => state.hiddenAptitudeKeys);
   const customProvenances = useAdminStore((state) => state.customProvenances);
   const updateProvenance = useAdminStore((state) => state.updateProvenance);
+  const customResistanceEntries = useAdminStore((state) => state.customResistanceEntries);
+  const customResistanceCategories = useAdminStore((state) => state.customResistanceCategories);
+  const customCaracteristiques = useAdminStore((state) => state.customCaracteristiques);
+  const customItemCategories = useAdminStore((state) => state.customItemCategories) || [];
+  const itemCategories = mergeTemporaryRows(TEMP_ITEM_CATEGORIES, customItemCategories);
+  const itemCategoryRoots = getRootItemCategories(itemCategories);
 
   const languageOptions = asArray(customLanguages);
   const languageCategories = asArray(customLanguageCategories);
@@ -261,6 +282,7 @@ function RaceForm({ initial, onSave, onCancel }) {
     resistanceBonuses: Array.isArray(race?.resistanceBonuses) ? race.resistanceBonuses : [],
     aptitudes: Array.isArray(race?.aptitudes) ? race.aptitudes : [],
     langues: Array.isArray(race?.langues) ? race.langues : [],
+    bonusChoices: Array.isArray(race?.bonusChoices) ? race.bonusChoices : [],
   });
 
   const [form, setForm] = useState(() => normalizeInitial(initial));
@@ -271,6 +293,7 @@ function RaceForm({ initial, onSave, onCancel }) {
   const [aptitudePanelOpen, setAptitudePanelOpen] = useState(false);
   const [languagePanelOpen, setLanguagePanelOpen] = useState(false);
   const [provenancePanelOpen, setProvenancePanelOpen] = useState(false);
+  const [bonusChoicesPanelOpen, setBonusChoicesPanelOpen] = useState(false);
   // Stats/Ressources sont de simples grilles de nombres (pas besoin d'un
   // gros panneau plein écran comme résistances/aptitudes/langues) : elles
   // se déplient directement dans le panneau "Effets gameplay" lui-même,
@@ -284,7 +307,7 @@ function RaceForm({ initial, onSave, onCancel }) {
   }));
 
   const selectedResistanceKeys = new Set(form.resistanceBonuses.map((r) => r.resistanceKey));
-  const resistanceByKey = new Map(buildResistanceOptions().map((o) => [o.key, o]));
+  const resistanceByKey = new Map(buildResistanceOptions(customResistanceEntries, customResistanceCategories).map((o) => [o.key, o]));
 
   const raceName = initial?.nom || form.nom;
   const linkedProvenanceIds = new Set(
@@ -316,8 +339,11 @@ function RaceForm({ initial, onSave, onCancel }) {
     const key = aptitude.key || slugifyKey(aptitude.nom);
     const exists = current.aptitudes.some((r) => (r.key || slugifyKey(r.nom)) === key);
     if (exists) return { ...current, aptitudes: current.aptitudes.filter((r) => (r.key || slugifyKey(r.nom)) !== key) };
-    return { ...current, aptitudes: [...current.aptitudes, { key, nom: aptitude.nom, categoryKey: aptitude.categoryKey || aptitude.cat || 'general', stat: aptitude.stat || '' }] };
+    return { ...current, aptitudes: [...current.aptitudes, { key, nom: aptitude.nom, categoryKey: aptitude.categoryKey || aptitude.cat || 'general', stat: aptitude.stat || '', value: 1 }] };
   });
+  const setAptitudeValue = (aptitudeKey, value) => setForm((current) => ({
+    ...current, aptitudes: current.aptitudes.map((r) => (r.key || slugifyKey(r.nom)) === aptitudeKey ? { ...r, value } : r),
+  }));
   const removeAptitude = (aptitudeKey) => setForm((current) => ({
     ...current, aptitudes: current.aptitudes.filter((r) => (r.key || slugifyKey(r.nom)) !== aptitudeKey),
   }));
@@ -341,7 +367,7 @@ function RaceForm({ initial, onSave, onCancel }) {
     const cleanAptitudes = form.aptitudes.filter((r) => r.key || r.nom).map((r) => {
       const key = r.key || slugifyKey(r.nom);
       const opt = aptitudeByKey.get(key);
-      return { key, nom: opt?.nom || r.nom, categoryKey: opt?.categoryKey || opt?.cat || r.categoryKey || 'general', stat: opt?.stat || r.stat || '' };
+      return { key, nom: opt?.nom || r.nom, categoryKey: opt?.categoryKey || opt?.cat || r.categoryKey || 'general', stat: opt?.stat || r.stat || '', value: Number(r.value) || 1 };
     });
     const cleanLanguages = form.langues.filter((r) => r.key || r.nom).map((r) => {
       const key = r.key || slugifyKey(r.nom);
@@ -371,6 +397,7 @@ function RaceForm({ initial, onSave, onCancel }) {
     { key: 'aptitudes', label: 'Aptitudes', count: form.aptitudes.length, onOpen: () => setAptitudePanelOpen(true) },
     { key: 'langues', label: 'Langues', count: form.langues.length, onOpen: () => setLanguagePanelOpen(true) },
     { key: 'provenances', label: 'Provenances', count: linkedProvenanceIds.size, onOpen: () => setProvenancePanelOpen(true) },
+    { key: 'bonusChoices', label: 'Choix du joueur', count: form.bonusChoices.length, onOpen: () => setBonusChoicesPanelOpen(true) },
   ];
 
   return (
@@ -411,6 +438,41 @@ function RaceForm({ initial, onSave, onCancel }) {
               </div>
             </div>
 
+            <div className="race-form-section">
+              <div className="race-form-section-title">Objets raciaux</div>
+              <div className="race-form-row">
+                <div className="race-form-field race-form-field--sm">
+                  <label>Emplacements</label>
+                  <input type="number" min={0} max={20} value={form.gadgetSlots ?? 0} onChange={(e) => set('gadgetSlots', Number(e.target.value) || 0)} />
+                </div>
+                <div className="race-form-field race-form-field--grow">
+                  <label>Nom (ex: Mutation, Gadget, Greffe...)</label>
+                  <input
+                    value={form.gadgetSlotsLabel || ''}
+                    onChange={(e) => set('gadgetSlotsLabel', e.target.value)}
+                    placeholder="Objets raciaux"
+                  />
+                </div>
+              </div>
+              <div className="race-form-field">
+                <label>Catégorie d'item liée</label>
+                <select value={form.gadgetItemCategoryId ?? ''} onChange={(e) => set('gadgetItemCategoryId', e.target.value ? Number(e.target.value) : null)}>
+                  <option value="">— Aucune —</option>
+                  {itemCategoryRoots.map((root) => (
+                    <Fragment key={root.id}>
+                      <option value={root.id}>{root.nom}</option>
+                      {getItemCategoryChildren(itemCategories, root.id).map((child) => (
+                        <option key={child.id} value={child.id}>— {child.nom}</option>
+                      ))}
+                    </Fragment>
+                  ))}
+                </select>
+              </div>
+              <p className="race-form-hint">
+                Si des emplacements sont accordés ci-dessus, le bouton correspondant apparaît dans Équipement et ne propose que les items de la catégorie d'item choisie ici.
+              </p>
+            </div>
+
             {(form.bonusResistances || form.malusResistances) && (
               <div className="race-form-section">
                 <div className="race-form-section-title">Anciennes données texte</div>
@@ -442,6 +504,8 @@ function RaceForm({ initial, onSave, onCancel }) {
           title="Gestion des résistances"
           desc="Sélectionne les résistances, puis règle bonus ou malus."
           resistanceBonuses={form.resistanceBonuses}
+          customResistanceEntries={customResistanceEntries}
+          customResistanceCategories={customResistanceCategories}
           onClose={() => setResistancePanelOpen(false)}
           onToggle={toggleResistance}
           onSet={setResistance}
@@ -457,6 +521,7 @@ function RaceForm({ initial, onSave, onCancel }) {
           aptitudeOptions={aptitudeOptions}
           onClose={() => setAptitudePanelOpen(false)}
           onToggle={toggleAptitude}
+          onSetValue={setAptitudeValue}
           onRemove={removeAptitude}
         />
       )}
@@ -505,6 +570,27 @@ function RaceForm({ initial, onSave, onCancel }) {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {bonusChoicesPanelOpen && (
+        <div className="race-resistance-panel-backdrop">
+          <div className="race-resistance-panel">
+            <div className="race-resistance-panel-head">
+              <div><h4>Choix du joueur</h4><p>Ex: Humain "+1 au choix parmi Force/Constitution/Dextérité".</p></div>
+              <button className="admin-btn" onClick={() => setBonusChoicesPanelOpen(false)}>✕ Fermer</button>
+            </div>
+            <div className="race-resistance-panel-body">
+              <BonusChoicesEditor
+                value={form.bonusChoices}
+                onChange={(v) => set('bonusChoices', v)}
+                domainCatalogs={{
+                  caracteristique: getCaracteristiqueCatalog(customCaracteristiques),
+                  aptitude: getAptitudeCatalog({ customAptitudes, customAptitudeCategories }),
+                  resistance: getResistanceCatalog({ customResistanceEntries, customResistanceCategories }),
+                }}
+              />
             </div>
           </div>
         </div>

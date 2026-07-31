@@ -1027,6 +1027,18 @@ export function SmartTag({ raw, index, plain = false, displayLabel }) {
     setOpen((value) => !value);
   }, [open, placePopover]);
 
+  // SmartTag apparaît dans des descriptions elles-mêmes affichées à
+  // l'intérieur de boutons (ex: item-picker, cartes cliquables) — un
+  // <button> imbriqué dans un <button> est invalide en HTML (erreur
+  // d'hydratation). Span + role="button" + gestion clavier reproduit le
+  // comportement sans casser l'imbrication.
+  const handleKeyDown = useCallback((event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      togglePopover(event);
+    }
+  }, [togglePopover]);
+
   const popover = open && popoverStyle ? createPortal(
     <span
       className="smart-popover"
@@ -1066,17 +1078,19 @@ export function SmartTag({ raw, index, plain = false, displayLabel }) {
 
   return (
     <span className="smart-tag-wrap">
-      <button
+      <span
         ref={buttonRef}
-        type="button"
+        role="button"
+        tabIndex={0}
         className={`smart-tag smart-tag--${ref.tagType}${plain ? ' smart-tag--plain' : ''}`}
         style={{ '--smart-tag-color': ref.color }}
         onClick={togglePopover}
+        onKeyDown={handleKeyDown}
         aria-expanded={open}
         aria-controls={popoverId}
       >
         {displayLabel ?? (plain ? ref.label : `[ ${ref.label} ]`)}
-      </button>
+      </span>
       {popover}
     </span>
   );

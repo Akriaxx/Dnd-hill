@@ -4,11 +4,11 @@ import { useCharacterStore } from '../../../store/characterStore';
 import { useAdminStore } from '../../../store/adminStore';
 import { ConfirmModal } from '../AdminShared';
 import { STAT_KEYS } from '../adminUtils';
-import { getClassDefinition, getResourceData, getStatBreakdown, signed, statLabel } from '../../../domain/characterCalculations';
+import { getClassDefinition, getResourceData, getStatBreakdown, getAptitudeBreakdown, signed, statLabel } from '../../../domain/characterCalculations';
 
 function CharacterReviewCard({ char, onApprove, onReject }) {
   const [open, setOpen] = useState(true);
-  const { customCaracteristiques, customClasses } = useAdminStore();
+  const { customCaracteristiques, customClasses, customAptitudes } = useAdminStore();
   const caracsDef = [...(customCaracteristiques || [])].sort((a, b) => (a.ordre || 0) - (b.ordre || 0));
   const caracDefsMap = Object.fromEntries(caracsDef.map((c) => [c.cle, c]));
   // getClassDefinition seul ne lit que le catalogue statique (vide, voir
@@ -21,13 +21,26 @@ function CharacterReviewCard({ char, onApprove, onReject }) {
     ...getStatBreakdown(char, c.cle, caracDefsMap),
     label: c.nom,
   }));
-  const aptitudes = Object.entries(char.aptitudes || {})
-    .map(([name, value]) => ({
-      name,
-      plusOne: Boolean(value?.m1),
-      plusTwo: Boolean(value?.m2),
-    }))
-    .filter((item) => item.plusOne || item.plusTwo);
+  // Toutes les aptitudes du catalogue, pas seulement celles cochées +1/+2 —
+  // pour que le MJ voie aussi les bonus automatiques (race, historique,
+  // origine…) déjà acquis avant même tout choix du joueur, même chose que
+  // sur le tableau du créateur de fiche (CreationAptitudeCategory).
+  const aptitudes = (customAptitudes || [])
+    .map((aptitude) => {
+      const pick = char.aptitudes?.[aptitude.nom];
+      const breakdown = getAptitudeBreakdown(char, aptitude);
+      return {
+        name: aptitude.nom,
+        plusOne: Boolean(pick?.m1),
+        plusTwo: Boolean(pick?.m2),
+        raciaux: breakdown.raciaux,
+        classes: breakdown.classes,
+        historique: breakdown.historique,
+        origine: breakdown.origine,
+        total: breakdown.total,
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, 'fr'));
   const identityRows = [
     ['Joueur', char.requestedByName || char.requestedBy || '-'],
     ['Nom', char.nom || '-'],
@@ -138,15 +151,35 @@ function CharacterReviewCard({ char, onApprove, onReject }) {
           <section className="character-review-section">
             <h4>Aptitudes de départ</h4>
             {aptitudes.length === 0 ? (
-              <div className="character-review-empty">Aucune aptitude sélectionnée.</div>
+              <div className="character-review-empty">Aucune aptitude créée dans l'admin.</div>
             ) : (
-              <div className="character-review-aptitudes">
-                {aptitudes.map((aptitude) => (
-                  <span key={aptitude.name}>
-                    {aptitude.name}
-                    <b>{aptitude.plusTwo ? '+2' : '+1'}</b>
-                  </span>
-                ))}
+              <div className="character-review-table-wrap">
+                <table className="character-review-table">
+                  <thead>
+                    <tr>
+                      <th>Aptitude</th>
+                      <th>Raciaux</th>
+                      <th>Classes</th>
+                      <th>Historique</th>
+                      <th>Origine</th>
+                      <th>Choix</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {aptitudes.map((aptitude) => (
+                      <tr key={aptitude.name}>
+                        <td>{aptitude.name}</td>
+                        <td className={statClass(aptitude.raciaux)}>{renderNumber(aptitude.raciaux)}</td>
+                        <td className={statClass(aptitude.classes)}>{renderNumber(aptitude.classes)}</td>
+                        <td className={statClass(aptitude.historique)}>{renderNumber(aptitude.historique)}</td>
+                        <td className={statClass(aptitude.origine)}>{renderNumber(aptitude.origine)}</td>
+                        <td>{aptitude.plusTwo ? '+2' : aptitude.plusOne ? '+1' : ''}</td>
+                        <td className={statClass(aptitude.total)}>{renderNumber(aptitude.total, { sign: true, zero: true })}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </section>

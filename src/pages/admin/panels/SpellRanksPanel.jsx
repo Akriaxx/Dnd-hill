@@ -170,7 +170,7 @@ export default function SpellRanksPanel() {
               <div className="comp-form-field">
                 <label>Niveau minimum (restrictLevel)</label>
                 {sortedLevels.length === 0 ? (
-                  <p style={{ opacity: 0.6, fontSize: 13, margin: 0 }}>
+                  <p style={{ opacity: 0.6, fontSize: 15, margin: 0 }}>
                     Aucun niveau défini — créez des niveaux dans l'onglet "Leveling" d'abord.
                   </p>
                 ) : (

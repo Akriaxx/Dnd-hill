@@ -23,7 +23,7 @@
     padding: 20px 20px 16px;
     flex-shrink: 0;
 
-    h1 { font-size: clamp(28px, 4vw, 44px); }
+    h1 { font-size: clamp(30px, 4vw, 46px); }
   }
 }
 
@@ -289,7 +289,7 @@
   border-radius: 2px;
   background: transparent;
   color: var(--dim);
-  font-size: 14px;
+  font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -307,7 +307,7 @@
     border-color: rgba(200, 168, 74, 0.5);
     color: var(--gold);
     background: rgba(200, 168, 74, 0.06);
-    font-size: 15px;
+    font-size: 17px;
   }
 }
 
@@ -358,7 +358,7 @@
   width: 100%;
   padding: 11px 16px;
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   color: var(--text);
   background: transparent;
@@ -397,7 +397,7 @@
 
   strong {
     font-family: $font-display;
-    font-size: 15px;
+    font-size: 17px;
     color: $white-text;
     letter-spacing: 0.6px;
     margin-bottom: 6px;
@@ -405,7 +405,7 @@
 
   span {
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 1.5px;
     color: var(--dim);
     margin-bottom: 14px;
@@ -421,7 +421,7 @@
     min-height: 30px;
     border-radius: 2px;
     font-family: $font-caps;
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 1.5px;
     cursor: pointer;
     transition: all 0.15s;
@@ -461,7 +461,7 @@
   background: rgba(200, 168, 74, 0.12);
   border-bottom: 1px solid rgba(200, 168, 74, 0.3);
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   color: var(--gold);
   flex-shrink: 0;
@@ -470,7 +470,7 @@
 .detail-edit-banner-close {
   margin-left: auto;
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1.5px;
   color: var(--dim);
   background: transparent;
@@ -548,7 +548,7 @@
   border-radius: 2px;
   color: $text;
   font-family: $font-body;
-  font-size: 13px;
+  font-size: 15px;
   padding: 6px 10px;
   width: 100%;
   outline: none;
@@ -572,7 +572,7 @@
   background: transparent;
   color: var(--dim);
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 2px;
   display: flex;
   align-items: center;
@@ -603,7 +603,7 @@
   border: 1px solid $border2;
   border-radius: 2px;
   color: var(--gold);
-  font-size: 28px;
+  font-size: 30px;
   width: 52px;
   height: 72px;
   display: flex;
@@ -675,7 +675,7 @@
     width: 14px;
     height: 14px;
     border-color: rgba(200, 168, 74, 0.5);
-    font-size: 12px;
+    font-size: 14px;
     line-height: 1;
     color: rgba(200, 168, 74, 0.7);
 
@@ -781,7 +781,7 @@
     writing-mode: vertical-rl;
     transform: rotate(180deg);
     font-family: $font-caps;
-    font-size: 15px;
+    font-size: 17px;
     letter-spacing: 3px;
     color: rgba(200, 168, 74, 0.95);
     text-transform: uppercase;
@@ -811,7 +811,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 3px;
   color: rgba(200,168,74,0.35);
   text-transform: uppercase;
@@ -913,7 +913,7 @@
 
   .select-avatar-name {
     bottom: 0;
-    font-size: clamp(16px, 2.4vw, 22px);
+    font-size: clamp(18px, 2.4vw, 24px);
     padding-bottom: 14px;
   }
 }
@@ -1011,7 +1011,7 @@
   right: 0;
   text-align: center;
   font-family: $font-display;
-  font-size: clamp(20px, 3.5vw, 30px);
+  font-size: clamp(22px, 3.5vw, 32px);
   font-weight: 900;
   color: $white-text;
   letter-spacing: 1.5px;
@@ -1041,7 +1041,7 @@
   background: rgba(12, 11, 8, 0.78);
   color: var(--gold);
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1.7px;
   padding: 8px 10px;
   cursor: pointer;
@@ -1076,7 +1076,7 @@
   span {
     color: var(--dim);
     font-family: $font-caps;
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 1.8px;
     text-transform: uppercase;
   }
@@ -1095,7 +1095,7 @@
   background: rgba(0, 0, 0, 0.26);
   color: $white-text;
   font-family: $font-body;
-  font-size: 13px;
+  font-size: 15px;
   padding: 9px 10px;
   outline: none;
 
@@ -1116,7 +1116,7 @@
   min-height: 20px;
   margin-top: 2px;
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1.5px;
   color: var(--dim);
 
@@ -1135,7 +1135,7 @@
     background: transparent;
     color: var(--dim);
     font-family: $font-caps;
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 1.4px;
     padding: 7px 10px;
     cursor: pointer;
@@ -1187,7 +1187,7 @@
     writing-mode: vertical-rl;
     color: var(--gold);
     font-family: $font-caps;
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 1.8px;
     text-transform: uppercase;
   }
@@ -1219,7 +1219,7 @@
     background: rgba(0, 0, 0, 0.3);
     color: $white-text;
     font-family: $font-body;
-    font-size: 13px;
+    font-size: 15px;
     padding: 7px 10px;
     outline: none;
 
@@ -1263,7 +1263,7 @@
     text-orientation: mixed;
     color: var(--gold);
     font-family: $font-caps;
-    font-size: 9px;
+    font-size: 11px;
     letter-spacing: 1.8px;
     text-transform: uppercase;
     opacity: 0.7;
@@ -1293,7 +1293,7 @@
     background: transparent;
     color: var(--dim);
     font-family: $font-caps;
-    font-size: 10px;
+    font-size: 12px;
     letter-spacing: 1.4px;
     padding: 6px 10px;
     cursor: pointer;
@@ -1354,7 +1354,7 @@
 // Pending state meta
 .select-card-meta {
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 2.5px;
   color: rgba(200, 168, 74, 0.55);
   margin-bottom: 12px;
@@ -1368,7 +1368,7 @@
   justify-content: center;
   gap: 8px;
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 2.5px;
   color: rgba(200, 168, 74, 0.72);
   margin-bottom: 4px;
@@ -1376,7 +1376,7 @@
 }
 
 .select-card-sep {
-  font-size: 7px;
+  font-size: 9px;
   opacity: 0.45;
   line-height: 1;
 }
@@ -1385,7 +1385,7 @@
 .select-card-level {
   text-align: center;
   font-family: $font-body;
-  font-size: 11px;
+  font-size: 13px;
   color: rgba(244, 240, 231, 0.28);
   letter-spacing: 1px;
   margin-bottom: 14px;
@@ -1402,7 +1402,7 @@
   background: rgba(6, 5, 3, 0.78);
   color: $gold2;
   font-family: $font-caps;
-  font-size: 13px;
+  font-size: 15px;
   letter-spacing: 2px;
   text-align: center;
   text-transform: uppercase;
@@ -1437,7 +1437,7 @@
 
 .select-stat-val {
   font-family: $font-display;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 900;
   color: $white-text;
   line-height: 1;
@@ -1445,7 +1445,7 @@
 
 .select-stat-key {
   font-family: $font-caps;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1px;
   color: rgba(200,168,74,0.45);
   margin-top: 3px;
@@ -1475,7 +1475,7 @@
 
 .select-hp-text {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1px;
   color: var(--dim);
   white-space: nowrap;
@@ -1534,7 +1534,7 @@
 }
 
 .select-new-cross {
-  font-size: 38px;
+  font-size: 40px;
   font-weight: 200;
   color: rgba(200, 168, 74, 0.4);
   font-family: $font-body;
@@ -1544,7 +1544,7 @@
 
 .select-new-title {
   font-family: $font-display;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   color: rgba(244, 240, 231, 0.45);
   letter-spacing: 1px;
@@ -1554,7 +1554,7 @@
 
 .select-new-sub {
   font-family: $font-caps;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 2.5px;
   color: rgba(200, 168, 74, 0.28);
   text-transform: uppercase;
@@ -1571,7 +1571,7 @@
   border-radius: 1px;
   color: rgba(200, 168, 74, 0.75);
   font-family: $font-caps;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 3px;
   text-align: center;
   cursor: pointer;
@@ -1639,7 +1639,7 @@
 
 .detail-tab {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 3px;
   color: var(--dim);
   border: 1px solid transparent;
@@ -1661,10 +1661,10 @@
 // Toutes les tailles se calquent sur la Fiche comme référence.
 // Fiche : labels 12px caps / valeurs 18-21px display / body 14px
 // ─────────────────────────────────────────────────────────────
-$tab-font-body:   16px;   // texte courant
-$tab-font-label:  13px;   // caps labels
-$tab-font-value:  20px;   // valeurs numériques / titres inline
-$tab-font-small:  12px;   // méta, tags, caps secondaires
+$tab-font-body:   18px;   // texte courant
+$tab-font-label:  15px;   // caps labels
+$tab-font-value:  22px;   // valeurs numériques / titres inline
+$tab-font-small:  14px;   // méta, tags, caps secondaires
 $tab-cell-v:      14px;   // padding vertical cellule
 $tab-cell-h:      18px;   // padding horizontal cellule
 $tab-row-min:     46px;   // hauteur minimale d'une ligne
@@ -1710,7 +1710,7 @@ $tab-section-gap: 40px;   // espace entre sections
     background: rgba(200, 168, 74, 0.08);
     color: $white-text;
     font-family: $font-display;
-    font-size: 19px;
+    font-size: 21px;
     letter-spacing: 1.4px;
   }
 }
@@ -1786,7 +1786,7 @@ $tab-section-gap: 40px;   // espace entre sections
       padding: 8px 10px 0;
       border-right: 0;
       color: var(--gold);
-      font-size: 11px;
+      font-size: 13px;
       opacity: 0.72;
     }
 
@@ -1798,7 +1798,7 @@ $tab-section-gap: 40px;   // espace entre sections
       text-align: center;
       justify-content: center;
       padding: 0 14px 8px;
-      font-size: 17px;
+      font-size: 19px;
     }
 
     .creation-info-select-trigger {
@@ -1924,7 +1924,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   span {
     font-family: $font-caps;
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 2px;
     color: var(--gold);
     opacity: 0.72;
@@ -1933,7 +1933,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   strong {
     font-family: $font-display;
-    font-size: clamp(22px, 1.45vw, 28px);
+    font-size: clamp(24px, 1.45vw, 30px);
     letter-spacing: 1px;
     color: $white-text;
     line-height: 1;
@@ -1942,7 +1942,7 @@ $tab-section-gap: 40px;   // espace entre sections
   em {
     color: var(--dim);
     font-family: $font-body;
-    font-size: 13px;
+    font-size: 15px;
     font-style: normal;
     line-height: 1.35;
   }
@@ -1975,14 +1975,14 @@ $tab-section-gap: 40px;   // espace entre sections
   b {
     color: var(--gold2);
     font-family: $font-display;
-    font-size: 20px;
+    font-size: 22px;
     line-height: 1;
   }
 
   small {
     color: var(--dim);
     font-family: $font-caps;
-    font-size: 10px;
+    font-size: 12px;
     letter-spacing: 1.4px;
     text-transform: uppercase;
   }
@@ -2022,7 +2022,7 @@ $tab-section-gap: 40px;   // espace entre sections
   span {
     color: var(--creation-resource-color);
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 3px;
     text-transform: uppercase;
   }
@@ -2030,7 +2030,7 @@ $tab-section-gap: 40px;   // espace entre sections
   strong {
     color: var(--creation-resource-color);
     font-family: $font-display;
-    font-size: 28px;
+    font-size: 30px;
     line-height: 1;
     text-align: right;
 
@@ -2038,7 +2038,7 @@ $tab-section-gap: 40px;   // espace entre sections
       margin-left: 5px;
       color: var(--dim);
       font-family: $font-caps;
-      font-size: 11px;
+      font-size: 13px;
       font-style: normal;
       letter-spacing: 1px;
     }
@@ -2086,7 +2086,7 @@ $tab-section-gap: 40px;   // espace entre sections
     height: 56px;
     color: $white-text;
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 1.4px;
     text-transform: uppercase;
     background: rgba(200, 168, 74, 0.1);
@@ -2096,7 +2096,7 @@ $tab-section-gap: 40px;   // espace entre sections
     height: 72px;
     color: $white-text;
     font-family: $font-display;
-    font-size: 20px;
+    font-size: 22px;
     letter-spacing: 0.5px;
     background: rgba(0, 0, 0, 0.12);
   }
@@ -2126,7 +2126,7 @@ $tab-section-gap: 40px;   // espace entre sections
       display: block;
       color: $white-text;
       font-family: $font-caps;
-      font-size: 13px;
+      font-size: 15px;
       letter-spacing: 1.4px;
       line-height: 1;
       text-transform: uppercase;
@@ -2152,7 +2152,7 @@ $tab-section-gap: 40px;   // espace entre sections
   strong {
     color: $white-text;
     font-family: $font-display;
-    font-size: 20px;
+    font-size: 22px;
     line-height: 1;
     text-align: center;
   }
@@ -2165,7 +2165,7 @@ $tab-section-gap: 40px;   // espace entre sections
     background: rgba(200, 168, 74, 0.08);
     color: $gold;
     font-family: $font-display;
-    font-size: 18px;
+    font-size: 20px;
     line-height: 1;
     cursor: pointer;
     transition:
@@ -2190,7 +2190,7 @@ $tab-section-gap: 40px;   // espace entre sections
     height: 66px;
     color: var(--gold);
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
     background: rgba(200, 168, 74, 0.08) !important;
@@ -2199,7 +2199,7 @@ $tab-section-gap: 40px;   // espace entre sections
   td:last-child {
     color: $white-text;
     font-family: $font-display;
-    font-size: 20px;
+    font-size: 22px;
     text-align: center;
   }
 }
@@ -2256,7 +2256,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   span {
     font-family: $font-caps;
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 2px;
     color: var(--gold);
     opacity: 0.72;
@@ -2266,14 +2266,14 @@ $tab-section-gap: 40px;   // espace entre sections
   strong {
     color: $white-text;
     font-family: $font-display;
-    font-size: clamp(34px, 2.4vw, 46px);
+    font-size: clamp(36px, 2.4vw, 48px);
     line-height: 0.95;
   }
 
   em {
     color: var(--dim);
     font-family: $font-body;
-    font-size: 13px;
+    font-size: 15px;
     font-style: normal;
   }
 }
@@ -2284,7 +2284,7 @@ $tab-section-gap: 40px;   // espace entre sections
   border-bottom: 1px solid rgba(58, 46, 24, 0.75);
   color: $white-text;
   font-family: $font-display;
-  font-size: 20px;
+  font-size: 22px;
   letter-spacing: 0.4px;
   background:
     linear-gradient(90deg, rgba(200, 168, 74, 0.075), transparent 72%),
@@ -2295,7 +2295,7 @@ $tab-section-gap: 40px;   // espace entre sections
     margin-top: 6px;
     color: var(--dim);
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 2px;
     text-transform: uppercase;
   }
@@ -2346,6 +2346,128 @@ $tab-section-gap: 40px;   // espace entre sections
   }
 }
 
+// Bonus "au choix du joueur" à la création (race.bonusChoices/
+// ascendance.bonusChoices, ex: Humain "+1 au choix parmi les 6
+// caractéristiques") — même formule de couleur/bordure que
+// .creation-apt-check-btn (idle/hover/disabled) ci-dessus, dans une carte
+// pleine largeur façon .portrait-control plutôt que des boutons admin nus.
+.creation-bonus-choices {
+  grid-column: 1 / -1;
+  border-right: 1px solid rgba(58, 46, 24, 0.65);
+  border-bottom: 1px solid rgba(58, 46, 24, 0.65);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.creation-bonus-choice-group + .creation-bonus-choice-group {
+  padding-top: 12px;
+  border-top: 1px solid rgba(58, 46, 24, 0.5);
+}
+
+.creation-bonus-choice-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--dim);
+  font-family: $font-caps;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.creation-bonus-choice-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.creation-bonus-choice-option {
+  border: 1px solid rgba(200, 168, 74, 0.28);
+  background: rgba(0, 0, 0, 0.2);
+  color: $white-text;
+  font-family: $font-display;
+  font-size: 16px;
+  letter-spacing: 0.4px;
+  padding: 8px 18px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    border-color: rgba(200, 168, 74, 0.82);
+    background: rgba(200, 168, 74, 0.14);
+  }
+
+  &.is-selected {
+    color: $gold;
+    background: rgba(200, 168, 74, 0.08);
+    border-color: $gold;
+  }
+
+  em {
+    display: block;
+    margin-top: 4px;
+    font-style: normal;
+    font-size: 13px;
+    letter-spacing: 0.3px;
+    color: #ff9b8a;
+  }
+}
+
+// Une branche (OU) = un bouton parmi d'autres dans .creation-bonus-choice-options ;
+// le séparateur "OU" vit entre deux boutons, pas dans la carte du groupe.
+.creation-bonus-choice-branch-slot {
+  display: contents;
+}
+
+.creation-bonus-choice-or {
+  align-self: center;
+  font-family: $font-caps;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--dim);
+}
+
+// Sous la branche choisie : le(s) picker(s) de cases à cocher (gain, puis
+// coût si la branche en a un).
+.creation-bonus-choice-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.creation-bonus-choice-slot-note {
+  margin: 0;
+  color: var(--dim);
+  font-size: 15px;
+  font-style: italic;
+}
+
+.creation-bonus-choice-picker {
+  border: 1px solid rgba(58, 46, 24, 0.5);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+// Le picker généralisé (BonusChoiceSlotPicker) n'a que 2 colonnes (nom +
+// case) — la table aptitude (.creation-apt-select-table) fixe .apt-td-nom
+// à 44% pour ses 8 colonnes, ici ça laisserait un grand vide à droite.
+.creation-bonus-choice-table.creation-apt-select-table {
+  .apt-td-nom {
+    width: auto;
+  }
+
+  // Assez large pour le stepper +/- (.creation-bonus-choice-stepper,
+  // 30+52+30px + 2 gaps de 8px = 128px), pas juste une case à cocher.
+  .apt-td-check {
+    width: 150px;
+  }
+}
+
+.creation-bonus-choice-stepper {
+  margin: 0 auto;
+}
+
 .portrait-control {
   grid-column: 1 / -1;
   min-height: 148px;
@@ -2393,7 +2515,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   strong {
     font-family: $font-display;
-    font-size: 20px;
+    font-size: 22px;
     letter-spacing: 1.2px;
     color: $white-text;
   }
@@ -2401,7 +2523,7 @@ $tab-section-gap: 40px;   // espace entre sections
   em {
     color: var(--dim);
     font-family: $font-body;
-    font-size: 14px;
+    font-size: 16px;
     font-style: normal;
   }
 }
@@ -2411,7 +2533,7 @@ $tab-section-gap: 40px;   // espace entre sections
   border: 1px solid rgba(200, 168, 74, 0.42);
   color: var(--gold);
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   padding: 9px 13px;
 }
@@ -2446,7 +2568,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   strong {
     font-family: $font-display;
-    font-size: 20px;
+    font-size: 22px;
     letter-spacing: 1.5px;
     color: $white-text;
   }
@@ -2474,7 +2596,7 @@ $tab-section-gap: 40px;   // espace entre sections
     border-right: 1px solid rgba(58, 46, 24, 0.75);
     color: var(--dim);
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 2px;
     text-transform: uppercase;
   }
@@ -2486,7 +2608,7 @@ $tab-section-gap: 40px;   // espace entre sections
     color: $white-text;
     padding: 0 14px;
     font-family: $font-body;
-    font-size: 15px;
+    font-size: 17px;
     outline: none;
   }
 }
@@ -2540,7 +2662,7 @@ $tab-section-gap: 40px;   // espace entre sections
   span {
     color: var(--dim);
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 2px;
     text-transform: uppercase;
   }
@@ -2552,7 +2674,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
 .portrait-status {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1.7px;
   color: var(--dim);
 
@@ -2581,7 +2703,7 @@ $tab-section-gap: 40px;   // espace entre sections
     border-right: 1px solid rgba(58, 46, 24, 0.75);
     color: var(--dim);
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 2px;
     text-transform: uppercase;
   }
@@ -2595,7 +2717,7 @@ $tab-section-gap: 40px;   // espace entre sections
     color: $white-text;
     padding: 0 13px;
     font-family: $font-display;
-    font-size: 16px;
+    font-size: 18px;
     outline: none;
 
     &:focus {
@@ -2651,7 +2773,7 @@ $tab-section-gap: 40px;   // espace entre sections
   gap: 10px;
   text-align: left;
   font-family: $font-display;
-  font-size: 16px;
+  font-size: 18px;
   cursor: pointer;
   outline: none;
 
@@ -2670,7 +2792,7 @@ $tab-section-gap: 40px;   // espace entre sections
   b {
     color: var(--gold2);
     font-family: $font-caps;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
     line-height: 1;
   }
@@ -2717,7 +2839,7 @@ $tab-section-gap: 40px;   // espace entre sections
   align-items: center;
   text-align: left;
   font-family: $font-display;
-  font-size: 15px;
+  font-size: 17px;
   cursor: pointer;
   isolation: isolate;
 
@@ -2810,7 +2932,7 @@ $tab-section-gap: 40px;   // espace entre sections
 .creation-info-tooltip-kicker {
   color: var(--info-option-color);
   font-family: $font-caps;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 2px;
   text-transform: uppercase;
 }
@@ -2818,7 +2940,7 @@ $tab-section-gap: 40px;   // espace entre sections
 .creation-info-floating-tooltip strong {
   color: $white-text;
   font-family: $font-display;
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1.1;
 }
 
@@ -2833,7 +2955,7 @@ $tab-section-gap: 40px;   // espace entre sections
     color: var(--gold2);
     padding: 3px 6px;
     font-family: $font-caps;
-    font-size: 9px;
+    font-size: 11px;
     font-style: normal;
     letter-spacing: 1.2px;
   }
@@ -2848,7 +2970,7 @@ $tab-section-gap: 40px;   // espace entre sections
 .creation-info-tooltip-desc {
   color: rgba(244, 240, 231, 0.86);
   font-family: $font-body;
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.55;
 }
 
@@ -2867,7 +2989,7 @@ $tab-section-gap: 40px;   // espace entre sections
   b {
     color: var(--info-option-color);
     font-family: $font-caps;
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: 1.5px;
     text-transform: uppercase;
@@ -2885,7 +3007,7 @@ $tab-section-gap: 40px;   // espace entre sections
     color: rgba(244, 240, 231, 0.9);
     padding: 3px 6px;
     font-family: $font-body;
-    font-size: 11px;
+    font-size: 13px;
     font-style: normal;
     line-height: 1.25;
   }
@@ -2903,14 +3025,14 @@ $tab-section-gap: 40px;   // espace entre sections
   strong {
     color: $white-text;
     font-family: $font-display;
-    font-size: 18px;
+    font-size: 20px;
     line-height: 1;
   }
 
   span {
     color: var(--dim);
     font-family: $font-caps;
-    font-size: 10px;
+    font-size: 12px;
     letter-spacing: 1.3px;
     text-transform: uppercase;
   }
@@ -2948,7 +3070,7 @@ $tab-section-gap: 40px;   // espace entre sections
   > strong {
     color: $white-text;
     font-family: $font-display;
-    font-size: 18px;
+    font-size: 20px;
   }
 
   label {
@@ -2956,7 +3078,7 @@ $tab-section-gap: 40px;   // espace entre sections
     border-left: 1px solid rgba(58, 46, 24, 0.75);
     color: var(--dim);
     font-family: $font-caps;
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 1.4px;
     text-transform: uppercase;
   }
@@ -2968,7 +3090,7 @@ $tab-section-gap: 40px;   // espace entre sections
     color: var(--gold2);
     padding: 7px 9px;
     font-family: $font-display;
-    font-size: 16px;
+    font-size: 18px;
     outline: none;
   }
 }
@@ -3005,7 +3127,7 @@ $tab-section-gap: 40px;   // espace entre sections
     color: $white-text;
     padding: 0 13px;
     font-family: $font-body;
-    font-size: 14px;
+    font-size: 16px;
     outline: none;
 
     &:focus {
@@ -3030,7 +3152,7 @@ $tab-section-gap: 40px;   // espace entre sections
     border-right: 1px solid rgba(58, 46, 24, 0.65);
     color: var(--gold);
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 2px;
     text-transform: uppercase;
   }
@@ -3042,7 +3164,7 @@ $tab-section-gap: 40px;   // espace entre sections
   padding: 18px;
   color: var(--dim);
   font-family: $font-body;
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.6;
   font-style: italic;
 }
@@ -3050,7 +3172,7 @@ $tab-section-gap: 40px;   // espace entre sections
 .creation-error {
   color: #e05555;
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1.5px;
   text-align: center;
 }
@@ -3078,7 +3200,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   h2 {
     font-family: $font-display;
-    font-size: clamp(26px, 2vw, 34px);
+    font-size: clamp(28px, 2vw, 36px);
     letter-spacing: 2px;
     color: $white-text;
     margin-bottom: 20px;
@@ -3123,7 +3245,7 @@ $tab-section-gap: 40px;   // espace entre sections
   &:hover { background: rgba(200,168,74,0.05); }
 }
 
-.fiche-dep-arrow { margin-left: auto; font-size: 12px; color: var(--dim); }
+.fiche-dep-arrow { margin-left: auto; font-size: 14px; color: var(--dim); }
 
 .fiche-dep-main {
   display: flex;
@@ -3133,14 +3255,14 @@ $tab-section-gap: 40px;   // espace entre sections
 
 .fiche-dep-label {
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 2px;
   color: var(--dim);
 }
 
 .fiche-dep-total {
   font-family: $font-display;
-  font-size: 32px;
+  font-size: 34px;
   font-weight: 900;
   color: var(--gold2);
   line-height: 1;
@@ -3148,7 +3270,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
 .fiche-dep-unit {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1.5px;
   color: var(--dim);
 }
@@ -3161,7 +3283,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
 .fiche-dep-chip {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1.5px;
   color: var(--dim);
   background: rgba(0,0,0,0.2);
@@ -3215,7 +3337,7 @@ $tab-section-gap: 40px;   // espace entre sections
   &:hover { opacity: 0.85; }
 }
 
-.fiche-res-arrow { font-size: 12px; color: var(--dim); margin-left: 8px; }
+.fiche-res-arrow { font-size: 14px; color: var(--dim); margin-left: 8px; }
 
 .fiche-dep-breakdown,
 .fiche-res-breakdown {
@@ -3238,7 +3360,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   span {
     font-family: $font-caps;
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 2px;
     color: var(--dim);
     flex-shrink: 0;
@@ -3246,7 +3368,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   strong {
     font-family: $font-display;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 900;
     color: $white-text;
     text-align: right;
@@ -3262,7 +3384,7 @@ $tab-section-gap: 40px;   // espace entre sections
     width: 70px;
     flex-shrink: 0;
     font-family: $font-display;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 900;
     color: $white-text;
     text-align: right;
@@ -3278,12 +3400,12 @@ $tab-section-gap: 40px;   // espace entre sections
     padding: 12px 20px;
 
     span {
-      font-size: 12px;
+      font-size: 14px;
       color: var(--gold);
     }
 
     strong {
-      font-size: 26px;
+      font-size: 28px;
       color: var(--gold2);
     }
   }
@@ -3291,7 +3413,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
 .fiche-res-title {
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 3px;
   color: var(--res-color);
   text-transform: uppercase;
@@ -3304,7 +3426,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   strong {
     font-family: $font-display;
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 900;
     color: var(--res-color);
     line-height: 1;
@@ -3312,7 +3434,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   em {
     font-family: $font-caps;
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 1px;
     color: var(--dim);
     font-style: normal;
@@ -3328,7 +3450,7 @@ $tab-section-gap: 40px;   // espace entre sections
   border: none;
   border-bottom: 1px dashed transparent;
   font-family: $font-display;
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 900;
   color: var(--res-color);
   line-height: 1;
@@ -3358,6 +3480,44 @@ $tab-section-gap: 40px;   // espace entre sections
   opacity: 0.7;
 }
 
+// Barre d'XP à gauche du bouton "Niveau +" (voir DetailFiche,
+// CharacterListPage.jsx) — même gabarit que .fiche-res-bar/-fill, mais
+// aucun texte n'est rendu dans le DOM pour un non-MJ (voir canManageExp) :
+// juste le remplissage, pas de chiffre à inspecter.
+.fiche-xp-bar {
+  position: relative;
+  width: 190px;
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(74,200,168,0.4);
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.6);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.fiche-xp-fill {
+  height: 100%;
+  min-width: 3px;
+  background: linear-gradient(90deg, #2f9e82, #4ac8a0);
+  box-shadow: 0 0 12px rgba(74,200,160,0.55);
+  transition: width 0.4s ease;
+}
+
+.fiche-xp-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: $font-caps;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: $white-text;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+  white-space: nowrap;
+}
+
 .fiche-res-details {
   display: flex;
   gap: 6px;
@@ -3375,7 +3535,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
 .fiche-carac-heading {
   font-family: $font-display;
-  font-size: clamp(22px, 1.7vw, 28px);
+  font-size: clamp(24px, 1.7vw, 30px);
   font-weight: 900;
   color: $white-text;
   letter-spacing: 2px;
@@ -3405,14 +3565,14 @@ $tab-section-gap: 40px;   // espace entre sections
 
 .fiche-carac-card-label {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   color: var(--dim);
 }
 
 .fiche-carac-card-mod {
   font-family: $font-display;
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 900;
   color: $white-text;
   line-height: 1;
@@ -3430,7 +3590,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
 .fiche-carac-card-stat {
   font-family: $font-display;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 900;
   color: var(--gold2);
   letter-spacing: 1px;
@@ -3438,7 +3598,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
 .fiche-carac-card-desc {
   font-family: $font-body;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--dim);
   line-height: 1.5;
   font-style: italic;
@@ -3460,7 +3620,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
 .fiche-id-name {
   font-family: $font-display;
-  font-size: clamp(26px, 2vw, 34px);
+  font-size: clamp(28px, 2vw, 36px);
   font-weight: 900;
   color: $white-text;
   letter-spacing: 2px;
@@ -3474,20 +3634,30 @@ $tab-section-gap: 40px;   // espace entre sections
   gap: 12px;
 }
 
+// Regroupe la barre d'XP et le bouton "Niveau +" : sans ce wrapper, les 3
+// enfants directs de .fiche-id-subtitle-row (sous-titre / barre / bouton)
+// se répartissaient sur toute la largeur via justify-content: space-between,
+// isolant la barre au milieu de la ligne au lieu de la coller au bouton.
+.fiche-niveau-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .fiche-id-subtitle {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   color: var(--gold);
 }
 
 .fiche-niveau-btn {
   font-family: $font-caps;
-  font-size: 13px;
+  font-size: 15px;
   letter-spacing: 3px;
   padding: 12px 28px;
   border: 1px solid rgba(200,168,74,0.2);
@@ -3503,12 +3673,12 @@ $tab-section-gap: 40px;   // espace entre sections
 
 .fiche-id-sep {
   color: $border2;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .fiche-id-subclass {
   color: var(--dim);
-  font-size: 11px;
+  font-size: 13px;
 }
 
 // Grille 3 colonnes
@@ -3526,7 +3696,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
 .fiche-id-col-title {
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 3px;
   color: var(--gold);
   opacity: 0.6;
@@ -3549,7 +3719,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
 .fiche-id-label {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1.5px;
   color: var(--dim);
   padding: 16px 16px 16px 22px;
@@ -3562,7 +3732,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
 .fiche-id-value {
   font-family: $font-body;
-  font-size: 16px;
+  font-size: 18px;
   color: $white-text;
   padding: 16px 20px;
   display: flex;
@@ -3579,7 +3749,7 @@ $tab-section-gap: 40px;   // espace entre sections
   min-width: 0;
   padding: 16px 20px;
   font-family: $font-body;
-  font-size: 16px;
+  font-size: 18px;
   color: $white-text;
   line-height: 1.4;
   background: transparent;
@@ -3622,7 +3792,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   span {
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 2.2px;
     color: var(--dim);
     border-right: 1px solid $border2;
@@ -3631,7 +3801,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   strong {
     font-family: $font-display;
-    font-size: clamp(18px, 1vw, 21px);
+    font-size: clamp(20px, 1vw, 23px);
     color: $white-text;
     line-height: 1.15;
   }
@@ -3657,7 +3827,7 @@ $tab-section-gap: 40px;   // espace entre sections
     text-align: center;
     color: $white-text;
     background: rgba(200, 168, 74, 0.11);
-    font-size: 18px;
+    font-size: 20px;
     letter-spacing: 1px;
   }
 
@@ -3666,7 +3836,7 @@ $tab-section-gap: 40px;   // espace entre sections
     padding: 10px 14px;
     color: var(--gold2);
     background: rgba(200, 168, 74, 0.12);
-    font-size: 15px;
+    font-size: 17px;
     font-style: italic;
     line-height: 1.35;
   }
@@ -3692,7 +3862,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
 .sheet-total-head span {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1px;
   color: $white-text;
   background: rgba(255, 255, 255, 0.08);
@@ -3701,7 +3871,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
 .sheet-total-values strong {
   font-family: $font-display;
-  font-size: 17px;
+  font-size: 19px;
   color: $white-text;
   background: rgba(0, 0, 0, 0.16);
 }
@@ -3726,7 +3896,7 @@ $tab-section-gap: 40px;   // espace entre sections
     padding: 10px 12px;
     text-align: center;
     font-family: $font-display;
-    font-size: 19px;
+    font-size: 21px;
     letter-spacing: 1px;
     color: $white-text;
     background: rgba(47, 84, 25, 0.85);
@@ -3751,7 +3921,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   span {
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 1px;
     color: $white-text;
     background: rgba(255, 255, 255, 0.09);
@@ -3759,7 +3929,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   strong {
     font-family: $font-display;
-    font-size: 18px;
+    font-size: 20px;
     color: $white-text;
     background: rgba(200, 168, 74, 0.12);
     border-left: 1px solid $border2;
@@ -3781,7 +3951,7 @@ $tab-section-gap: 40px;   // espace entre sections
     min-height: 46px;
     padding: 8px;
     font-family: $font-display;
-    font-size: 17px;
+    font-size: 19px;
     color: $white-text;
     text-transform: uppercase;
     background: rgba(47, 84, 25, 0.85);
@@ -3791,7 +3961,7 @@ $tab-section-gap: 40px;   // espace entre sections
     min-height: 62px;
     padding: 10px;
     font-family: $font-display;
-    font-size: 24px;
+    font-size: 26px;
     color: var(--gold2);
     background: rgba(200, 168, 74, 0.14);
   }
@@ -3824,7 +3994,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   h3 {
     min-height: 40px;
-    font-size: 18px;
+    font-size: 20px;
     text-transform: uppercase;
   }
 
@@ -3845,18 +4015,18 @@ $tab-section-gap: 40px;   // espace entre sections
   }
 
   span {
-    font-size: 16px;
+    font-size: 18px;
   }
 
   strong {
     font-family: $font-display;
-    font-size: 19px;
+    font-size: 21px;
     color: $white-text;
   }
 
   em {
     font-family: $font-body;
-    font-size: 16px;
+    font-size: 18px;
     color: var(--gold2);
     font-style: normal;
     background: rgba(200, 168, 74, 0.11);
@@ -3875,7 +4045,7 @@ $tab-section-gap: 40px;   // espace entre sections
   span {
     display: block;
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 2px;
     color: var(--dim);
     margin-bottom: 6px;
@@ -3883,7 +4053,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   strong {
     font-family: $font-display;
-    font-size: 22px;
+    font-size: 24px;
     color: var(--gold2);
   }
 
@@ -3914,13 +4084,13 @@ $tab-section-gap: 40px;   // espace entre sections
 
   h3 {
     font-family: $font-display;
-    font-size: 16px;
+    font-size: 18px;
     color: var(--gold2);
     margin-bottom: 6px;
   }
 
   p {
-    font-size: 12px;
+    font-size: 14px;
     line-height: 1.55;
     color: var(--text);
   }
@@ -3945,13 +4115,13 @@ $tab-section-gap: 40px;   // espace entre sections
 
   span {
     color: var(--dim);
-    font-size: 12px;
+    font-size: 14px;
   }
 
   strong {
     display: block;
     font-family: $font-display;
-    font-size: 30px;
+    font-size: 32px;
     color: $white-text;
     line-height: 1.1;
     margin-top: 4px;
@@ -3959,7 +4129,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   em {
     color: var(--gold);
-    font-size: 12px;
+    font-size: 14px;
     font-style: normal;
   }
 }
@@ -3991,12 +4161,12 @@ $tab-section-gap: 40px;   // espace entre sections
   strong {
     text-align: center;
     font-family: $font-display;
-    font-size: 16px;
+    font-size: 18px;
   }
 
   span:first-child {
     font-family: $font-caps;
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 2px;
     color: var(--gold);
   }
@@ -4011,7 +4181,7 @@ $tab-section-gap: 40px;   // espace entre sections
     background: rgba(200, 168, 74, 0.12);
     color: var(--gold2);
     font-family: $font-caps !important;
-    font-size: 12px !important;
+    font-size: 14px !important;
     letter-spacing: 2px;
   }
 }
@@ -4025,7 +4195,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   // Onglets : la barre est scrollable, on garde 12px lisible
   .detail-tab {
-    font-size: 12px !important;
+    font-size: 14px !important;
     padding: 8px 12px !important;
     letter-spacing: 1.5px !important;
   }
@@ -4071,13 +4241,13 @@ $tab-section-gap: 40px;   // espace entre sections
   .fiche-id-subclass,
   .fiche-id-col-title,
   .combat-row span:first-child {
-    font-size: 13px !important;
+    font-size: 15px !important;
     letter-spacing: 1.5px !important;
   }
 
   .fiche-res-score em,
   .fiche-res-brow span {
-    font-size: 12px !important;
+    font-size: 14px !important;
   }
 
   // ── 12px caps/labels → 13px ──────────────────────────────
@@ -4097,7 +4267,7 @@ $tab-section-gap: 40px;   // espace entre sections
   .sheet-total-head span,
   .sheet-resource-row span,
   .combat-head span {
-    font-size: 13px !important;
+    font-size: 15px !important;
     letter-spacing: 1px !important;
   }
 
@@ -4105,12 +4275,12 @@ $tab-section-gap: 40px;   // espace entre sections
   .fiche-niveau-btn,
   .portrait-control-action,
   .creation-empty {
-    font-size: 14px !important;
+    font-size: 16px !important;
   }
 
   // ── Taille min du body texte dans le panel ────────────────
   .detail-content {
-    font-size: 15px !important;
+    font-size: 17px !important;
   }
 
   .creation-start-summary {
@@ -4137,28 +4307,28 @@ $tab-section-gap: 40px;   // espace entre sections
   .spell-level,
   .spell-tag,
   .resource-lvl {
-    font-size: 13px !important;
+    font-size: 15px !important;
     letter-spacing: 1px !important;
   }
 
-  .spell-desc { font-size: 14px !important; }
-  .spell-name { font-size: 17px !important; }
+  .spell-desc { font-size: 16px !important; }
+  .spell-name { font-size: 19px !important; }
 
   // ── Inventaire / équipement ──────────────────────────────
   .inventory-table th {
-    font-size: 13px !important;
+    font-size: 15px !important;
   }
 
   .inventory-table td,
   .item-weight,
   .item-rarity {
-    font-size: 13px !important;
+    font-size: 15px !important;
   }
 
   // ── Boutons génériques dans le panel ────────────────────
   .btn-ghost,
   .btn-danger {
-    font-size: 13px !important;
+    font-size: 15px !important;
   }
 
   // ── Inventaire : tableau fixe pour éviter le débordement ─
@@ -4186,7 +4356,7 @@ $tab-section-gap: 40px;   // espace entre sections
   // Boutons +/- dans l'inventaire plus compacts
   .inventory-table .btn-ghost {
     padding: 2px 6px !important;
-    font-size: 13px !important;
+    font-size: 15px !important;
   }
 
   // ── Labels création (mode édition) ───────────────────────
@@ -4194,13 +4364,13 @@ $tab-section-gap: 40px;   // espace entre sections
   .create-pool span,
   .create-list-row--head span,
   .creation-list-row--head span {
-    font-size: 13px !important;
+    font-size: 15px !important;
     letter-spacing: 1px !important;
   }
 
   // ── Nom du perso dans le cadre image ─────────────────────
   .select-avatar-name {
-    font-size: clamp(20px, 3.5vw, 28px) !important;
+    font-size: clamp(22px, 3.5vw, 30px) !important;
   }
 
   // ── Panneau identité : 3 colonnes → 1 colonne ────────────
@@ -4220,7 +4390,7 @@ $tab-section-gap: 40px;   // espace entre sections
   }
 
   .fiche-id-name {
-    font-size: clamp(20px, 2vw, 26px) !important;
+    font-size: clamp(22px, 2vw, 28px) !important;
   }
 
   .fiche-niveau-btn {
@@ -4234,7 +4404,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
   .fiche-id-value {
     padding: 10px 14px !important;
-    font-size: 14px !important;
+    font-size: 16px !important;
   }
 
   .fiche-id-row {
@@ -4252,9 +4422,9 @@ $tab-section-gap: 40px;   // espace entre sections
   }
 
   .fiche-res-score strong,
-  .fiche-res-actuel-input { font-size: 22px !important; }
+  .fiche-res-actuel-input { font-size: 24px !important; }
 
-  .fiche-res-brow--total strong { font-size: 22px !important; }
+  .fiche-res-brow--total strong { font-size: 24px !important; }
 
   .fiche-res-brow {
     padding: 7px 14px !important;
@@ -4266,7 +4436,7 @@ $tab-section-gap: 40px;   // espace entre sections
   }
 
   // ── FICHE : Déplacements ──────────────────────────────────
-  .fiche-dep-total { font-size: 24px !important; }
+  .fiche-dep-total { font-size: 26px !important; }
 
   .fiche-dep-btn {
     padding: 10px 14px !important;
@@ -4275,32 +4445,32 @@ $tab-section-gap: 40px;   // espace entre sections
 
   // ── FICHE : Caractéristiques ──────────────────────────────
   .fiche-carac-heading {
-    font-size: 20px !important;
+    font-size: 22px !important;
     margin: 14px 0 12px !important;
     padding-bottom: 8px !important;
   }
 
   .fiche-carac-card-header { padding: 10px 14px !important; }
   .fiche-carac-card-body   { padding: 10px 14px !important; gap: 4px !important; }
-  .fiche-carac-card-mod    { font-size: 22px !important; }
-  .fiche-carac-card-stat   { font-size: 16px !important; }
+  .fiche-carac-card-mod    { font-size: 24px !important; }
+  .fiche-carac-card-stat   { font-size: 18px !important; }
 
   // ── STATS : valeurs numériques ────────────────────────────
   .detail-stat {
     padding: 10px 6px !important;
 
-    strong { font-size: 24px !important; }
+    strong { font-size: 26px !important; }
   }
 
   .detail-pool {
     padding: 9px 10px !important;
 
-    strong { font-size: 20px !important; }
+    strong { font-size: 22px !important; }
   }
 
   // ── TITRES DE SECTIONS ────────────────────────────────────
   .detail-section h2 {
-    font-size: 20px !important;
+    font-size: 22px !important;
     margin-bottom: 14px !important;
     padding-bottom: 8px !important;
   }
@@ -4348,7 +4518,7 @@ $tab-section-gap: 40px;   // espace entre sections
   .detail-tab {
     white-space: nowrap;
     flex-shrink: 0;
-    font-size: 15px;
+    font-size: 17px;
     padding: 12px 18px;
     letter-spacing: 2.5px;
     cursor: pointer;
@@ -4400,7 +4570,7 @@ $tab-section-gap: 40px;   // espace entre sections
 // ── Action badges ─────────────────────────────────────────────
 .detail-action-badge {
   font-family: $font-caps;
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 1.5px;
   padding: 2px 7px;
   border-radius: 2px;
@@ -4430,7 +4600,7 @@ $tab-section-gap: 40px;   // espace entre sections
 
 .detail-tag {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   color: var(--gold);
   border: 1px solid rgba(200, 168, 74, 0.3);
@@ -4511,7 +4681,7 @@ $gold:    #c8a84a;
 
 .gb-closed-label {
   font-family: var(--font-display, serif);
-  font-size: 26px;
+  font-size: 28px;
   letter-spacing: 8px;
   text-transform: uppercase;
   color: rgba(200,168,74,0.85);
@@ -4663,7 +4833,7 @@ $gold:    #c8a84a;
   border: 1px solid rgba(200,168,74,0.2);
   background: rgba(20,12,4,0.3);
   color: rgba(244,240,231,0.45);
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1;
   display: flex;
   align-items: center;
@@ -4698,7 +4868,7 @@ $gold:    #c8a84a;
 .gb-index-category-title {
   margin: 0 0 4px;
   padding: 0 0 3px;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 3px;
   text-transform: uppercase;
   color: rgba(42,26,8,0.45);
@@ -4725,7 +4895,7 @@ $gold:    #c8a84a;
   border: none;
   border-radius: 3px;
   color: rgba(42,26,8,0.8);
-  font-size: 12px;
+  font-size: 14px;
   text-align: left;
   cursor: pointer;
   transition: background 0.12s;
@@ -4742,7 +4912,7 @@ $gold:    #c8a84a;
 .gb-index-item-lvl {
   flex-shrink: 0;
   color: rgba(130,90,30,0.85);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1px;
   text-transform: uppercase;
 }
@@ -4998,7 +5168,7 @@ $gb-open-offset: ($gb-pw - $gb-sw) * 0.5; // ~184.5px — shift between closed &
 
 .gb-title-word {
   font-family: var(--font-display, serif);
-  font-size: 32px;
+  font-size: 34px;
   letter-spacing: 8px;
   text-transform: uppercase;
   color: #2a1a08;
@@ -5006,7 +5176,7 @@ $gb-open-offset: ($gb-pw - $gb-sw) * 0.5; // ~184.5px — shift between closed &
 }
 
 .gb-title-de {
-  font-size: 13px;
+  font-size: 15px;
   letter-spacing: 4px;
   font-style: italic;
   color: rgba(42,26,8,0.55);
@@ -5015,7 +5185,7 @@ $gb-open-offset: ($gb-pw - $gb-sw) * 0.5; // ~184.5px — shift between closed &
 
 .gb-title-name {
   font-family: var(--font-display, serif);
-  font-size: 17px;
+  font-size: 19px;
   letter-spacing: 3px;
   color: #2a1a08;
   margin: 0;
@@ -5023,7 +5193,7 @@ $gb-open-offset: ($gb-pw - $gb-sw) * 0.5; // ~184.5px — shift between closed &
 
 // Creation form
 .gb-page-eyebrow {
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 5px;
   text-transform: uppercase;
   color: rgba(42,26,8,0.38);
@@ -5041,7 +5211,7 @@ $gb-open-offset: ($gb-pw - $gb-sw) * 0.5; // ~184.5px — shift between closed &
 }
 
 .gb-lbl {
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 3px;
   text-transform: uppercase;
   color: rgba(42,26,8,0.45);
@@ -5053,7 +5223,7 @@ $gb-open-offset: ($gb-pw - $gb-sw) * 0.5; // ~184.5px — shift between closed &
   border: none;
   border-bottom: 1px solid rgba(42,26,8,0.2);
   color: $ink;
-  font-size: 13px;
+  font-size: 15px;
   font-family: var(--font-hand, cursive);
   padding: 3px 1px;
   outline: none;
@@ -5070,7 +5240,7 @@ $gb-open-offset: ($gb-pw - $gb-sw) * 0.5; // ~184.5px — shift between closed &
   background: transparent;
   border: 1px solid rgba(42,26,8,0.15);
   color: #2a1f0e;
-  font-size: 13px;
+  font-size: 15px;
   font-family: var(--font-hand, cursive);
   padding: 6px;
   outline: none;
@@ -5089,7 +5259,7 @@ $gb-open-offset: ($gb-pw - $gb-sw) * 0.5; // ~184.5px — shift between closed &
 
 .gb-row { display: flex; gap: 10px; }
 
-.gb-err { font-size: 11px; color: #c84a4a; margin: 0; letter-spacing: 1px; }
+.gb-err { font-size: 13px; color: #c84a4a; margin: 0; letter-spacing: 1px; }
 
 .gb-submit {
   margin-top: auto;
@@ -5097,7 +5267,7 @@ $gb-open-offset: ($gb-pw - $gb-sw) * 0.5; // ~184.5px — shift between closed &
   background: transparent;
   border: 1px solid rgba(130,90,30,0.45);
   color: rgba(42,26,8,0.75);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 3px;
   text-transform: uppercase;
   cursor: pointer;
@@ -5110,7 +5280,7 @@ $gb-open-offset: ($gb-pw - $gb-sw) * 0.5; // ~184.5px — shift between closed &
 // Spell page
 .gb-spell-name {
   font-family: var(--font-display, serif);
-  font-size: 18px;
+  font-size: 20px;
   letter-spacing: 1px;
   color: #2a1a08;
   padding-bottom: 8px;
@@ -5118,7 +5288,7 @@ $gb-open-offset: ($gb-pw - $gb-sw) * 0.5; // ~184.5px — shift between closed &
 }
 
 .gb-spell-sub {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: rgba(42,26,8,0.45);
@@ -5127,7 +5297,7 @@ $gb-open-offset: ($gb-pw - $gb-sw) * 0.5; // ~184.5px — shift between closed &
 .gb-spell-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 
 .gb-tag {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1px;
   padding: 2px 8px;
   border: 1px solid rgba(130,90,30,0.3);
@@ -5136,7 +5306,7 @@ $gb-open-offset: ($gb-pw - $gb-sw) * 0.5; // ~184.5px — shift between closed &
 }
 
 .gb-spell-body {
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.65;
   color: rgba(42,26,8,0.82);
   margin: 0;
@@ -5151,7 +5321,7 @@ $gb-open-offset: ($gb-pw - $gb-sw) * 0.5; // ~184.5px — shift between closed &
 
 .gb-spell-action {
   font-family: var(--font-caps, sans-serif);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1px;
   text-transform: uppercase;
   padding: 6px 12px;
@@ -5275,7 +5445,7 @@ $gb-open-offset: ($gb-pw - $gb-sw) * 0.5; // ~184.5px — shift between closed &
 
 .res2-title {
   font-family: $font-display;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 900;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -5369,7 +5539,7 @@ tr {
 
 .res3-title {
   font-family: $font-display;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -5389,7 +5559,7 @@ tr {
 
   span {
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 1.5px;
     color: var(--gold);
     padding: 12px 8px;
@@ -5420,7 +5590,7 @@ tr {
     text-align: center;
     padding: 14px 8px;
     font-family: $font-display;
-    font-size: 16px;
+    font-size: 18px;
     border-right: 1px solid rgba(58,46,24,0.15);
     &:last-child { border-right: none; }
   }
@@ -5435,13 +5605,13 @@ tr {
   text-align: center;
   padding: 14px 8px;
   font-family: $font-display;
-  font-size: 16px;
+  font-size: 18px;
   border-right: 1px solid rgba(58,46,24,0.15);
 }
 
 .res3-nom {
   font-family: $font-caps !important;
-  font-size: 12px !important;
+  font-size: 14px !important;
   letter-spacing: 2px;
   color: var(--text);
   text-align: left !important;
@@ -5451,7 +5621,7 @@ tr {
 
 .res3-zero {
   font-family: $font-body !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
   color: rgba(200,168,74,0.15) !important;
 }
 
@@ -5459,7 +5629,7 @@ tr {
 .res3-neg { color: #c84a4a !important; font-weight: 700; }
 
 .res3-total {
-  font-size: 18px !important;
+  font-size: 20px !important;
   font-weight: 900 !important;
   background: rgba(0,0,0,0.2);
 
@@ -5491,7 +5661,7 @@ tr {
 
 .res-type {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   color: var(--text);
   padding: 10px 14px;
@@ -5500,7 +5670,7 @@ tr {
 
 .res-val {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   padding: 10px 14px;
   text-align: right;
@@ -5531,7 +5701,7 @@ tr {
 
 .detail-inv-name {
   font-family: $font-display;
-  font-size: 15px;
+  font-size: 17px;
   color: $white-text;
 }
 
@@ -5545,20 +5715,20 @@ tr {
 .detail-inv-qty,
 .detail-inv-weight {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1px;
   color: var(--dim);
 }
 
 .detail-inv-rarity {
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1.5px;
 }
 
 .detail-inv-desc {
   font-family: $font-body;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--dim);
   line-height: 1.5;
   margin: 6px 0 0;
@@ -5573,7 +5743,7 @@ tr {
 
   p {
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 3px;
     color: var(--dim);
     opacity: 0.5;
@@ -5582,14 +5752,14 @@ tr {
 
 .detail-text {
   font-family: $font-body;
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.7;
   color: var(--text);
 }
 
 .detail-section-sub {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   color: var(--dim);
   font-weight: 400;
@@ -5606,7 +5776,7 @@ tr {
 
 .combat-stat-group-label {
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--dim);
@@ -5778,7 +5948,7 @@ tr {
   h3 {
     margin: 0;
     font-family: $font-display;
-    font-size: clamp(20px, 1.5vw, 26px);
+    font-size: clamp(22px, 1.5vw, 28px);
     font-weight: 900;
     letter-spacing: 2px;
     color: $white-text;
@@ -5811,7 +5981,7 @@ tr {
   border-bottom: 1px solid rgba(58,46,24,0.38);
   background: rgba(200,168,74,0.05);
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   color: var(--dim);
   text-transform: uppercase;
@@ -5820,7 +5990,7 @@ tr {
 .main-carac-card-stat {
   padding: 18px 16px 16px;
   font-family: $font-display;
-  font-size: 25px;
+  font-size: 27px;
   font-weight: 900;
   letter-spacing: 1px;
   color: $white-text;
@@ -5837,7 +6007,7 @@ tr {
 
   span {
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 1.8px;
     color: var(--dim);
     text-transform: uppercase;
@@ -5849,7 +6019,7 @@ tr {
     border: 1px solid rgba(200,168,74,0.28);
     background: rgba(200,168,74,0.12);
     font-family: $font-display;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 900;
     text-align: center;
     color: var(--gold2);
@@ -5878,7 +6048,7 @@ tr {
 
 .eqdoll-title {
   font-family: $font-display;
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 900;
   letter-spacing: 2px;
   text-align: center;
@@ -5892,19 +6062,19 @@ tr {
 .eqdoll-slots-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: repeat(5, 96px);
+  grid-template-rows: repeat(5, minmax(96px, auto));
   grid-template-areas:
-    '.      casque   cou'
-    'cape   torse    gants'
-    'bijou1 ceinture bijou2'
-    '.      bottes   .'
-    'arme1  .        arme2';
+    'gadgets casque   cou'
+    'cape    torse    gants'
+    'bijou1  ceinture bijou2'
+    '.       bottes   .'
+    'arme1   armeDistance arme2';
   gap: 8px;
   padding: 10px 14px 12px;
-  overflow: hidden;
 }
 
 // Positionnement de chaque slot
+.eqdoll-slot[data-area="gadgets"]  { grid-area: gadgets;  }
 .eqdoll-slot[data-area="casque"]   { grid-area: casque;   }
 .eqdoll-slot[data-area="cou"]      { grid-area: cou;      }
 .eqdoll-slot[data-area="cape"]     { grid-area: cape;     }
@@ -5915,20 +6085,19 @@ tr {
 .eqdoll-slot[data-area="bijou2"]   { grid-area: bijou2;   }
 .eqdoll-slot[data-area="bottes"]   { grid-area: bottes;   }
 .eqdoll-slot[data-area="arme1"]    { grid-area: arme1;    }
+.eqdoll-slot[data-area="armeDistance"] { grid-area: armeDistance; }
 .eqdoll-slot[data-area="arme2"]    { grid-area: arme2;    }
 
-// Slot carte — hauteur fixe, le contenu ne l'agrandit pas
+// Slot carte — hauteur mini 96px, s'agrandit si le contenu (nom/desc/bonus
+// combat) dépasse plutôt que de le couper (voir .eqdoll-body overflow-y).
 .eqdoll-slot {
   display: flex;
   flex-direction: column;
   border: 1px dashed rgba(200,168,74,0.22);
   border-radius: 5px;
   background: rgba(0,0,0,0.22);
-  height: 96px;
   min-height: 96px;
-  max-height: 96px;
   transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
-  overflow: hidden;   // le contenu ne déborde pas
 
   &--over {
     border-color: $gold;
@@ -5940,6 +6109,44 @@ tr {
   &:hover:not(&--over) {
     border-color: rgba(200,168,74,0.35);
   }
+}
+
+// Bouton "Gadgets" — même gabarit qu'un slot de la poupée, mais c'est un
+// bouton qui ouvre le panneau dédié (voir .inv-bag-modal, réutilisé) plutôt
+// qu'un slot d'équipement direct.
+.eqdoll-gadget-btn {
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  color: var(--gold);
+  background: rgba(0,0,0,0.22);
+
+  &:hover {
+    border-color: rgba(200,168,74,0.5);
+    background: rgba(200,168,74,0.06);
+  }
+
+  span {
+    font-family: $font-caps;
+    font-size: 14px;
+    letter-spacing: 1.4px;
+  }
+}
+
+.eqdoll-gadget-btn-count {
+  opacity: 0.6;
+  font-size: 13px !important;
+}
+
+// Badge Actif/Passif affiché dans le panneau "Mes objets raciaux" (.inv-bag-slot-main)
+.eqdoll-gadget-type {
+  font-family: $font-caps;
+  font-size: 13px;
+  letter-spacing: 1.2px;
+  color: var(--dim);
+  opacity: 0.7;
+  text-transform: uppercase;
 }
 
 // En-tête du slot : icône + label
@@ -5954,7 +6161,7 @@ tr {
 
 .eqdoll-slot-label {
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 15px;
   letter-spacing: 1.6px;
   color: var(--gold);
   opacity: 0.7;
@@ -5968,7 +6175,7 @@ tr {
   align-items: center;
   justify-content: center;
   font-family: $font-caps;
-  font-size: 10px;
+  font-size: 14px;
   letter-spacing: 1.6px;
   color: rgba(200,168,74,0.16);
   padding: 8px;
@@ -5990,7 +6197,7 @@ tr {
 
 .eqdoll-item-name {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 16px;
   letter-spacing: 1.2px;
   font-weight: 700;
   line-height: 1.25;
@@ -5998,7 +6205,7 @@ tr {
 
 .eqdoll-item-type {
   font-family: $font-caps;
-  font-size: 10px;
+  font-size: 14px;
   letter-spacing: 1.2px;
   color: var(--dim);
   opacity: 0.7;
@@ -6006,7 +6213,7 @@ tr {
 
 .eqdoll-item-desc {
   font-family: $font-body;
-  font-size: 11px;
+  font-size: 15px;
   color: var(--dim);
   font-style: italic;
   line-height: 1.25;
@@ -6018,23 +6225,62 @@ tr {
   overflow: hidden;
 }
 
-.eqdoll-slot-filled .item-confers {
-  margin-top: 2px;
+// Bouton "Effets" (voir ItemEffectSummary mode="button") — remplace
+// l'affichage direct des badges Confère dans la poupée et l'inventaire
+// équipable, trop dense une fois le texte agrandi (voir .item-effects-popover
+// pour le contenu affiché au clic).
+.item-effects-btn {
+  align-self: flex-start;
+  margin-top: 4px;
+  font-family: $font-caps;
+  font-size: 13px;
+  letter-spacing: 1.2px;
+  color: var(--gold);
+  background: rgba(200,168,74,0.1);
+  border: 1px solid rgba(200,168,74,0.3);
+  border-radius: 2px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: rgba(200,168,74,0.2);
+    border-color: $gold;
+  }
+}
+
+// Le bouton "Effets" peut être ouvert depuis DANS un modal (Sac, Objets
+// raciaux — .index-modal-backdrop est à z-index 99990, voir _admin.scss) :
+// il faut passer largement au-dessus de tous les modaux existants (jusqu'à
+// 100050) pour que le popover reste visible et cliquable, sans dépasser
+// .smart-popover (1000000, tooltips de description imbriqués dans les
+// libellés d'effet — voir SmartText dans EffectEntry).
+.item-effects-popover-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200000;
+  background: transparent;
+}
+
+.item-effects-popover {
+  position: fixed;
+  z-index: 200001;
+  background: rgba(11, 10, 6, 0.98);
+  border: 1px solid rgba(200,168,74,0.4);
+  border-radius: 4px;
+  box-shadow: 0 22px 42px rgba(0, 0, 0, 0.78);
+  padding: 12px 14px;
+  max-height: 60vh;
+  overflow-y: auto;
 
   .item-confers-label {
-    display: none;
-  }
-
-  .item-confers-group {
-    grid-template-columns: 56px minmax(0, 1fr);
-  }
-
-  .item-confers-group-title {
-    font-size: 7px;
-  }
-
-  .item-confers-entry {
-    max-width: 100%;
+    display: block;
+    font-family: $font-caps;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    opacity: 0.75;
+    margin-bottom: 8px;
   }
 }
 
@@ -6047,7 +6293,7 @@ tr {
 
 .eqdoll-inv-title {
   font-family: $font-display;
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 900;
   letter-spacing: 2px;
   text-align: center;
@@ -6122,7 +6368,7 @@ tr {
 
 .eqdoll-cat-label {
   font-family: $font-caps;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 1px;
   color: var(--dim);
   white-space: nowrap;
@@ -6134,7 +6380,7 @@ tr {
 
 .eqdoll-inv-hint {
   font-family: $font-body;
-  font-size: 12px;
+  font-size: 16px;
   font-style: italic;
   color: var(--dim);
   padding: 6px 12px;
@@ -6156,7 +6402,7 @@ tr {
 
 .eqdoll-inv-empty {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 16px;
   letter-spacing: 2px;
   color: var(--dim);
   opacity: 0.4;
@@ -6191,7 +6437,7 @@ tr {
 
 .eqdoll-inv-item-slot {
   font-family: $font-caps;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 1.4px;
   color: var(--gold);
   background: rgba(200,168,74,0.1);
@@ -6204,14 +6450,14 @@ tr {
 
 .eqdoll-inv-item-name {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 16px;
   letter-spacing: 1px;
   font-weight: 700;
 }
 
 .eqdoll-inv-item-badge {
   font-family: $font-caps;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 1.5px;
   color: #4ac87a;
   border: 1px solid rgba(74,200,122,0.3);
@@ -6222,7 +6468,7 @@ tr {
 
 .eqdoll-inv-item-desc {
   font-family: $font-body;
-  font-size: 10px;
+  font-size: 14px;
   color: var(--dim);
   margin: 0;
   line-height: 1.35;
@@ -6250,7 +6496,7 @@ tr {
 
 .inv2-emp-title {
   font-family: $font-display;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -6289,14 +6535,14 @@ tr {
 
 .inv2-emp-base {
   font-family: $font-display;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 900;
   color: $white-text;
 }
 
 .inv2-emp-val {
   font-family: $font-display;
-  font-size: 18px;
+  font-size: 20px;
   color: var(--text);
 }
 
@@ -6316,7 +6562,7 @@ tr {
 
   strong {
     font-family: $font-display;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 900;
     color: var(--gold2);
   }
@@ -6334,11 +6580,161 @@ tr {
   h2 {
     margin: 0;
     font-family: $font-display;
-    font-size: clamp(26px, 2vw, 34px);
+    font-size: clamp(28px, 2vw, 36px);
     font-weight: 900;
     letter-spacing: 2px;
     color: $white-text;
   }
+}
+
+.inv2-page-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.inv2-bag-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 7px 14px;
+  border: 1px solid rgba(200, 168, 74, 0.34);
+  background: rgba(200, 168, 74, 0.07);
+  color: var(--gold);
+  font-family: $font-caps;
+  font-size: 14px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover { background: rgba(200,168,74,0.14); border-color: rgba(200,168,74,0.55); }
+}
+
+.inv-bag-modal {
+  width: min(520px, 92vw);
+}
+
+.inv-bag-hint {
+  padding: 10px 16px 0;
+  font-size: 14.5px;
+  color: rgba(200,168,74,0.6);
+  font-style: italic;
+}
+
+.inv-bag-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 18px;
+}
+
+.inv-bag-slot {
+  display: flex;
+  align-items: stretch;
+  min-height: 56px;
+  border: 1px dashed rgba(200,168,74,0.28);
+  border-radius: 5px;
+  background: rgba(0,0,0,0.2);
+
+  &.is-filled {
+    border-style: solid;
+    border-color: rgba(200,168,74,0.4);
+  }
+}
+
+.inv-bag-slot-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+
+  strong {
+    font-family: $font-display;
+    color: var(--gold2);
+    font-size: 16px;
+  }
+}
+
+.inv-bag-slot-desc {
+  font-size: 14px;
+  color: $dim;
+  font-style: italic;
+}
+
+.inv-bag-slot-remove {
+  flex-shrink: 0;
+  width: 40px;
+  border: none;
+  border-left: 1px solid rgba(200,168,74,0.25);
+  background: transparent;
+  color: rgba(220,120,120,0.75);
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover { background: rgba(220,80,80,0.12); color: #e88; }
+}
+
+.inv-bag-slot-add {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: rgba(200,168,74,0.4);
+  font-family: $font-caps;
+  font-size: 13px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.15s;
+
+  &:hover { color: var(--gold); }
+}
+
+.inv-bag-slot-picker {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+}
+
+.inv-bag-slot-picker-item {
+  text-align: left;
+  padding: 7px 10px;
+  border: 1px solid rgba(200,168,74,0.25);
+  background: rgba(200,168,74,0.05);
+  color: var(--gold2);
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover { background: rgba(200,168,74,0.12); border-color: rgba(200,168,74,0.5); }
+}
+
+.inv-bag-slot-picker-cancel {
+  align-self: flex-start;
+  padding: 5px 10px;
+  border: none;
+  background: transparent;
+  color: $dim;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:hover { color: var(--gold); }
+}
+
+.inv-bag-slot-empty-hint {
+  margin: 0;
+  padding: 6px 0;
+  font-size: 14.5px;
+  font-style: italic;
+  color: $dim;
 }
 
 .inv2-wallet {
@@ -6364,7 +6760,7 @@ tr {
 
   strong {
     font-family: $font-display;
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 900;
     color: var(--gold2);
     line-height: 1;
@@ -6373,7 +6769,7 @@ tr {
   span {
     margin-left: -9px;
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 1.8px;
     color: var(--dim);
   }
@@ -6427,7 +6823,7 @@ tr {
   left: 8px;
   z-index: 1;
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1px;
   color: rgba(200, 168, 74, 0.32);
 }
@@ -6447,7 +6843,7 @@ tr {
 
   span {
     font-family: $font-display;
-    font-size: clamp(52px, 5vw, 86px);
+    font-size: clamp(54px, 5vw, 88px);
     font-weight: 900;
     line-height: 1;
     text-shadow: 0 0 24px rgba(200, 168, 74, 0.08);
@@ -6507,7 +6903,7 @@ tr {
   strong {
     min-width: 0;
     font-family: $font-display;
-    font-size: 18px;
+    font-size: 20px;
     line-height: 1.05;
     color: $white-text;
     letter-spacing: 0.5px;
@@ -6546,7 +6942,7 @@ tr {
   min-height: 0;
   color: var(--dim);
   font-family: $font-body;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.55;
   overflow: hidden;
   display: -webkit-box;
@@ -6573,14 +6969,23 @@ tr {
 
   .item-confers-group-title,
   .item-confers-entry {
-    font-size: 8px;
+    font-size: 10px;
   }
 }
 
-.inv2-item-count {
+// Bouton "Utiliser" collé au chiffre de stack — les deux vivent dans le même
+// conteneur pour ne jamais se retrouver écartés aux deux coins de la carte
+// (voir .inv2-item-use, .inv2-item-count).
+.inv2-item-footer {
   position: absolute;
   right: 8px;
   bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inv2-item-count {
   min-width: 30px;  // plus grand
   height: 30px;
   padding: 0 8px;
@@ -6590,7 +6995,7 @@ tr {
   border: 1px solid var(--item-rarity-color, rgba(200, 168, 74, 0.34));
   background: rgba(0,0,0,0.4);
   font-family: $font-display;
-  font-size: 16px;  // beaucoup plus grand
+  font-size: 18px;  // beaucoup plus grand
   font-weight: 900;
   color: var(--gold2);
   border-radius: 3px;
@@ -6617,7 +7022,7 @@ tr {
   border-radius: 3px;
   background: rgba(0,0,0,0.4);
   color: rgba(244, 240, 231, 0.4);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1;
   cursor: pointer;
   opacity: 0;
@@ -6636,9 +7041,6 @@ tr {
 }
 
 .inv2-item-use {
-  position: absolute;
-  left: 8px;
-  bottom: 6px;
   height: 30px;
   padding: 0 12px;
   display: inline-flex;
@@ -6649,7 +7051,7 @@ tr {
   background: rgba(84, 213, 138, 0.1);
   color: #8fe0ac;
   font-family: $font-caps;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1px;
   text-transform: uppercase;
   cursor: pointer;
@@ -6704,7 +7106,7 @@ tr {
   }
 
   .detail-tabs .detail-tab {
-    font-size: 13px;
+    font-size: 15px;
     padding: 12px 16px;
   }
 
@@ -6714,7 +7116,7 @@ tr {
 
   .detail-section h2,
   .inv2-page-head h2 {
-    font-size: 30px;
+    font-size: 32px;
   }
 
   .detail-info-grid,
@@ -6758,11 +7160,11 @@ tr {
   }
 
   .inv2-item strong {
-    font-size: 20px;
+    font-size: 22px;
   }
 
   .inv2-item-desc {
-    font-size: 15px;
+    font-size: 17px;
     line-height: 1.58;
   }
 
@@ -6772,7 +7174,7 @@ tr {
   }
 
   .inv2-wallet strong {
-    font-size: 24px;
+    font-size: 26px;
   }
 }
 
@@ -6795,7 +7197,7 @@ tr {
 
   .detail-tabs .detail-tab {
     padding: 10px 14px;
-    font-size: 12px;
+    font-size: 14px;
   }
 
   .inv2-board {
@@ -6842,7 +7244,7 @@ tr {
 
 .inv-popup-label {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 3px;
   color: var(--gold);
   opacity: 0.7;
@@ -6861,7 +7263,7 @@ tr {
   border-radius: 3px;
   background: rgba(200,168,74,0.07);
   color: var(--gold);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 900;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
@@ -6874,7 +7276,7 @@ tr {
   width: 90px;
   text-align: center;
   font-family: $font-display;
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 900;
   color: var(--gold2);
   background: rgba(0,0,0,0.4);
@@ -6897,7 +7299,7 @@ tr {
 .inv-popup-confirm {
   width: 100%;
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 3px;
   padding: 10px;
   border: 1px solid $gold;
@@ -6949,7 +7351,7 @@ tr {
   h3 {
     margin: 4px 0 0;
     font-family: $font-display;
-    font-size: 24px;
+    font-size: 26px;
     line-height: 1;
     color: $white-text;
     letter-spacing: 0.8px;
@@ -6958,7 +7360,7 @@ tr {
 
 .inv-picker-eyebrow {
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 2.4px;
   color: var(--gold);
   text-transform: uppercase;
@@ -6972,7 +7374,7 @@ tr {
   background: rgba(0, 0, 0, 0.18);
   color: var(--dim);
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 2px;
   cursor: pointer;
   transition: border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
@@ -6998,7 +7400,7 @@ tr {
 
   > span {
     font-family: $font-caps;
-    font-size: 10px;
+    font-size: 12px;
     letter-spacing: 2px;
     text-transform: uppercase;
     color: var(--gold);
@@ -7013,7 +7415,7 @@ tr {
     background: rgba(0, 0, 0, 0.32);
     color: $white-text;
     font-family: $font-body;
-    font-size: 15px;
+    font-size: 17px;
     padding: 0 13px;
     outline: none;
     transition: border-color 0.16s ease, background 0.16s ease;
@@ -7058,7 +7460,7 @@ tr {
   border: 1px dashed rgba(200, 168, 74, 0.24);
   color: var(--dim);
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   text-align: center;
 }
@@ -7110,7 +7512,7 @@ tr {
 
   strong {
     font-family: $font-display;
-    font-size: 18px;
+    font-size: 20px;
     line-height: 1.1;
     color: $white-text;
   }
@@ -7118,7 +7520,7 @@ tr {
   em {
     color: var(--gold);
     font-family: $font-caps;
-    font-size: 10px;
+    font-size: 12px;
     font-style: normal;
     letter-spacing: 1.8px;
     text-transform: uppercase;
@@ -7128,7 +7530,7 @@ tr {
   > span {
     color: var(--dim);
     font-family: $font-body;
-    font-size: 13px;
+    font-size: 15px;
     line-height: 1.45;
   }
 
@@ -7149,7 +7551,7 @@ tr {
   background: rgba(200, 168, 74, 0.055);
   padding: 8px 10px;
   font-family: $font-caps;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1.8px;
   text-transform: uppercase;
 }
@@ -7221,7 +7623,7 @@ tr {
 
 .info-block-header {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--dim);
@@ -7229,7 +7631,7 @@ tr {
 
 .info-block-body {
   font-family: $font-body;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.7;
   color: var(--text);
   padding: 18px 18px 12px;
@@ -7255,7 +7657,7 @@ tr {
   > span {
     color: var(--gold);
     font-family: $font-caps;
-    font-size: 10px;
+    font-size: 12px;
     letter-spacing: 1.7px;
     text-transform: uppercase;
   }
@@ -7272,7 +7674,7 @@ tr {
     color: rgba(244, 240, 231, 0.9);
     padding: 4px 7px;
     font-family: $font-body;
-    font-size: 12px;
+    font-size: 14px;
     font-style: normal;
     line-height: 1.3;
   }
@@ -7282,7 +7684,7 @@ tr {
   font-family: $font-display;
   font-weight: 900;
   color: var(--gold2);
-  font-size: 16px;
+  font-size: 18px;
   letter-spacing: 0.8px;
   text-align: right;
   white-space: nowrap;
@@ -7315,7 +7717,7 @@ tr {
 
 .inv-section-title {
   font-family: $font-display;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -7346,7 +7748,7 @@ tr {
 
 .inv-cell-num {
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1px;
   color: var(--dim);
   min-width: 16px;
@@ -7356,7 +7758,7 @@ tr {
 
 .inv-cell-nom {
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1px;
   color: rgba(200, 168, 74, 0.3);
   white-space: nowrap;
@@ -7371,7 +7773,7 @@ tr {
 
 .equip-group-title {
   font-family: $font-display;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -7395,7 +7797,7 @@ tr {
 
 .equip-slot-label {
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 2px;
   color: var(--gold);
   text-transform: uppercase;
@@ -7403,7 +7805,7 @@ tr {
 
 .equip-slot-nom {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1px;
   color: $white-text;
   white-space: nowrap;
@@ -7413,7 +7815,7 @@ tr {
 
 .equip-slot-type {
   font-family: $font-caps;
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 1px;
   color: var(--dim);
   white-space: nowrap;
@@ -7427,7 +7829,7 @@ tr {
 .equip-notes {
   padding: 12px 14px;
   font-family: $font-body;
-  font-size: 12px;
+  font-size: 14px;
   font-style: italic;
   color: var(--dim);
   line-height: 1.6;
@@ -7439,7 +7841,7 @@ tr {
 
 .equip-bourse-val {
   font-family: $font-display;
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 900;
   color: var(--gold2);
   padding: 12px 14px;
@@ -7460,7 +7862,7 @@ tr {
 
   h2 {
     font-family: $font-display;
-    font-size: clamp(22px, 1.7vw, 28px);
+    font-size: clamp(24px, 1.7vw, 30px);
     letter-spacing: 2px;
     color: $white-text;
     margin: 0;
@@ -7491,7 +7893,7 @@ tr {
 
   h3 {
     font-family: $font-display;
-    font-size: 17px;
+    font-size: 19px;
     letter-spacing: 1.2px;
     color: $white-text;
     text-transform: uppercase;
@@ -7505,7 +7907,7 @@ tr {
     color: var(--gold2);
     background: rgba(200, 168, 74, 0.08);
     font-family: $font-display;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 900;
     text-align: center;
     line-height: 1;
@@ -7545,7 +7947,7 @@ tr {
   background: rgba(200, 168, 74, 0.055);
   color: var(--gold);
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
 }
@@ -7553,7 +7955,7 @@ tr {
 .comp-entry-tag {
   min-width: 0;
   font-family: $font-display;
-  font-size: 17px;
+  font-size: 19px;
   color: $white-text;
   line-height: 1.2;
 }
@@ -7566,7 +7968,7 @@ tr {
 .comp-entry-desc {
   margin: 0;
   font-family: $font-body;
-  font-size: 13.5px;
+  font-size: 15.5px;
   line-height: 1.65;
   color: var(--text);
 }
@@ -7584,7 +7986,7 @@ tr {
   background: rgba(200, 168, 74, 0.07);
   color: var(--gold2);
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1.6px;
   text-transform: uppercase;
 
@@ -7624,7 +8026,7 @@ tr {
     padding: 0 14px;
     border-right: 1px solid rgba(58, 46, 24, 0.65);
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 2px;
     color: var(--gold);
     text-transform: uppercase;
@@ -7643,7 +8045,7 @@ tr {
   h4 {
     margin: 0 0 18px;
     font-family: $font-display;
-    font-size: 22px;
+    font-size: 24px;
     letter-spacing: 1px;
     color: var(--gold);
     text-transform: uppercase;
@@ -7656,7 +8058,7 @@ tr {
     max-width: 980px;
     color: var(--gold2);
     font-family: $font-body;
-    font-size: 16px;
+    font-size: 18px;
     font-style: italic;
     line-height: 1.55;
 
@@ -7679,7 +8081,7 @@ tr {
   gap: 6px;
   color: var(--text);
   font-family: $font-body;
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1.4;
 
   strong {
@@ -7704,7 +8106,7 @@ tr {
 
   strong {
     font-family: $font-display;
-    font-size: 18px;
+    font-size: 20px;
     color: $white-text;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -7713,7 +8115,7 @@ tr {
   span {
     max-width: 620px;
     font-family: $font-body;
-    font-size: 14px;
+    font-size: 16px;
     color: var(--dim);
     line-height: 1.5;
   }
@@ -7740,7 +8142,7 @@ tr {
 
 .comp-action-row strong {
   font-family: $font-display;
-  font-size: 16px;
+  font-size: 18px;
   color: $white-text;
 }
 
@@ -7750,14 +8152,14 @@ tr {
   background: rgba(200, 168, 74, 0.08);
   font-family: $font-display;
   font-style: normal;
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 900;
 }
 
 .comp-action-row span {
   border-right: none;
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1.5px;
   color: var(--dim);
 }
@@ -7766,7 +8168,7 @@ tr {
   margin: 0;
   padding: 16px;
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 2px;
   color: var(--dim);
 }
@@ -7785,7 +8187,7 @@ tr {
 
 .apt-count-badge {
   font-family: $font-display;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 900;
   color: var(--gold2);
   background: rgba(200, 168, 74, 0.1);
@@ -7796,7 +8198,7 @@ tr {
 }
 
 .apt-conn-arrow {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--dim);
   margin-left: 4px;
 }
@@ -7829,14 +8231,14 @@ tr {
     &::before {
       content: '▸';
       color: var(--gold2);
-      font-size: 11px;
+      font-size: 13px;
       transform: translateY(-1px);
       transition: transform 180ms ease;
     }
 
     strong {
       font-family: $font-display;
-      font-size: 19px;
+      font-size: 21px;
       letter-spacing: 0.6px;
       color: $white-text;
     }
@@ -7848,7 +8250,7 @@ tr {
       background: rgba(188, 236, 255, 0.12);
       color: #d7f4ff;
       font-family: $font-caps;
-      font-size: 12px;
+      font-size: 14px;
       font-style: normal;
       text-align: center;
     }
@@ -7893,7 +8295,7 @@ tr {
     align-items: center;
     padding: 0 16px;
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 2px;
     color: var(--gold);
     text-transform: uppercase;
@@ -7921,7 +8323,7 @@ tr {
     min-width: 0;
     padding: 12px 16px;
     font-family: $font-display;
-    font-size: 18px;
+    font-size: 20px;
     letter-spacing: 0.5px;
     color: $white-text;
     line-height: 1.2;
@@ -7933,7 +8335,7 @@ tr {
     background: rgba(200, 168, 74, 0.08);
     color: var(--gold2);
     font-family: $font-display;
-    font-size: 21px;
+    font-size: 23px;
     font-style: normal;
     font-weight: 900;
   }
@@ -7958,7 +8360,7 @@ tr {
 
   strong {
     font-family: $font-display;
-    font-size: 17px;
+    font-size: 19px;
     letter-spacing: 0.5px;
     color: $white-text;
     line-height: 1.15;
@@ -7973,7 +8375,7 @@ tr {
     background: rgba(200, 168, 74, 0.08);
     color: var(--gold2);
     font-family: $font-display;
-    font-size: 20px;
+    font-size: 22px;
     font-style: normal;
     font-weight: 900;
   }
@@ -7983,7 +8385,7 @@ tr {
   display: block;
   margin-bottom: 4px;
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 2px;
   color: var(--dim);
   text-transform: uppercase;
@@ -7993,7 +8395,7 @@ tr {
   margin-top: 10px;
   padding: 12px 16px;
   font-family: $font-body;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--gold2);
   font-style: italic;
   text-align: center;
@@ -8011,7 +8413,7 @@ tr {
   border: 1px solid $border2;
   border-radius: 3px;
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1px;
 }
 
@@ -8042,7 +8444,7 @@ tr {
     align-items: center;
     padding: 0 16px;
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 2px;
     color: var(--gold);
     text-transform: uppercase;
@@ -8073,7 +8475,7 @@ tr {
 
   > strong {
     font-family: $font-display;
-    font-size: 18px;
+    font-size: 20px;
     letter-spacing: 0.5px;
     color: $white-text;
     line-height: 1.2;
@@ -8081,7 +8483,7 @@ tr {
 
   > span {
     font-family: $font-caps;
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 1.5px;
     color: var(--gold2);
     text-transform: uppercase;
@@ -8094,7 +8496,7 @@ tr {
     background: rgba(200, 168, 74, 0.08);
     color: var(--gold2);
     font-family: $font-display;
-    font-size: 20px;
+    font-size: 22px;
     font-style: normal;
     font-weight: 900;
   }
@@ -8110,7 +8512,7 @@ tr {
   strong {
     display: block;
     font-family: $font-display;
-    font-size: 18px;
+    font-size: 20px;
     color: $white-text;
     line-height: 1.2;
   }
@@ -8132,7 +8534,7 @@ tr {
     background: rgba(200, 168, 74, 0.06);
     color: var(--gold2);
     font-family: $font-caps;
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 1.4px;
     font-style: normal;
   }
@@ -8140,7 +8542,7 @@ tr {
 
 .apt-langue-label {
   color: var(--dim);
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 2px;
 }
 
@@ -8150,7 +8552,7 @@ tr {
 
 .apt-empty {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   color: var(--dim);
   opacity: 0.4;
@@ -8166,7 +8568,7 @@ tr {
   align-items: center;
   justify-content: center;
   font-family: $font-display;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 900;
   line-height: 1;
   color: var(--gold2);
@@ -8195,7 +8597,7 @@ tr {
   min-width: 0;
   padding: 7px 10px;
   font-family: $font-body;
-  font-size: 13px;
+  font-size: 15px;
   color: $white-text;
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid $border2;
@@ -8223,7 +8625,7 @@ tr {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1;
   color: #e88;
   background: rgba(200, 74, 74, 0.08);
@@ -8281,7 +8683,7 @@ tr {
 
 .apt-cat-title {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2.5px;
   color: $white-text;
   text-transform: uppercase;
@@ -8295,12 +8697,12 @@ tr {
 
 .apt-cat-badge {
   color: var(--gold);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .apt-cat-count {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1px;
   color: var(--dim);
   background: rgba(200,168,74,0.08);
@@ -8310,7 +8712,7 @@ tr {
 }
 
 .apt-cat-arrow {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--dim);
   transition: transform 0.2s;
 }
@@ -8449,7 +8851,7 @@ tr {
 
 .levelup-lv-num {
   font-family: $font-display;
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 900;
   color: var(--gold2);
   letter-spacing: 1px;
@@ -8460,7 +8862,7 @@ tr {
 
 .levelup-title {
   font-family: $font-display;
-  font-size: clamp(20px, 2vw, 26px);
+  font-size: clamp(22px, 2vw, 28px);
   font-weight: 900;
   color: $white-text;
   letter-spacing: 2px;
@@ -8469,7 +8871,7 @@ tr {
 
 .levelup-subtitle {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 3px;
   color: var(--gold);
   opacity: 0.6;
@@ -8483,7 +8885,7 @@ tr {
   width: 80%;
   margin-bottom: 24px;
   color: rgba(200,168,74,0.4);
-  font-size: 12px;
+  font-size: 14px;
 
   &::before, &::after {
     content: '';
@@ -8519,7 +8921,7 @@ tr {
 
 .levelup-resource-kicker {
   font-family: $font-caps;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 2px;
   color: rgba(200,168,74,0.72);
   text-align: left;
@@ -8533,7 +8935,7 @@ tr {
 
   span {
     font-family: $font-caps;
-    font-size: 9px;
+    font-size: 11px;
     letter-spacing: 1.7px;
     color: rgba(244,240,231,0.58);
   }
@@ -8546,7 +8948,7 @@ tr {
     background: rgba(6,6,4,0.88);
     color: $white-text;
     font-family: $font-display;
-    font-size: 15px;
+    font-size: 17px;
     letter-spacing: 0.5px;
     padding: 0 12px;
     outline: none;
@@ -8607,21 +9009,21 @@ tr {
 
   strong {
     font-family: $font-display;
-    font-size: 18px;
+    font-size: 20px;
     color: var(--levelup-resource-color);
     text-shadow: 0 0 10px color-mix(in srgb, var(--levelup-resource-color) 50%, transparent);
   }
 }
 
 .levelup-resource-icon {
-  font-size: 18px;
+  font-size: 20px;
   color: var(--levelup-resource-color);
   filter: drop-shadow(0 0 7px currentColor);
 }
 
 .levelup-resource-name {
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 2px;
   color: $white-text;
 }
@@ -8656,14 +9058,14 @@ tr {
 
   strong {
     font-family: $font-display;
-    font-size: 20px;
+    font-size: 22px;
     color: var(--levelup-roll-color);
     text-shadow: 0 0 12px color-mix(in srgb, var(--levelup-roll-color) 48%, transparent);
   }
 
   small {
     font-family: $font-body;
-    font-size: 12px;
+    font-size: 14px;
     color: rgba(238,230,210,0.68);
   }
 }
@@ -8689,7 +9091,7 @@ tr {
   justify-content: center;
   color: $white-text;
   font-family: $font-display;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 900;
   line-height: 1;
   box-shadow:
@@ -8703,12 +9105,12 @@ tr {
 
 .levelup-die-modifier {
   color: var(--levelup-roll-color);
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .levelup-roll-kicker {
   font-family: $font-caps;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 2px;
   color: rgba(200,168,74,0.7);
 }
@@ -8721,7 +9123,7 @@ tr {
   background: rgba(200,168,74,0.08);
   color: var(--gold2);
   font-family: $font-caps;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1.8px;
   cursor: pointer;
   transition: background 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
@@ -8762,14 +9164,14 @@ tr {
 }
 
 .levelup-reward-icon {
-  font-size: 20px;
+  font-size: 22px;
   flex-shrink: 0;
   filter: drop-shadow(0 0 6px currentColor);
 }
 
 .levelup-reward-label {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2px;
   color: $white-text;
   flex: 1;
@@ -8778,7 +9180,7 @@ tr {
 
 .levelup-reward-value {
   font-family: $font-display;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 900;
   text-shadow: 0 0 10px currentColor;
 }
@@ -8813,7 +9215,7 @@ tr {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  font-size: 13px;
+  font-size: 15px;
 
   strong {
     font-family: $font-caps;
@@ -8843,7 +9245,7 @@ tr {
 .levelup-confirm-btn {
   width: 100%;
   font-family: $font-caps;
-  font-size: 14px;
+  font-size: 16px;
   letter-spacing: 4px;
   padding: 16px;
   border: 1px solid $gold;
@@ -8881,7 +9283,7 @@ tr {
 
 .levelup-skip-btn {
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 2px;
   color: var(--dim);
   background: transparent;
@@ -9051,7 +9453,7 @@ tr {
   width: 18px;
   height: 18px;
   border-radius: 2px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 900;
   line-height: 1;
 
@@ -9112,7 +9514,7 @@ tr {
   display: flex;
   align-items: center;
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 2.5px;
   color: var(--gold);
   padding: 10px 18px;
@@ -9133,7 +9535,7 @@ tr {
 
 .histo-desc {
   font-family: $font-body;
-  font-size: 13.5px;
+  font-size: 15.5px;
   color: var(--dim);
   font-style: italic;
   padding: 16px 20px;
@@ -9166,7 +9568,7 @@ tr {
 .histo-aside-label {
   display: block;
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 2px;
   color: var(--gold);
   opacity: 0.7;
@@ -9184,7 +9586,7 @@ tr {
   justify-content: center;
   flex: 1;
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1.5px;
   color: var(--gold2);
   padding: 14px 16px;
@@ -9193,14 +9595,14 @@ tr {
 }
 
 .histo-aside-block--jet .histo-aside-val {
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .histo-jet-val em {
   display: block;
   font-style: normal;
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1.5px;
   color: var(--dim);
   margin-top: 5px;
@@ -9227,14 +9629,14 @@ tr {
 
   span {
     font-family: $font-caps;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 1.5px;
     color: var(--gold2);
   }
 
   em {
     font-family: $font-body;
-    font-size: 11px;
+    font-size: 13px;
     font-style: normal;
     color: #4ac87a;
   }
@@ -9258,20 +9660,20 @@ tr {
 
 .apt-langue-nom {
   font-family: $font-caps;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 2px;
   color: $white-text;
 }
 
 .apt-langue-type {
   font-family: $font-body;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--dim);
 }
 
 .apt-langue-bonus {
   font-family: $font-caps;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1px;
   color: #4ac87a;
   margin-left: auto;

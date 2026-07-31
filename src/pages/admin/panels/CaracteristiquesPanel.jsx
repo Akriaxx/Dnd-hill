@@ -138,11 +138,11 @@ export default function CaracteristiquesPanel() {
                     onChange={(e) => sf('pointsParModificateur', Math.max(1, Number(e.target.value) || 1))}
                     style={{ width: '80px' }}
                   />
-                  <span style={{ color: 'var(--dim)', fontSize: '12px', fontFamily: 'monospace' }}>
+                  <span style={{ color: 'var(--dim)', fontSize: '14px', fontFamily: 'monospace' }}>
                     {exampleModifier(Math.max(1, Number(form.pointsParModificateur) || 1))}
                   </span>
                 </div>
-                <span style={{ color: 'var(--dim)', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                <span style={{ color: 'var(--dim)', fontSize: '13px', marginTop: '4px', display: 'block' }}>
                   Tous les <strong>{Math.max(1, Number(form.pointsParModificateur) || 1)}</strong> points distribués dans cette caractéristique donnent +1 au modificateur.
                 </span>
               </div>

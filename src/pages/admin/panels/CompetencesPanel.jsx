@@ -28,7 +28,7 @@ function KnowledgeCategoryModal({ existingKeys, initial, title = 'Nouvelle caté
             <div className="comp-form-field comp-form-field--grow">
               <label>Nom *</label>
               <input value={nom} onChange={(e) => setNom(e.target.value)} placeholder="Ex: Combat" autoFocus />
-              {conflict && <span style={{ color: '#c84a4a', fontSize: '0.8em' }}>Clé déjà utilisée</span>}
+              {conflict && <span style={{ color: '#c84a4a', fontSize: 'calc(0.8em + 2px)' }}>Clé déjà utilisée</span>}
             </div>
             <TagColorPicker value={couleur} onChange={setCouleur} />
           </div>
@@ -258,7 +258,7 @@ export default function CompetencesPanel() {
                     ))}
                   </select>
                   {levelOptions.length === 0 && (
-                    <span style={{ fontSize: '0.8em', opacity: 0.6 }}>Aucun niveau créé (Gameplay → Leveling).</span>
+                    <span style={{ fontSize: 'calc(0.8em + 2px)', opacity: 0.6 }}>Aucun niveau créé (Gameplay → Leveling).</span>
                   )}
                 </div>
               </div>

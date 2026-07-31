@@ -108,10 +108,6 @@ export const BLANK_CLASS_FORM = {
   physique: '', magique: '',
   resourceDice: { vie: '', mana: '', endu: '' },
   nombreSortsMagiques: 0, nombreSortsPhysiques: 0, nombreCompetences: 0,
-  // Emplacements d'inventaire de base pour cette classe — voir
-  // getCarryingData (characterCalculations.js), résolu en direct comme le
-  // déplacement de race, pas figé à la création du perso.
-  emplacements: 0,
 };
 
 export const BLANK_SUBCLASS_FORM = {
@@ -124,8 +120,9 @@ export const BLANK_SUBCLASS_FORM = {
   replaceClassResourceDice: false,
   replaceClassSpellCounts: false,
   nombreSortsMagiques: 0, nombreSortsPhysiques: 0, nombreCompetences: 0,
-  emplacements: 0,
-  replaceClassEmplacements: false,
+  // "Choix du joueur" — voir BLANK_RACE. Comme pour Race/Ascendance, la
+  // sous-classe peut déclarer une règle que le joueur remplit à la création.
+  bonusChoices: [],
 };
 
 export const RESOURCE_DICE_KEYS = [['vie', 'Vie'], ['mana', 'Mana'], ['endu', 'Endurance']];
@@ -176,6 +173,20 @@ export const RACE_RESOURCE_KEYS = [
 
 export const BLANK_RACE = {
   nom: '', description: '', deplacement: 8,
+  // Nombre d'emplacements d'objets equipSlot 'custom' réservés à cette race
+  // (voir bouton dédié dans EquipementPanel) — s'additionne à celui de
+  // l'ascendance (getGadgetSlotCount).
+  gadgetSlots: 0,
+  // Nom donné par le MJ à ce mécanisme pour CETTE race (ex: "Mutation",
+  // "Greffe", "Gadget"...) — affiché à la place du terme générique "Objets
+  // raciaux" partout côté joueur (voir getGadgetSlotLabel). Vide = terme
+  // générique. Si l'ascendance définit aussi un nom, elle est prioritaire
+  // (plus spécifique) — voir getGadgetSlotLabel.
+  gadgetSlotsLabel: '',
+  // Catégorie d'item (customItemCategories.id) dont le contenu remplit ces
+  // emplacements — le picker d'équipement (EquipementPanel) ne propose que
+  // les items equipSlot 'custom' de CETTE catégorie précisément.
+  gadgetItemCategoryId: null,
   tagColor: '#c8a84a',
   competenceRaciale: '',
   bonusStats: { FOR: 0, DEX: 0, CON: 0, INT: 0, SAG: 0, CHA: 0 },
@@ -183,6 +194,11 @@ export const BLANK_RACE = {
   resistanceBonuses: [],
   aptitudes: [],
   langues: [],
+  // "Choix du joueur" (ex: Humain "+1 dans une caractéristique au choix") :
+  // le MJ déclare une règle (domaine + montant), le joueur pioche dans le
+  // catalogue vivant à la création. Voir BonusChoicesEditor (AdminShared.jsx)
+  // et bonusChoiceDomains.js (résolution côté characterCalculations.js).
+  bonusChoices: [],
 };
 
 export const BLANK_ASCENDANCE = {
@@ -191,11 +207,17 @@ export const BLANK_ASCENDANCE = {
   description: '',
   tagColor: '#bcecff',
   competenceAscendance: '',
-  // Langue accordée automatiquement par cette ascendance, format texte
-  // "[ Nom ] - ( +4 Ascendance )" ou "[ Nom ] - ( Ascendance )" pour un
-  // don complet — parsé par parseLanguageRule (characterCalculations.js),
-  // même format que ce qui existait déjà (mais jamais câblé) pour Provenance.
+  // Ancien format texte "[ Nom ] - ( +4 Ascendance )" — conservé en lecture
+  // seule pour les ascendances déjà créées avant le picker structuré
+  // ci-dessous (langueAccordee), plus jamais écrit depuis l'admin.
   langue: '',
+  // Langue accordée automatiquement par cette ascendance (visible dans
+  // "Mes Langues" sur la fiche) — { key, nom, complet, bonus }, choisie
+  // dans les langues déjà créées (customLanguages) plutôt qu'en texte libre.
+  langueAccordee: null,
+  gadgetSlots: 0,
+  gadgetSlotsLabel: '',
+  gadgetItemCategoryId: null,
   bonusStats: { FOR: 0, DEX: 0, CON: 0, INT: 0, SAG: 0, CHA: 0 },
   baseResources: { vie: 0, endurance: 0, mana: 0 },
   replaceRaceStats: false,
@@ -208,6 +230,7 @@ export const BLANK_ASCENDANCE = {
   resistanceBonuses: [],
   aptitudes: [],
   langues: [],
+  bonusChoices: [],
 };
 
 export const hasAnyIdentityEffects = (entry) => (
@@ -300,6 +323,10 @@ export const BLANK_LEVEL_RULE = {
   unlockClass: false,
   unlockSubclass: false,
   unlockMaitrise: false,
+  // EXP à accumuler depuis le niveau précédent pour débloquer CE palier —
+  // sans objet pour le niveau 0 (point de départ, pas une transition), voir
+  // getNextLevelRule/canManageExperience dans CharacterListPage.jsx.
+  expRequired: 0,
 };
 
 export function normalizeLevelRule(rule = {}) {
@@ -309,5 +336,6 @@ export function normalizeLevelRule(rule = {}) {
     level: Number(rule.level) || 0,
     baseClass: rule.baseClass || 'Explorateur',
     characterPoints: Number(rule.characterPoints) || 0,
+    expRequired: Number(rule.expRequired) || 0,
   };
 }

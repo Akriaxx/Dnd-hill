@@ -6,13 +6,27 @@ export const BLANK_ITEM = {
   consumable: false,
   usable: false,
   useText: '',
+  // Uniquement pertinent pour consumable === true : QUELLE ressource ce
+  // consommable vise à l'usage ('vitalite' | 'mana' | 'endurance' | '').
+  // Pas de montant fixe ici — le joueur saisit lui-même le résultat de son
+  // jet dans le pop-up d'utilisation, voir RESOURCE_EFFECT_KEYS et
+  // getItemResourceTarget dans CharacterListPage.jsx/CombatInventoryPanel.jsx.
+  useResource: '',
   equipable: false,
   equipSlot: '',
+  // Uniquement pertinent pour equipSlot === 'arme' (voir Main droite/Main
+  // gauche dans EquipementPanel) : une arme à deux mains occupe les deux
+  // slots à la fois.
+  deuxMains: false,
   stackable: false,
   icone: '',
   categoryId: null,
   classeId: null,
   rareteId: null,
+  // Uniquement pertinent pour equipSlot === 'custom' (Gadgets — voir bouton
+  // dédié dans EquipementPanel) : passif = bonus toujours actif une fois
+  // équipé ; actif = le joueur doit l'activer sur sa fiche pour en profiter.
+  actif: false,
   effects: null,
   // Malus optionnel appliqué quand la classe du porteur n'autorise pas la
   // classe d'équipement de cet objet (voir Class.allowedItemClasses). Pas
@@ -25,7 +39,11 @@ export const BLANK_ITEM = {
 // Finesse…), rattachée à une catégorie racine équipable (Armure, Arme…) —
 // c'est elle, pas la sous-catégorie de rangement, que les classes de
 // personnage autorisent ou non (voir ClassesPanel).
-export const BLANK_ITEM_CLASS = { nom: '', description: '', rootCategoryId: null };
+// allowedRaces : verrouille cette classe d'objet (et donc tous ses items) à
+// certaines races — vide = toutes races. Sert notamment aux Gadgets
+// (equipSlot 'custom'), où une classe comme "Modules Unathopiens" ne doit
+// être équipable que par la race correspondante (voir RaceLockFields).
+export const BLANK_ITEM_CLASS = { nom: '', description: '', rootCategoryId: null, allowedRaces: [] };
 
 export const BLANK_ITEM_RARITY = { nom: '', couleur: '#c8a84a', description: '' };
 
@@ -39,6 +57,9 @@ export const ITEM_EQUIP_SLOTS = [
   { key: 'bottes', label: 'Bottes' },
   { key: 'bijou', label: 'Bijou' },
   { key: 'arme', label: 'Arme' },
+  { key: 'armeDistance', label: 'Arme à distance' },
+  { key: 'sac', label: 'Sac' },
+  { key: 'custom', label: 'Race Custom' },
 ];
 
 export const ITEM_SIMPLE_EFFECTS = [
@@ -54,6 +75,15 @@ export const ITEM_SIMPLE_EFFECTS = [
   { key: 'initiative', label: 'Initiative' },
   { key: 'deplacement', label: 'Déplacement' },
   { key: 'emplacements', label: 'Emplacements' },
+];
+
+// Ressources ciblables par un consommable à l'usage (voir BLANK_ITEM.useResource)
+// — mêmes clés que les 3 premières entrées de ITEM_SIMPLE_EFFECTS, mais pas de
+// montant : juste la ressource visée, le montant vient du jet du joueur.
+export const ITEM_USE_RESOURCE_OPTIONS = [
+  { key: 'vitalite', label: 'Vitalité' },
+  { key: 'mana', label: 'Mana' },
+  { key: 'endurance', label: 'Endurance' },
 ];
 
 // Regroupe ITEM_SIMPLE_EFFECTS par besoin plutôt que de tout afficher en

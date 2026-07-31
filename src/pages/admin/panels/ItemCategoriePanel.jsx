@@ -101,7 +101,7 @@ export default function ItemCategoriePanel() {
                     <option key={category.id} value={category.id}>{category.nom}</option>
                   ))}
                 </select>
-                <span style={{ fontSize: '0.8em', opacity: 0.6 }}>
+                <span style={{ fontSize: 'calc(0.8em + 2px)', opacity: 0.6 }}>
                   Sans parent, la catégorie devient une grande section. Avec parent, elle devient une sous-catégorie.
                 </span>
               </div>

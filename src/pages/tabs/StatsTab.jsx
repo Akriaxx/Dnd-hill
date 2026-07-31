@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAdminStore } from '../../store/adminStore';
 import { useCharacterStore } from '../../store/characterStore';
-import { STAT_KEYS, modifier, signed } from '../../domain/characterCalculations';
+import { STAT_KEYS, modifier, signed, getEquippedGadgetItems, getGadgetSlotLabel } from '../../domain/characterCalculations';
 
 const POOL_CFG = [
   { key: 'vie',  label: 'Vie',       color: '#c84a4a' },
@@ -43,10 +43,15 @@ function CaracTooltip({ carac, rect }) {
 
 export default function StatsTab({ char }) {
   const updateCharacter = useCharacterStore((s) => s.updateCharacter);
+  const toggleGadgetActive = useCharacterStore((s) => s.toggleGadgetActive);
   const customCaracteristiques = useAdminStore((s) => s.customCaracteristiques || []);
   const [tooltip, setTooltip] = useState(null);
 
   const caracs = [...customCaracteristiques].sort((a, b) => (a.ordre || 0) - (b.ordre || 0));
+  // Seuls les gadgets "actif" ont besoin d'être activés — un passif applique
+  // toujours son bonus (voir getActiveGadgetItems, characterCalculations.js).
+  const activatableGadgets = getEquippedGadgetItems(char).filter((item) => item.actif);
+  const gadgetLabel = getGadgetSlotLabel(char);
 
   const setPool = (poolKey, field, value) => {
     const n = Math.max(0, Number(value));
@@ -63,7 +68,7 @@ export default function StatsTab({ char }) {
         <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-end' }}>
           {POOL_CFG.map(({ key, label, color }) => (
             <div key={key} style={{ background: '#1a1608', border: '1px solid #3a2e18', borderRadius: 3, padding: '16px 20px' }}>
-              <div style={{ fontFamily: 'var(--font-caps)', fontSize: 10, letterSpacing: 3, color, marginBottom: 10 }}>{label}</div>
+              <div style={{ fontFamily: 'var(--font-caps)', fontSize: 12, letterSpacing: 3, color, marginBottom: 10 }}>{label}</div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
                 {[['actuel', 'Actuel'], ['max', 'Maximum']].map(([field, fieldLabel]) => (
                   <div className="form-group" key={field} style={{ marginBottom: 0 }}>
@@ -103,14 +108,14 @@ export default function StatsTab({ char }) {
                 onMouseEnter={(e) => setTooltip({ carac, rect: e.currentTarget.getBoundingClientRect() })}
                 onMouseLeave={() => setTooltip(null)}
               >
-                <div className="stat-val" style={{ fontSize: 36 }}>{val}</div>
-                <div className="stat-key" style={{ fontSize: 12, marginTop: 4 }}>{carac.cle}</div>
-                <div style={{ fontFamily: 'var(--font-caps)', fontSize: 11, color: '#aaa', marginTop: 2 }}>
+                <div className="stat-val" style={{ fontSize: 38 }}>{val}</div>
+                <div className="stat-key" style={{ fontSize: 14, marginTop: 4 }}>{carac.cle}</div>
+                <div style={{ fontFamily: 'var(--font-caps)', fontSize: 13, color: '#aaa', marginTop: 2 }}>
                   {carac.nom !== carac.cle ? carac.nom : ''}
                 </div>
                 <div style={{
                   fontFamily: 'var(--font-caps)',
-                  fontSize: 16,
+                  fontSize: 18,
                   color: 'var(--gold)',
                   marginTop: 6,
                   letterSpacing: 1,
@@ -122,6 +127,31 @@ export default function StatsTab({ char }) {
           })}
         </div>
       </section>
+
+      {/* Activation des gadgets actifs (voir aussi le panneau Combat "Gadgets") */}
+      {activatableGadgets.length > 0 && (
+        <section>
+          <h2 className="section-heading">{gadgetLabel}</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {activatableGadgets.map((item) => {
+              const isOn = Boolean(char.gadgetsActifs?.[item.id]);
+              return (
+                <label
+                  key={item.id}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    background: '#1a1608', border: '1px solid #3a2e18', borderRadius: 3,
+                    padding: '10px 16px', cursor: 'pointer',
+                  }}
+                >
+                  <span>{item.nom}</span>
+                  <input type="checkbox" checked={isOn} onChange={() => toggleGadgetActive(char.id, item.id)} />
+                </label>
+              );
+            })}
+          </div>
+        </section>
+      )}
     </>
   );
 }

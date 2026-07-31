@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
+import { Backpack } from 'lucide-react';
 import Header from '../components/layout/Header';
 import CreationInfoSelect from '../components/ui/CreationInfoSelect';
 import FormulaInput from '../components/ui/FormulaInput';
@@ -11,6 +12,7 @@ import { supabase } from '../lib/supabaseClient';
 import {
   canAccessAdmin,
   canManageCombat,
+  canManageExperience,
   canReviewCharacterCreations,
   canViewAllCharacters,
   canViewCharacter,
@@ -52,8 +54,12 @@ import {
   getComputedAptitudeBonuses,
   getComputedLanguageRows,
   getComputedResistanceBonuses,
+  getEquippedBagEffectSum,
   getEquippedItemEffectSum,
+  getEquippedGadgetItems,
+  getGadgetSlotLabel,
   getMovementData,
+  resolveLiveItem,
   getRaceDefinition,
   getResourceData,
   getResistanceBreakdown,
@@ -63,6 +69,11 @@ import {
   statLabel,
 } from '../domain/characterCalculations';
 import { getGrimoireContext } from '../domain/grimoireCalculations';
+import {
+  getCaracteristiqueCatalog, getAptitudeCatalog, getResistanceCatalog,
+  findCatalogEntry, describeSlot, formatSigned, isBonusChoiceAnswerComplete, sumAllocation,
+  resolveDomainCatalog, getDomainMeta, DOMAIN_LABELS,
+} from '../domain/bonusChoiceDomains';
 import { getItemIcon } from '../data/itemIcons';
 import { asArray, normalizeResourceDice, includesText } from './admin/adminUtils';
 import { AdminFilterPanel } from './admin/AdminShared';
@@ -266,7 +277,8 @@ function buildBaseCharacterDraft(char, context = {}) {
     ...char,
     portrait: normalizePortrait(char.portrait),
     niveau: 0,
-    chance: normalizeCreationNumber(char.chance, 0),
+    exp: 0,
+    chance: normalizeCreationNumber(char.chance, 4),
     vie: { actuel: vie, max: vie },
     mana: { actuel: mana, max: mana },
     endu: { actuel: endu, max: endu },
@@ -282,6 +294,9 @@ function buildBaseCharacterDraft(char, context = {}) {
     inventaire: [],
     sorts: [],
     equipement: {},
+    // 4 emplacements de sacs (voir bouton "Sac" de l'inventaire) — même
+    // mécanisme que equipement : équiper un sac le retire de l'inventaire.
+    sacsEquipes: [null, null, null, null],
     bourse: 0,
     notesEquipement: '',
   };
@@ -299,7 +314,9 @@ function makeBlankCharacter(userId) {
     classe,
     sousClasse: '',
     niveau: 0,
-    chance: 0,
+    // Chance de départ fixe (4), non modifiable par le joueur — voir
+    // DetailFiche (isGM) pour le seul endroit où elle est éditable.
+    chance: 4,
     naissance: '',
     provenance: '',
     origine: '',
@@ -597,6 +614,7 @@ export default function CharacterListPage() {
   const getCharactersForUser = useCharacterStore((s) => s.getCharactersForUser);
   const setActive            = useCharacterStore((s) => s.setActive);
   const updateCharacter      = useCharacterStore((s) => s.updateCharacter);
+  const grantExperience      = useCharacterStore((s) => s.grantExperience);
   const addCharacter         = useCharacterStore((s) => s.addCharacter);
   const submitCharacterCreation = useCharacterStore((s) => s.submitCharacterCreation);
   const deleteCharacter      = useCharacterStore((s) => s.deleteCharacter);
@@ -609,6 +627,9 @@ export default function CharacterListPage() {
   const systemRoleOverrides  = useAdminStore((s) => s.systemRoleOverrides || {});
   const openTickets          = useAdminStore((s) => (s.appTickets || []).filter((ticket) => !isDevServerNoise(ticket) && ticket.status !== 'closed').length);
   const terminalErrors       = useAdminStore((s) => (s.terminalLogs || []).filter((log) => log.level === 'error').length);
+  const filterCustomRaces    = useAdminStore((s) => s.customRaces || []);
+  const filterCustomClasses  = useAdminStore((s) => s.customClasses || []);
+  const customLevelRules     = useAdminStore((s) => s.customLevelRules || []);
   const navigate = useNavigate();
 
   const combatActive = useCombatStore((s) => s.active);
@@ -619,9 +640,11 @@ export default function CharacterListPage() {
   const hasCombatAccess = canManageCombat(user, customRoles, systemRoleOverrides);
   const hasReviewAccess = canReviewCharacterCreations(user, customRoles, systemRoleOverrides);
   const canSeeAllCharacters = canViewAllCharacters(user, customRoles, systemRoleOverrides);
+  const canManageExp = canManageExperience(user, customRoles, systemRoleOverrides);
   const errorCount = Math.max(openTickets, terminalErrors);
   const pendingReviewCount = pendingCharacterCreations.filter((char) => char.status === 'pending').length;
   const [gmViewAll, setGmViewAll] = useState(false);
+  const [grantExpModalOpen, setGrantExpModalOpen] = useState(false);
 
   const allChars = canSeeAllCharacters && gmViewAll
     ? characters
@@ -658,6 +681,7 @@ export default function CharacterListPage() {
   const [portraitFrameStatus, setPortraitFrameStatus] = useState('idle');
   const [errorToastVisible, setErrorToastVisible] = useState(false);
   const [pendingToastVisible, setPendingToastVisible] = useState(false);
+  const [levelUpToasts, setLevelUpToasts] = useState([]);
   const detailTimersRef = useRef([]);
   const stageRef         = useRef(null);
   const prevPendingReviewCountRef = useRef(pendingReviewCount);
@@ -684,8 +708,42 @@ export default function CharacterListPage() {
     return () => clearTimeout(timer);
   }, [hasReviewAccess, pendingReviewCount]);
 
-  const allClasses = [EXPLORER_CLASS.nom, ...CLASS_NAMES.filter((classe) => classe !== EXPLORER_CLASS.nom)];
-  const allRaces   = RACES;
+  // Palier d'EXP franchi : contrôlé au chargement/rechargement (pas de
+  // synchro temps réel dans cette appli — voir grantExperience côté MJ) sur
+  // les seuls personnages du joueur connecté. char.expNotifiedLevel évite de
+  // réafficher le message à chaque rechargement une fois vu une première fois.
+  useEffect(() => {
+    if (!user?.id) return undefined;
+    const newlyEligible = getCharactersForUser(user.id).filter((c) => {
+      const rule = getNextLevelRule(customLevelRules, c.niveau ?? 0);
+      const required = Number(rule?.expRequired) || 0;
+      if (required <= 0) return false;
+      return (Number(c.exp) || 0) >= required && c.expNotifiedLevel !== (c.niveau ?? 0);
+    });
+    if (newlyEligible.length === 0) return undefined;
+    const timers = newlyEligible.map((c) => {
+      updateCharacter(c.id, { expNotifiedLevel: c.niveau ?? 0 });
+      setLevelUpToasts((prev) => [...prev, { id: `${c.id}-${c.niveau}`, char: c }]);
+      return setTimeout(() => {
+        setLevelUpToasts((prev) => prev.filter((t) => t.char.id !== c.id));
+      }, 6200);
+    });
+    return () => timers.forEach(clearTimeout);
+  }, [characters, user?.id]);
+
+  // RACES/CLASS_NAMES viennent de RACE_DATA/CLASS_DATA (data/gameData.js),
+  // volontairement vides — tout est créé depuis l'admin désormais. Sans
+  // fusionner customRaces/customClasses ici, ces filtres restaient
+  // condamnés à n'afficher que "Toutes".
+  const allClasses = Array.from(new Set([
+    EXPLORER_CLASS.nom,
+    ...CLASS_NAMES,
+    ...filterCustomClasses.map((c) => c.nom).filter(Boolean),
+  ]));
+  const allRaces = Array.from(new Set([
+    ...RACES,
+    ...filterCustomRaces.map((r) => r.nom).filter(Boolean),
+  ]));
 
   const liveDetailChar = detailChar?.id
     ? characters.find((c) => c.id === detailChar.id)
@@ -885,6 +943,15 @@ export default function CharacterListPage() {
             Une fiche vient d'être créée et est en attente de validation
           </button>
         )}
+        {levelUpToasts.map((toast) => (
+          <button
+            key={toast.id}
+            className="app-levelup-toast"
+            onClick={() => openSheet(toast.char)}
+          >
+            Le personnage "{toast.char.nom}" a gagné un niveau !
+          </button>
+        ))}
       </div>
 
       {/* ── Stage ── */}
@@ -1043,6 +1110,14 @@ export default function CharacterListPage() {
               </div>
             </div>
           </div>
+          )}
+          {grantExpModalOpen && (
+            <GrantExperienceModal
+              characters={characters}
+              customLevelRules={customLevelRules}
+              grantExperience={grantExperience}
+              onClose={() => setGrantExpModalOpen(false)}
+            />
           )}
 
           {/* Multi-card carousel — flat line, left cards face-down */}
@@ -1209,6 +1284,14 @@ export default function CharacterListPage() {
             onClick={() => navigate('/admin')}
           >
             ⚙ Gestion du donjon
+          </button>
+        )}
+        {canManageExp && (
+          <button
+            className="gm-admin-link"
+            onClick={() => setGrantExpModalOpen(true)}
+          >
+            ✦ Attribuer EXP
           </button>
         )}
       </footer>
@@ -1405,7 +1488,14 @@ function CharacterCreatePanel({ initialChar, tab, onTabChange, isClosing, onCanc
     hiddenAptitudeKeys,
     customLevelRules,
     customCaracteristiques,
+    customResistanceEntries,
+    customResistanceCategories,
   } = useAdminStore();
+  const domainCatalogs = {
+    caracteristique: getCaracteristiqueCatalog(customCaracteristiques),
+    aptitude: getAptitudeCatalog({ customAptitudes, customAptitudeCategories }),
+    resistance: getResistanceCatalog({ customResistanceEntries, customResistanceCategories }),
+  };
   const levelZeroRule = getLevelZeroRule(customLevelRules);
   const activeTab = CREATION_TABS.includes(tab) ? tab : 'Identité';
   const raceOptions = Array.from(new Map([
@@ -1413,8 +1503,13 @@ function CharacterCreatePanel({ initialChar, tab, onTabChange, isClosing, onCanc
     ...(customRaces || []).map((race) => ({ ...race, key: race.key || normalizeLocalKey(race.nom) })),
   ].map((race) => [race.nom, race])).values());
   const selectedRace = raceOptions.find((race) => race.nom === form.race);
+  // races vide = pas de restriction (même convention que allowedRaces /
+  // allowedItemClasses / allowedOrigineKeys ailleurs dans l'admin) — un
+  // `.includes` seul traitait au contraire "vide" comme "aucune race",
+  // ce qui excluait silencieusement toutes les provenances tant que leur
+  // champ races n'était pas rempli (aucune UI ne le permettait avant).
   const provenanceOptions = (customProvenances || [])
-    .filter((p) => (p.races || []).includes(form.race))
+    .filter((p) => (p.races || []).length === 0 || p.races.includes(form.race))
     .map((p) => ({ ...p, key: p.key || normalizeLocalKey(p.nom) }));
   const selectedProvenance = provenanceOptions.find((p) => p.nom === form.provenance);
   const ascendanceOptions = Array.from(new Map([
@@ -1431,6 +1526,13 @@ function CharacterCreatePanel({ initialChar, tab, onTabChange, isClosing, onCanc
     ])).values());
   const selectedAscendance = ascendanceOptions.find((ascendance) => ascendance.nom === form.ascendance);
   const aptitudeSlots = getAptitudeChoiceSlots(selectedAscendance, selectedRace);
+  // Bonus "au choix du joueur" déclarés sur la race et/ou l'ascendance
+  // sélectionnée (voir BonusChoicesEditor côté admin) — un groupe = un
+  // choix à faire ici avant de pouvoir créer/enregistrer le personnage.
+  const activeBonusChoices = [
+    ...(selectedRace?.bonusChoices || []),
+    ...(selectedAscendance?.bonusChoices || []),
+  ];
   const hiddenAptitudeSet = new Set((hiddenAptitudeKeys || []).map(normalizeLocalKey));
   const customAptitudeKeySet = new Set((customAptitudes || []).map((aptitude) => aptitude.key || normalizeLocalKey(aptitude.nom)));
   const aptitudeOptions = [
@@ -1484,9 +1586,18 @@ function CharacterCreatePanel({ initialChar, tab, onTabChange, isClosing, onCanc
   const buildOriginOptions = (provenance) => {
     const provenanceKey = provenance?.key;
     if (!provenanceKey) return [];
+    // Deux sens de restriction possibles, chacun optionnel (vide = pas de
+    // restriction de ce côté) : l'origine peut se limiter à certaines
+    // provenances (origin.provenanceKeys, voir IdentityEntryModal), et la
+    // provenance peut à l'inverse limiter ses origines disponibles
+    // (provenance.allowedOrigineKeys, voir ProvenancesPanel). Une origine
+    // n'apparaît que si les deux règles la laissent passer.
+    const allowedOrigineKeys = provenance?.allowedOrigineKeys || [];
     return originCatalog.filter((origin) => {
-      const keys = origin.provenanceKeys || [];
-      return keys.length === 0 || keys.includes(provenanceKey);
+      const originKeys = origin.provenanceKeys || [];
+      const allowedByOrigin = originKeys.length === 0 || originKeys.includes(provenanceKey);
+      const allowedByProvenance = allowedOrigineKeys.length === 0 || allowedOrigineKeys.includes(origin.key);
+      return allowedByOrigin && allowedByProvenance;
     });
   };
   const originOptions = buildOriginOptions(selectedProvenance);
@@ -1638,6 +1749,7 @@ function CharacterCreatePanel({ initialChar, tab, onTabChange, isClosing, onCanc
       aptitudes: {},
       creationAptitudesPlusOne: [],
       creationAptitudesPlusTwo: [],
+      bonusChoices: {},
     }));
   };
 
@@ -1672,7 +1784,32 @@ function CharacterCreatePanel({ initialChar, tab, onTabChange, isClosing, onCanc
       aptitudes: {},
       creationAptitudesPlusOne: [],
       creationAptitudesPlusTwo: [],
+      bonusChoices: {},
     }));
+  };
+
+  const changeBonusChoiceBranch = (groupKey, branchIndex) => {
+    setForm((f) => ({ ...f, bonusChoices: { ...(f.bonusChoices || {}), [groupKey]: { branchIndex, gainAllocation: {}, costAllocation: {} } } }));
+  };
+  // Un slot ouvert = un pool de points (slot.valeur) que le joueur répartit
+  // librement entre les cibles du domaine — tout sur une seule, ou réparti
+  // sur plusieurs (voir resolveSlotAllocation, bonusChoiceDomains.js).
+  // Chaque clic +/- déplace 1 point ; on ne peut pas dépasser le pool, ni
+  // dépasser maxPerTarget sur une même cible (domaines à montant fixe,
+  // ex: aptitude-case1/case2 — pas de cumul sur une même aptitude).
+  const adjustBonusChoiceAllocation = (groupKey, slotKind, catalogKey, delta, poolSize, domain) => {
+    const maxPerTarget = getDomainMeta(domain)?.maxPerTarget ?? Infinity;
+    setForm((f) => {
+      const current = f.bonusChoices?.[groupKey] || { branchIndex: 0, gainAllocation: {}, costAllocation: {} };
+      const allocation = { ...(current[slotKind] || {}) };
+      const spent = sumAllocation(allocation);
+      const currentValue = Number(allocation[catalogKey]) || 0;
+      if (delta > 0 && (spent >= poolSize || currentValue >= maxPerTarget)) return f;
+      const nextValue = Math.max(0, currentValue + delta);
+      if (nextValue === 0) delete allocation[catalogKey];
+      else allocation[catalogKey] = nextValue;
+      return { ...f, bonusChoices: { ...(f.bonusChoices || {}), [groupKey]: { ...current, [slotKind]: allocation } } };
+    });
   };
 
   const submit = () => {
@@ -1681,6 +1818,10 @@ function CharacterCreatePanel({ initialChar, tab, onTabChange, isClosing, onCanc
     const displayName = [firstName, familyName].filter(Boolean).join(' ');
     if (!displayName) {
       setError('Nom et prénom requis.');
+      return;
+    }
+    if (activeBonusChoices.some((group) => !isBonusChoiceAnswerComplete(group, form.bonusChoices?.[group.key]))) {
+      setError('Fais chaque choix de bonus avant de continuer.');
       return;
     }
     setError('');
@@ -1804,6 +1945,55 @@ function CharacterCreatePanel({ initialChar, tab, onTabChange, isClosing, onCanc
                     onChange={(value) => patch('historique', value)}
                   />
                 </CreationField>
+                {activeBonusChoices.length > 0 && (
+                  <div className="creation-bonus-choices">
+                    {activeBonusChoices.map((group) => {
+                      const answer = form.bonusChoices?.[group.key];
+                      const selectedBranch = group.branches?.[answer?.branchIndex];
+                      return (
+                        <div key={group.key} className="creation-bonus-choice-group">
+                          <label className="creation-bonus-choice-label">{group.label || 'Bonus au choix'}</label>
+                          <div className="creation-bonus-choice-options">
+                            {(group.branches || []).map((branch, branchIndex) => (
+                              <div key={branch.key} className="creation-bonus-choice-branch-slot">
+                                {branchIndex > 0 && <span className="creation-bonus-choice-or">OU</span>}
+                                <button
+                                  type="button"
+                                  className={`creation-bonus-choice-option${answer?.branchIndex === branchIndex ? ' is-selected' : ''}`}
+                                  onClick={() => changeBonusChoiceBranch(group.key, branchIndex)}
+                                >
+                                  {describeSlot(branch.gain, resolveDomainCatalog(domainCatalogs, branch.gain?.domain))}
+                                  {branch.cost && (
+                                    <em> — Condition : {describeSlot({ ...branch.cost, valeur: -Math.abs(branch.cost.valeur) }, resolveDomainCatalog(domainCatalogs, branch.cost.domain))}</em>
+                                  )}
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                          {selectedBranch && (
+                            <div className="creation-bonus-choice-slots">
+                              <BonusChoiceSlotPicker
+                                slot={selectedBranch.gain}
+                                domainCatalogs={domainCatalogs}
+                                allocation={answer?.gainAllocation || {}}
+                                onAdjust={(key, delta) => adjustBonusChoiceAllocation(group.key, 'gainAllocation', key, delta, selectedBranch.gain?.valeur, selectedBranch.gain?.domain)}
+                              />
+                              {selectedBranch.cost && (
+                                <BonusChoiceSlotPicker
+                                  slot={selectedBranch.cost}
+                                  domainCatalogs={domainCatalogs}
+                                  allocation={answer?.costAllocation || {}}
+                                  onAdjust={(key, delta) => adjustBonusChoiceAllocation(group.key, 'costAllocation', key, delta, selectedBranch.cost?.valeur, selectedBranch.cost?.domain)}
+                                  isCost
+                                />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </CreationSection>
               <CreationSection title={editMode ? 'Classe' : 'Départ'} className="creation-section--start">
                 <div className="creation-start-summary">
@@ -1923,6 +2113,7 @@ function CharacterCreatePanel({ initialChar, tab, onTabChange, isClosing, onCanc
                 {aptitudesByCategory.map((category) => (
                   <CreationAptitudeCategory
                     key={category.key}
+                    char={form}
                     category={category}
                     items={category.items}
                     selectedPlusOne={selectedPlusOne}
@@ -1947,7 +2138,116 @@ function CharacterCreatePanel({ initialChar, tab, onTabChange, isClosing, onCanc
   );
 }
 
-function CreationAptitudeCategory({ category, items, selectedPlusOne, selectedPlusTwo, plusOneLimit, plusTwoLimit, onToggle }) {
+// Un slot ouvert = un POOL de points (slot.valeur) que le joueur répartit
+// librement entre les cibles du catalogue du domaine — tout sur une seule,
+// ou réparti sur plusieurs (voir resolveSlotAllocation, bonusChoiceDomains.js).
+// Chaque ligne a son propre stepper +/-, même pattern que le point-buy des
+// caractéristiques (adjustCreationStat) plus haut dans ce fichier. Mode
+// 'precise' : rien à répartir, la cible est déjà verrouillée par le MJ.
+function BonusChoiceSlotPicker({ slot, domainCatalogs, allocation, onAdjust, isCost = false }) {
+  if (!slot) return null;
+  const catalog = resolveDomainCatalog(domainCatalogs, slot.domain);
+  const amount = isCost ? -Math.abs(slot.valeur) : slot.valeur;
+  if (slot.mode === 'precise') {
+    const entry = findCatalogEntry(catalog, slot.cible?.key);
+    return (
+      <p className="creation-bonus-choice-slot-note">
+        {entry?.label || slot.cible?.label || '—'} {formatSigned(amount)}
+      </p>
+    );
+  }
+  const meta = getDomainMeta(slot.domain);
+  const fixedAmount = meta?.fixedAmount;
+  const maxPerTarget = meta?.maxPerTarget ?? Infinity;
+  const pool = Number(slot.valeur) || 0;
+  const spent = sumAllocation(allocation);
+  const groups = new Map();
+  catalog.forEach((entry) => {
+    const key = entry.group || '';
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(entry);
+  });
+  const helpText = fixedAmount != null
+    ? `Coche ${pool} case(s) valant chacune ${formatSigned(isCost ? -Math.abs(fixedAmount) : fixedAmount)} en ${DOMAIN_LABELS[slot.domain]}.`
+    : `${isCost ? 'Répartis la perte' : 'Répartis'} ${pool} point(s) où tu veux en ${DOMAIN_LABELS[slot.domain]} (${isCost ? '-1' : '+1'}/point).`;
+  return (
+    <div className="creation-bonus-choice-picker">
+      <div className="creation-aptitude-help">
+        {helpText}
+        <span>{fixedAmount != null ? 'Cases' : 'Points'} restant(e)s : {pool - spent}/{pool}</span>
+      </div>
+      <div className="apt-accordion creation-apt-accordion">
+        {[...groups.entries()].map(([groupLabel, entries]) => (
+          <BonusChoiceCategory
+            key={groupLabel || '__flat'}
+            groupLabel={groupLabel}
+            entries={entries}
+            allocation={allocation}
+            remaining={pool - spent}
+            maxPerTarget={maxPerTarget}
+            onAdjust={onAdjust}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BonusChoiceCategory({ groupLabel, entries, allocation, remaining, maxPerTarget, onAdjust }) {
+  const [open, setOpen] = useState(true);
+  const activeCount = entries.filter((entry) => (Number(allocation[entry.key]) || 0) > 0).length;
+  const isCheckbox = maxPerTarget === 1;
+  return (
+    <div className={`apt-cat creation-apt-cat${activeCount > 0 ? ' apt-cat--active' : ''}`}>
+      {groupLabel && (
+        <button className="apt-cat-header" type="button" onClick={() => setOpen((v) => !v)}>
+          <span className="apt-cat-title">{groupLabel}</span>
+          <span className="apt-cat-meta">
+            {activeCount > 0 && <span className="apt-cat-badge">✦</span>}
+            <span className="apt-cat-count">{entries.length}</span>
+            <span className="apt-cat-arrow">{open ? '▲' : '▼'}</span>
+          </span>
+        </button>
+      )}
+      {(open || !groupLabel) && (
+        <div className="apt-table-wrap">
+          <table className="apt-table creation-apt-select-table creation-bonus-choice-table">
+            <tbody>
+              {entries.map((entry) => {
+                const value = Number(allocation[entry.key]) || 0;
+                return (
+                  <tr className="apt-row" key={entry.key}>
+                    <td className="apt-td-nom">{entry.label}</td>
+                    <td className="apt-td-check">
+                      {isCheckbox ? (
+                        <button
+                          type="button"
+                          className={value > 0 ? 'apt-check apt-check--on creation-apt-check-btn' : 'apt-check apt-check--off creation-apt-check-btn'}
+                          disabled={value <= 0 && remaining <= 0}
+                          onClick={() => onAdjust(entry.key, value > 0 ? -1 : 1)}
+                        >
+                          {value > 0 ? '✓' : ''}
+                        </button>
+                      ) : (
+                        <div className="creation-stat-base-control creation-bonus-choice-stepper">
+                          <button type="button" onClick={() => onAdjust(entry.key, -1)} disabled={value <= 0}>-</button>
+                          <strong>{value}</strong>
+                          <button type="button" onClick={() => onAdjust(entry.key, 1)} disabled={remaining <= 0 || value >= maxPerTarget}>+</button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CreationAptitudeCategory({ char, category, items, selectedPlusOne, selectedPlusTwo, plusOneLimit, plusTwoLimit, onToggle }) {
   const [open, setOpen] = useState(true);
   const activeCount = items.filter((aptitude) => (
     selectedPlusOne.includes(aptitude.nom) || selectedPlusTwo.includes(aptitude.nom)
@@ -1969,23 +2269,36 @@ function CreationAptitudeCategory({ category, items, selectedPlusOne, selectedPl
             <thead>
               <tr>
                 <th className="apt-th-nom">Nom</th>
-                <th>Mod.</th>
+                <th>Raciaux</th>
+                <th>Classes</th>
+                <th>Historique</th>
+                <th>Origine</th>
                 <th title="Choix +2">+2</th>
                 <th title="Choix +1">+1</th>
-                <th className="apt-th-total">Total</th>
+                <th className="apt-th-total" title="Inclut les bonus automatiques (race, ascendance, historique, origine…) déjà acquis à ce stade">Total</th>
               </tr>
             </thead>
             <tbody>
               {items.map((aptitude, index) => {
                 const hasPlusOne = selectedPlusOne.includes(aptitude.nom);
                 const hasPlusTwo = selectedPlusTwo.includes(aptitude.nom);
-                const total = (hasPlusOne ? 1 : 0) + (hasPlusTwo ? 2 : 0);
+                // form.aptitudes est vide pendant la création (les picks
+                // +1/+2 ne sont écrits dedans qu'à la soumission, voir
+                // submit()), donc getAptitudeBreakdown ne peut pas encore
+                // voir hasPlusOne/hasPlusTwo — seuls les bonus automatiques
+                // (race/ascendance/historique/origine) en ressortent, sans
+                // double-compte avec les cases +1/+2 ci-dessous.
+                const { raciaux, classes, historique: historiq, origine, total: autoTotal } = getAptitudeBreakdown(char, aptitude);
+                const total = autoTotal + (hasPlusOne ? 1 : 0) + (hasPlusTwo ? 2 : 0);
                 return (
                   <tr className={`apt-row${index % 2 === 0 ? ' apt-even' : ''}`} key={aptitude.key}>
                     <td className="apt-td-nom">
                       <SmartText text={`{aptitude.${aptitude.nom}}`} className="apt-name-tag sheet-plain-tag" plainTags />
                     </td>
-                    <td className="apt-td-num">{aptitude.stat || '—'}</td>
+                    <td className={`apt-td-num${valueToneClass(raciaux)}`}>{detailValue(raciaux)}</td>
+                    <td className={`apt-td-num${valueToneClass(classes)}`}>{detailValue(classes)}</td>
+                    <td className={`apt-td-num${valueToneClass(historiq)}`}>{detailValue(historiq)}</td>
+                    <td className={`apt-td-num${valueToneClass(origine)}`}>{detailValue(origine)}</td>
                     <td className="apt-td-check">
                       <button
                         type="button"
@@ -2496,8 +2809,14 @@ const getAvailableLevelSubclasses = (char, selectedClass, customSubclasses = [])
     ).filter((entry) => !customKeys.has(entry.key)),
     ...(customSubclasses || []),
   ];
+  // `entry.classe` peut être stocké soit comme le nom affiché de la classe
+  // ("Barde"), soit comme sa clé/slug ("barde") selon l'endroit où la
+  // sous-classe a été créée/enregistrée (voir SousClassesPanel.jsx) — une
+  // égalité stricte fait donc disparaître silencieusement certaines
+  // sous-classes du picker de level-up. On compare les deux côtés normalisés.
+  const selectedClassKey = normalizeLocalKey(selectedClass);
   return entries
-    .filter((entry) => entry.nom && entry.classe === selectedClass)
+    .filter((entry) => entry.nom && normalizeLocalKey(entry.classe) === selectedClassKey)
     .filter((entry) => isEntryAllowedForRace(entry, char?.race));
 };
 
@@ -2561,13 +2880,39 @@ function getLevelUpRewards(char, classDef, subclassDef, levelRule, customCompete
 
 // ── Picker visuel classe / sous-classe (level-up) ─────────────
 
+// Une sous-classe (entry.classe non vide) n'a de valeurs propres que pour
+// ce qu'elle peut explicitement "remplacer" (replaceClassResourceDice,
+// replaceClassSpellCounts) ; le reste (caractéristiques principales, port
+// d'armes/armures, et les dés/sorts quand le remplacement n'est pas coché)
+// vient toujours de sa classe parente. Sans cette résolution, les cartes
+// du picker affichent des dés/stats vides pour toute sous-classe qui hérite
+// (cas le plus courant) au lieu de refléter ce que le joueur obtiendra
+// réellement.
+function resolveSubclassEntry(entry, classDef) {
+  if (!entry?.classe || !classDef) return entry;
+  const ownDice = normalizeResourceDice(entry);
+  const useOwnDice = Boolean(entry.replaceClassResourceDice) && Object.values(ownDice).some(Boolean);
+  const useOwnSpells = Boolean(entry.replaceClassSpellCounts);
+  return {
+    ...entry,
+    resourceDice: useOwnDice ? entry.resourceDice : classDef.resourceDice,
+    nombreSortsMagiques: useOwnSpells ? entry.nombreSortsMagiques : classDef.nombreSortsMagiques,
+    nombreSortsPhysiques: useOwnSpells ? entry.nombreSortsPhysiques : classDef.nombreSortsPhysiques,
+    physique: classDef.physique,
+    magique: classDef.magique,
+    allowedItemClasses: classDef.allowedItemClasses,
+    archetypeId: entry.archetypeId ?? classDef.archetypeId,
+    archetypeSecondaryIds: entry.archetypeId ? entry.archetypeSecondaryIds : classDef.archetypeSecondaryIds,
+  };
+}
+
 const LEVELUP_DICE_ITEMS = [
   { key: 'vie', label: 'DDV', iconKey: 'heart', color: '#4ac87a', indexTitle: 'Pts de Vie' },
   { key: 'mana', label: 'DDM', iconKey: 'droplet', color: '#5f8dff', indexTitle: 'Pts de Mana' },
   { key: 'endu', label: 'DDE', iconKey: 'zap', color: '#ff7060', indexTitle: "Pts d'Endurance" },
 ];
 
-function LevelUpDiceHex({ item }) {
+function LevelUpDiceHex({ item, size = 'sm' }) {
   const [open, setOpen] = useState(false);
   const [popoverStyle, setPopoverStyle] = useState(null);
   const buttonRef = useRef(null);
@@ -2610,12 +2955,12 @@ function LevelUpDiceHex({ item }) {
   return (
     <span
       ref={buttonRef}
-      className="hex-badge hex-badge--sm"
+      className={`hex-badge hex-badge--${size}`}
       style={{ '--hex-color': item.color }}
       onMouseEnter={() => { placePopover(); setOpen(true); }}
       onMouseLeave={() => setOpen(false)}
     >
-      {iconEntry ? <iconEntry.Icon size={16} strokeWidth={2} /> : null}
+      {iconEntry ? <iconEntry.Icon size={size === 'lg' ? 26 : 16} strokeWidth={2} /> : null}
       {popover}
     </span>
   );
@@ -2704,13 +3049,13 @@ function ArchetypeHexRow({ entry, archetypes = [], color = '#c8a84a' }) {
   );
 }
 
-function LevelUpDiceRow({ entry }) {
+function LevelUpDiceRow({ entry, size = 'sm' }) {
   const dice = normalizeResourceDice(entry);
   return (
     <div className="levelup-dice-row">
       {LEVELUP_DICE_ITEMS.map((item) => (
         <div key={item.key} className="levelup-dice-item">
-          <LevelUpDiceHex item={item} />
+          <LevelUpDiceHex item={item} size={size} />
           <span className="levelup-dice-value">{(dice[item.key] || '—').toUpperCase()}</span>
         </div>
       ))}
@@ -2759,12 +3104,22 @@ function LevelUpEntryDetailModal({ entry, onClose, onSelect, archetypes, itemCla
           </div>
 
           <div className="levelup-entry-detail">
+            <div className="levelup-entry-hexrow">
+              <LevelUpDiceRow entry={entry} size="lg" />
+              <div className="levelup-entry-hexrow-archetype">
+                <ArchetypeHexRow entry={entry} archetypes={archetypes} color={categoryColor} />
+              </div>
+            </div>
+
             <div className="levelup-entry-col">
-              <LevelUpDiceRow entry={entry} />
-              {entry.description && <p className="levelup-class-desc levelup-class-desc--full"><SmartText text={entry.description} /></p>}
+              <div className="levelup-entry-desc-frame">
+                <div className="levelup-entry-desc-header">Description</div>
+                <div className="levelup-entry-desc-body">
+                  {entry.description ? <SmartText text={entry.description} /> : <span className="levelup-entry-competences-empty">—</span>}
+                </div>
+              </div>
             </div>
             <div className="levelup-entry-col">
-              <ArchetypeHexRow entry={entry} archetypes={archetypes} color={categoryColor} />
               <div className="levelup-entry-stat">
                 <span>Caractéristiques principales</span>
                 <b>{statLabel(entry.physique)} — {statLabel(entry.magique)}</b>
@@ -2814,7 +3169,7 @@ function LevelUpEntryDetailModal({ entry, onClose, onSelect, archetypes, itemCla
   );
 }
 
-function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes = [], itemClasses = [], competences = [], classCategories = [] }) {
+function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes = [], itemClasses = [], competences = [], classCategories = [], parentClassDef = null }) {
   const [expandedKey, setExpandedKey] = useState(null);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -2827,6 +3182,7 @@ function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes
 
   const expandedEntry = entries.find((entry) => (entry.key || entry.nom) === expandedKey) || null;
   const colorForEntry = (entry) => classCategories.find((cat) => cat.key === entry.type)?.couleur || '#c8a84a';
+  const resolveEntry = (entry) => resolveSubclassEntry(entry, parentClassDef);
 
   return createPortal(
     <>
@@ -2859,7 +3215,7 @@ function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes
                   return (
                     <LevelUpEntryCard
                       key={key}
-                      entry={entry}
+                      entry={resolveEntry(entry)}
                       onToggle={() => setExpandedKey(key)}
                       archetypes={archetypes}
                       categoryColor={colorForEntry(entry)}
@@ -2873,7 +3229,7 @@ function LevelUpEntryPickerModal({ title, entries, onSelect, onClose, archetypes
       </div>
       {expandedEntry && (
         <LevelUpEntryDetailModal
-          entry={expandedEntry}
+          entry={resolveEntry(expandedEntry)}
           onClose={() => setExpandedKey(null)}
           onSelect={onSelect}
           archetypes={archetypes}
@@ -3124,7 +3480,9 @@ function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customS
                   {selectedSubclass ? (
                     <>
                       <ArchetypeHex
-                        archetype={customArchetypes.find((a) => String(a.id) === String(subclassOptions.find((c) => c.nom === selectedSubclass)?.archetypeId))}
+                        archetype={customArchetypes.find((a) => String(a.id) === String(
+                          resolveSubclassEntry(subclassOptions.find((c) => c.nom === selectedSubclass), effectiveClassDef)?.archetypeId
+                        ))}
                         size="sm"
                       />
                       <span className="levelup-entry-summary-name">{selectedSubclass}</span>
@@ -3173,6 +3531,7 @@ function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customS
             archetypes={customArchetypes}
             itemClasses={customItemClasses}
             competences={customCompetences}
+            parentClassDef={effectiveClassDef}
             onClose={() => setOpenPicker(null)}
             onSelect={(nom) => {
               setSelectedSubclass(nom);
@@ -3294,15 +3653,102 @@ function LevelUpModal({ char, classDef, subclassDef, customClasses = [], customS
   );
 }
 
+// Attribution d'EXP groupée côté MJ — liste texte volontairement simple
+// (pas les cartes CharCard, portrait/drag inclus) : nom + case à cocher,
+// pour sélectionner 1 ou plusieurs personnages et leur attribuer le même
+// montant d'un coup plutôt que de rouvrir chaque fiche une par une.
+function GrantExperienceModal({ characters, customLevelRules, grantExperience, onClose }) {
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [amount, setAmount] = useState(0);
+  const [search, setSearch] = useState('');
+
+  const sorted = [...characters].sort((a, b) => String(a.nom || '').localeCompare(String(b.nom || ''), 'fr', { sensitivity: 'base' }));
+  const filtered = sorted.filter((c) => !search.trim() || String(c.nom || '').toLowerCase().includes(search.trim().toLowerCase()));
+
+  const toggle = (id) => {
+    setSelectedIds((current) => (current.includes(id) ? current.filter((v) => v !== id) : [...current, id]));
+  };
+
+  const confirm = () => {
+    const value = Number(amount) || 0;
+    if (value === 0 || selectedIds.length === 0) return;
+    selectedIds.forEach((id) => grantExperience(id, value));
+    onClose();
+  };
+
+  return createPortal(
+    <div className="index-modal-backdrop">
+      <div className="index-modal index-modal--wide">
+        <div className="index-modal-header">
+          <h3>Attribuer de l'EXP</h3>
+          <button className="admin-btn" onClick={onClose}>✕ Fermer</button>
+        </div>
+        <div className="index-form">
+          <div className="comp-form-row">
+            <div className="comp-form-field comp-form-field--grow">
+              <label>Rechercher un personnage</label>
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nom..." />
+            </div>
+            <div className="comp-form-field">
+              <label>Montant (négatif pour retirer)</label>
+              <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            </div>
+          </div>
+          <div className="grant-exp-list">
+            {filtered.map((c) => {
+              const rule = getNextLevelRule(customLevelRules, c.niveau ?? 0);
+              const required = Number(rule?.expRequired) || 0;
+              return (
+                <label key={c.id} className={`grant-exp-row${selectedIds.includes(c.id) ? ' is-selected' : ''}`}>
+                  <input type="checkbox" checked={selectedIds.includes(c.id)} onChange={() => toggle(c.id)} />
+                  <span className="grant-exp-name">{c.nom}</span>
+                  <span className="grant-exp-meta">Niveau {c.niveau ?? 0}</span>
+                  <span className="grant-exp-meta">{Number(c.exp) || 0}{required > 0 ? ` / ${required}` : ''} EXP</span>
+                </label>
+              );
+            })}
+            {filtered.length === 0 && <p className="grant-exp-empty">Aucun personnage.</p>}
+          </div>
+          <div className="comp-form-footer">
+            <button className="admin-btn" onClick={onClose}>Annuler</button>
+            <button
+              className="race-form-save-btn"
+              disabled={selectedIds.length === 0 || !Number(amount)}
+              onClick={confirm}
+            >
+              Attribuer à {selectedIds.length} personnage{selectedIds.length > 1 ? 's' : ''}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 function DetailFiche({ char }) {
   const { levelUp, updateCharacter } = useCharacterStore();
-  const { customClasses, customSubclasses, customLevelRules, customMaitriseEntries, customCompetences, customSpellRanks, customArchetypes, customItemClasses, customClassCategories } = useAdminStore();
+  const { customClasses, customSubclasses, customLevelRules, customMaitriseEntries, customCompetences, customSpellRanks, customArchetypes, customItemClasses, customClassCategories, customRoles, systemRoleOverrides } = useAdminStore();
+  const user = useAuthStore((s) => s.user);
+  // La Chance démarre à 4 et évolue en jeu (perdue en mourant, voir
+  // CombatActivationOverlay) — mais seul le MJ doit pouvoir la retoucher à
+  // la main, pas le joueur lui-même sur sa propre fiche.
+  const isGM = canViewAllCharacters(user, customRoles, systemRoleOverrides);
+  const canManageExp = canManageExperience(user, customRoles, systemRoleOverrides);
   const classDef = getCombinedClassDefinition(char, customClasses);
   const subclassDef = getCombinedSubclassDefinition(char, customSubclasses);
   const masteryStat = classDef.magique || 'CHA';
   const [showLevelUp, setShowLevelUp] = useState(false);
 
   const chance = getChance(char);
+
+  // Palier suivant : sans expRequired configuré (0), le comportement reste
+  // celui d'avant ce système — bouton toujours cliquable, pas de barre.
+  const nextLevelRule = getNextLevelRule(customLevelRules, char.niveau ?? 0);
+  const expRequired = Number(nextLevelRule?.expRequired) || 0;
+  const currentExp = Number(char.exp) || 0;
+  const canLevel = expRequired <= 0 || currentExp >= expRequired;
+  const expPct = expRequired > 0 ? Math.min(100, (currentExp / expRequired) * 100) : 0;
 
   return (
     <div className="detail-content detail-content-sheet">
@@ -3322,13 +3768,22 @@ function DetailFiche({ char }) {
                 <span className="fiche-id-sep">·</span>
                 <span>Niveau {char.niveau ?? '—'}</span>
               </div>
-              <button
-                className="fiche-niveau-btn fiche-niveau-btn--active"
-                onClick={() => setShowLevelUp(true)}
-                title={`Passer au niveau ${(char.niveau ?? 0) + 1}`}
-              >
-                Niveau +
-              </button>
+              <div className="fiche-niveau-group">
+                {expRequired > 0 && (
+                  <div className="fiche-xp-bar" title={canManageExp ? `${currentExp} / ${expRequired} EXP` : undefined}>
+                    <div className="fiche-xp-fill" style={{ width: `${expPct}%` }} />
+                    {canManageExp && <span className="fiche-xp-label">{currentExp} / {expRequired}</span>}
+                  </div>
+                )}
+                <button
+                  className={`fiche-niveau-btn${canLevel ? ' fiche-niveau-btn--active' : ''}`}
+                  onClick={() => setShowLevelUp(true)}
+                  disabled={!canLevel}
+                  title={canLevel ? `Passer au niveau ${(char.niveau ?? 0) + 1}` : "Pas assez d'expérience pour ce niveau"}
+                >
+                  Niveau +
+                </button>
+              </div>
               {showLevelUp && createPortal(
                 <LevelUpModal
                   char={char}
@@ -3344,7 +3799,7 @@ function DetailFiche({ char }) {
                   customClassCategories={customClassCategories || []}
                   levelRules={customLevelRules}
                   onClose={() => setShowLevelUp(false)}
-                  onConfirm={(rewards) => levelUp(char.id, rewards)}
+                  onConfirm={(rewards) => levelUp(char.id, { ...rewards, expRequired })}
                   onDraftChange={(draft) => updateCharacter(char.id, { levelUpDraft: draft })}
                 />,
                 document.body
@@ -3385,18 +3840,24 @@ function DetailFiche({ char }) {
                   <span className="fiche-id-value">{value ?? '—'}</span>
                 </div>
               ))}
-              {/* Seul champ éditable de cette grille — à la différence de
-                  Classe/Origine/Historique etc. (des choix d'identité, qui
-                  passent par "Modifier"), la Chance change en cours de jeu
-                  (perdue en mourant, voir CombatActivationOverlay) et n'a
-                  pas d'autre endroit où l'ajuster à la main. */}
+              {/* Champ éditable uniquement pour le MJ — le joueur ne doit
+                  pas pouvoir retoucher sa propre Chance (voir isGM
+                  ci-dessus). Contrairement à Classe/Origine/Historique
+                  etc. (des choix d'identité qui passent par "Modifier"),
+                  la Chance change en cours de jeu (perdue en mourant, voir
+                  CombatActivationOverlay) et n'a pas d'autre endroit où
+                  l'ajuster à la main côté MJ. */}
               <div className="fiche-id-row">
                 <span className="fiche-id-label">Chance</span>
-                <FormulaInput
-                  className="fiche-id-value--input"
-                  value={chance}
-                  onCommit={(next) => updateCharacter(char.id, { chance: Math.max(0, next) })}
-                />
+                {isGM ? (
+                  <FormulaInput
+                    className="fiche-id-value--input"
+                    value={chance}
+                    onCommit={(next) => updateCharacter(char.id, { chance: Math.max(0, next) })}
+                  />
+                ) : (
+                  <span className="fiche-id-value">{chance}</span>
+                )}
               </div>
             </div>
 
@@ -3506,6 +3967,7 @@ function CaracNameCell({ carac }) {
 function DetailStats({ char }) {
   const { customRaces, customAscendances, customCaracteristiques, customClasses } = useAdminStore();
   const updateCharacter = useCharacterStore((s) => s.updateCharacter);
+  const toggleGadgetActive = useCharacterStore((s) => s.toggleGadgetActive);
   const movementBase = resolveMovementBase(char, customRaces, customAscendances);
   const movementChar = {
     ...char,
@@ -3570,6 +4032,10 @@ function DetailStats({ char }) {
 
   const masteryMod    = masteryStat === 'VAR' ? null : getStatBreakdown(char, masteryStat, caracDefsMap).total;
   const enduranceMod  = enduranceStat === 'VAR' ? null : getStatBreakdown(char, enduranceStat, caracDefsMap).total;
+  // Seuls les objets raciaux "actif" ont besoin d'être activés — un passif
+  // applique toujours son bonus (voir getActiveGadgetItems, characterCalculations.js).
+  const activatableGadgets = getEquippedGadgetItems(char).filter((item) => item.actif);
+  const gadgetLabel = getGadgetSlotLabel(char);
 
   return (
     <div className="detail-content stats-content">
@@ -3732,6 +4198,27 @@ function DetailStats({ char }) {
         <h2>Déplacement</h2>
         <FicheDepCard title="Déplacements" unit="cases / action" movement={movement} onTempChange={setMovementTempField} />
       </section>
+
+      {activatableGadgets.length > 0 && (
+        <section className="detail-section">
+          <h2>{gadgetLabel}</h2>
+          <ul className="combat-panel-list">
+            {activatableGadgets.map((item) => {
+              const isOn = Boolean(char.gadgetsActifs?.[item.id]);
+              return (
+                <li key={item.id}>
+                  <span className="combat-panel-item-name">{item.nom}</span>
+                  <label className="gadget-toggle">
+                    <input type="checkbox" className="gadget-toggle-input" checked={isOn} onChange={() => toggleGadgetActive(char.id, item.id)} />
+                    <span className="gadget-toggle-track"><span className="gadget-toggle-thumb" /></span>
+                    <span className="gadget-toggle-text">{isOn ? 'Actif' : 'Inactif'}</span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }
@@ -5122,10 +5609,16 @@ const inventoryPickerIncludesText = (value, search) =>
   String(value || '').toLowerCase().includes(String(search || '').trim().toLowerCase());
 
 const RESOURCE_EFFECT_KEYS = { vitalite: 'vie', mana: 'mana', endurance: 'endu' };
+const RESOURCE_EFFECT_LABELS = { vie: 'Vitalité', mana: 'Mana', endu: 'Endurance' };
 
 // Un objet créé depuis l'admin porte toujours un flag `usable` explicite
 // (voir ItemPanel.jsx) — pas de déduction par catégorie nécessaire.
 const isConsumableItem = (item) => item.usable === true;
+
+// item.useResource (voir ItemPanel.jsx) ne fixe QUE la ressource visée, pas
+// de montant : le joueur saisit lui-même le résultat de son jet dans le
+// pop-up d'utilisation, voir startUseItem/applyItemUse ci-dessous.
+const getItemResourceTarget = (item) => RESOURCE_EFFECT_KEYS[item.useResource] || null;
 
 // ── Onglet Inventaire ─────────────────────────────────────────
 function DetailInventaire({ char }) {
@@ -5135,19 +5628,56 @@ function DetailInventaire({ char }) {
   const itemCategories = mergeInventoryPickerRows(INVENTORY_PICKER_TEMP_CATEGORIES, customItemCategories);
   const itemCatalog = mergeInventoryPickerRows(INVENTORY_PICKER_TEMP_ITEMS, customItems);
   const rootItemCategories = getInventoryRootCategories(itemCategories);
-  const inventaire = char.inventaire ?? [];
+  // Résout chaque item contre le catalogue courant (voir resolveLiveItem) :
+  // une copie en inventaire n'est plus figée au moment de l'ajout, un item
+  // édité dans l'admin (ex: +15 emplacements sur un sac) se répercute ici.
+  const inventaire = (char.inventaire ?? []).map(resolveLiveItem);
   const bourse     = char.bourse ?? 0;
 
   // Popup générique (bourse + quantité)
   const [popup, setPopup] = useState(null); // { type: 'gold'|'qte', itemId?, value, anchorRef }
   const [popupVal, setPopupVal] = useState(0);
-  const [useItemPopup, setUseItemPopup] = useState(null); // item just consumed, shown for its useText
+  const [useItemPopup, setUseItemPopup] = useState(null); // { item, value } — pop-up d'utilisation, voir startUseItem
   const [picker, setPicker] = useState(null); // { slotIndex }
   const [pickerSearch, setPickerSearch] = useState('');
   const [pickerCategory, setPickerCategory] = useState('all');
   const [pickerSubcategory, setPickerSubcategory] = useState('all');
   const [draggedInventoryItemId, setDraggedInventoryItemId] = useState(null);
   const [dragOverSlotIndex, setDragOverSlotIndex] = useState(null);
+
+  // Panneau "Sac" — jusqu'à 4 sacs équipés, même mécanisme que
+  // char.equipement : équiper un sac le retire de l'inventaire (une case
+  // en moins), le slot stocke directement une copie de l'item (résolue en
+  // direct contre le catalogue, voir resolveLiveItem).
+  const [bagPanelOpen, setBagPanelOpen] = useState(false);
+  const [bagPickerSlot, setBagPickerSlot] = useState(null);
+  const bagSlots = Array.from({ length: 4 }, (_, i) => {
+    const item = char.sacsEquipes?.[i] ?? null;
+    return item ? resolveLiveItem(item) : null;
+  });
+  const availableBagItems = inventaire.filter((i) => getItemEquipType(i) === 'sac');
+
+  const equipBagToSlot = (slotIndex, itemId) => {
+    const item = inventaire.find((i) => String(i.id) === String(itemId));
+    if (!item) return;
+    const nextSlots = [...bagSlots];
+    nextSlots[slotIndex] = item;
+    updateCharacter(char.id, {
+      sacsEquipes: nextSlots,
+      inventaire: inventaire.filter((i) => String(i.id) !== String(itemId)),
+    });
+    setBagPickerSlot(null);
+  };
+  const unequipBagSlot = (slotIndex) => {
+    const item = bagSlots[slotIndex];
+    if (!item) return;
+    const nextSlots = [...bagSlots];
+    nextSlots[slotIndex] = null;
+    updateCharacter(char.id, {
+      sacsEquipes: nextSlots,
+      inventaire: [...inventaire, { ...item, slotIndex: undefined }],
+    });
+  };
 
   const pickerSubcategories = pickerCategory === 'all'
     ? []
@@ -5201,18 +5731,20 @@ function DetailInventaire({ char }) {
     updateCharacter(char.id, { inventaire: inventaire.filter((i) => i.id !== itemId) });
   };
 
-  const consumeItem = (item) => {
-    const simple = item.effects?.simple || {};
+  // Consomme l'item et, si une ressource est visée, ajoute `rolledValue` (le
+  // résultat que le joueur a lui-même noté dans le pop-up) à sa valeur
+  // actuelle — jamais le montant fixé côté admin, voir getItemResourceTarget.
+  const applyItemUse = (item, rolledValue) => {
+    const resourceKey = getItemResourceTarget(item);
     const resourcePatch = {};
-    Object.entries(RESOURCE_EFFECT_KEYS).forEach(([effectKey, resourceKey]) => {
-      const amount = Number(simple[effectKey]) || 0;
-      if (!amount) return;
+    if (resourceKey && String(rolledValue).trim() !== '') {
+      const amount = Number(rolledValue) || 0;
       const current = char[resourceKey] ?? { actuel: 0, max: 0 };
       resourcePatch[resourceKey] = {
         ...current,
         actuel: Math.max(0, Math.min(current.max, current.actuel + amount)),
       };
-    });
+    }
 
     const remainingQte = (item.qte ?? 1) - 1;
     const newInventaire = remainingQte > 0
@@ -5220,6 +5752,14 @@ function DetailInventaire({ char }) {
       : inventaire.filter((i) => i.id !== item.id);
 
     updateCharacter(char.id, { ...resourcePatch, inventaire: newInventaire });
+  };
+
+  // Un item sans ressource visée ni texte narratif se consomme directement ;
+  // sinon on ouvre le pop-up (texte + éventuelle saisie du jet) et c'est sa
+  // confirmation qui déclenche applyItemUse — voir le pop-up plus bas.
+  const startUseItem = (item) => {
+    if (!getItemResourceTarget(item) && !item.useText) { applyItemUse(item, null); return; }
+    setUseItemPopup({ item, value: '' });
   };
 
   const confirmPopup = () => {
@@ -5233,22 +5773,15 @@ function DetailInventaire({ char }) {
     closePopup();
   };
 
-  // Base résolue en direct depuis la classe (remplacée par la sous-classe si
-  // elle coche "Remplacer les emplacements de la classe parente") — même
-  // schéma que resolveMovementBase pour le déplacement, pas un snapshot figé
-  // à la création du perso. objectBonus vient de l'équipement porté (un sac
-  // par ex.), voir getEquippedItemEffectSum.
-  const carryingClassDef = getCombinedClassDefinition(char, customClasses);
-  const carryingSubclassDef = getCombinedSubclassDefinition(char, customSubclasses);
-  const carryingBase = Number(
-    (carryingSubclassDef?.replaceClassEmplacements ? carryingSubclassDef?.emplacements : null)
-    ?? carryingClassDef?.emplacements
-    ?? 0
-  ) || 0;
+  // Base fixe pour tout personnage, quelle que soit sa classe/sous-classe
+  // (ancienne base venait de la classe/sous-classe — ça ne devait pas être
+  // le cas). objectBonus vient de l'équipement porté (un sac par ex.), voir
+  // getEquippedItemEffectSum.
+  const carryingBase = 16;
   const e = {
     ...(char.emplacements ?? {}),
     base: carryingBase,
-    objectBonus: getEquippedItemEffectSum(char, 'emplacements'),
+    objectBonus: getEquippedItemEffectSum(char, 'emplacements') + getEquippedBagEffectSum(char, 'emplacements'),
   };
   // Bonus/Malus Temp. des emplacements — persisté dans char.emplacements,
   // même principe que setMovementTempField pour le déplacement.
@@ -5338,6 +5871,11 @@ function DetailInventaire({ char }) {
 
       <div className="inv2-page-head">
         <h2>Inventaire</h2>
+        <div className="inv2-page-actions">
+        <button className="inv2-bag-btn" title="Gérer mes sacs" onClick={() => setBagPanelOpen(true)}>
+          <Backpack size={18} strokeWidth={1.8} />
+          <span>Sac</span>
+        </button>
         <button className="inv2-wallet" title="Modifier l'or" onClick={() => openPopup('gold', bourse)}>
           <svg viewBox="0 0 32 32" aria-hidden="true">
             <path d="M10 6h12l-2.4 4.2h-7.2L10 6Z" fill="currentColor" opacity=".65" />
@@ -5347,6 +5885,7 @@ function DetailInventaire({ char }) {
           <strong>{bourse}</strong>
           <span>or</span>
         </button>
+        </div>
 
         {/* Popup édition */}
         {popup && createPortal(
@@ -5374,16 +5913,88 @@ function DetailInventaire({ char }) {
           document.body
         )}
 
-        {/* Texte narratif affiché à l'utilisation d'un item consommable */}
+        {/* Panneau "Sac" — 4 emplacements de sacs équipés */}
+        {bagPanelOpen && createPortal(
+          <div className="index-modal-backdrop" onClick={() => { setBagPanelOpen(false); setBagPickerSlot(null); }}>
+            <div className="index-confirm-modal inv-bag-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="index-modal-header">
+                <h3>Mes Sacs</h3>
+                <button className="admin-btn" onClick={() => { setBagPanelOpen(false); setBagPickerSlot(null); }}>✕ Fermer</button>
+              </div>
+              <div className="inv-bag-hint">
+                Seuls les sacs présents dans l'inventaire peuvent être équipés ici. Un sac équipé quitte l'inventaire et ajoute son bonus d'emplacements.
+              </div>
+              <div className="inv-bag-slots">
+                {bagSlots.map((bagItem, slotIndex) => {
+                  return (
+                    <div key={slotIndex} className={`inv-bag-slot${bagItem ? ' is-filled' : ''}`}>
+                      {bagItem ? (
+                        <>
+                          <div className="inv-bag-slot-main">
+                            <strong>{bagItem.nom}</strong>
+                            {bagItem.desc && <span className="inv-bag-slot-desc">{bagItem.desc}</span>}
+                            <ItemEffectSummary item={bagItem} {...itemEffectOptions} mode="button" />
+                          </div>
+                          <button className="inv-bag-slot-remove" title="Retirer" onClick={() => unequipBagSlot(slotIndex)}>✕</button>
+                        </>
+                      ) : bagPickerSlot === slotIndex ? (
+                        <div className="inv-bag-slot-picker">
+                          {availableBagItems.length === 0 ? (
+                            <p className="inv-bag-slot-empty-hint">Aucun sac disponible dans l'inventaire.</p>
+                          ) : availableBagItems.map((item) => (
+                            <button key={item.id} className="inv-bag-slot-picker-item" onClick={() => equipBagToSlot(slotIndex, item.id)}>
+                              {item.nom}
+                            </button>
+                          ))}
+                          <button className="inv-bag-slot-picker-cancel" onClick={() => setBagPickerSlot(null)}>Annuler</button>
+                        </div>
+                      ) : (
+                        <button className="inv-bag-slot-add" onClick={() => setBagPickerSlot(slotIndex)}>
+                          <span>+ Emplacement sac libre</span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+        {/* Utilisation d'un consommable : texte narratif + saisie du jet du
+            joueur si l'item vise une ressource — rien n'est appliqué tant
+            que "Valider" n'a pas été cliqué (voir applyItemUse). */}
         {useItemPopup && createPortal(
           <div className="index-modal-backdrop">
             <div className="index-confirm-modal">
               <div className="index-modal-header">
-                <h3>{useItemPopup.nom}</h3>
+                <h3>{useItemPopup.item.nom}</h3>
                 <button className="admin-btn" onClick={() => setUseItemPopup(null)}>✕ Fermer</button>
               </div>
               <div className="index-confirm-body">
-                <SmartText text={useItemPopup.useText} />
+                {useItemPopup.item.useText && <SmartText text={useItemPopup.item.useText} />}
+                {getItemResourceTarget(useItemPopup.item) && (
+                  <div className="comp-form-field" style={{ marginTop: '12px' }}>
+                    <label>{RESOURCE_EFFECT_LABELS[getItemResourceTarget(useItemPopup.item)]} obtenue — résultat de ton jet</label>
+                    <input
+                      type="number"
+                      autoFocus
+                      value={useItemPopup.value}
+                      onChange={(e) => setUseItemPopup((current) => ({ ...current, value: e.target.value }))}
+                      placeholder="Ex: 7"
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="comp-form-footer">
+                <button className="admin-btn" onClick={() => setUseItemPopup(null)}>Annuler</button>
+                <button
+                  className="race-form-save-btn"
+                  onClick={() => { applyItemUse(useItemPopup.item, useItemPopup.value); setUseItemPopup(null); }}
+                >
+                  Valider
+                </button>
               </div>
             </div>
           </div>,
@@ -5505,25 +6116,30 @@ function DetailInventaire({ char }) {
                         {slot.item.desc || 'Aucune description renseignée.'}
                       </span>
                       <ItemEffectSummary item={slot.item} {...itemEffectOptions} mode="compact" />
-                      {usable && (
-                        <button
-                          type="button"
-                          className="inv2-item-use"
-                          onClick={(ev) => {
-                            ev.stopPropagation();
-                            consumeItem(slot.item);
-                            if (slot.item.useText) setUseItemPopup(slot.item);
-                          }}
-                          title="Utiliser (consomme 1 unité)"
-                        >Utiliser</button>
+                      {(usable || slot.item.stackable) && (
+                        <span className="inv2-item-footer">
+                          {usable && (
+                            <button
+                              type="button"
+                              className="inv2-item-use"
+                              onClick={(ev) => {
+                                ev.stopPropagation();
+                                startUseItem(slot.item);
+                              }}
+                              title="Utiliser (consomme 1 unité)"
+                            >Utiliser</button>
+                          )}
+                          {slot.item.stackable && (
+                            <span
+                              className="inv2-item-count"
+                              onClick={ev => { ev.stopPropagation(); openPopup('qte', slot.item.qte ?? 1, slot.item.id); }}
+                              title="Modifier la quantité"
+                            >
+                              {slot.item.qte ?? 1}
+                            </span>
+                          )}
+                        </span>
                       )}
-                      <span
-                        className="inv2-item-count"
-                        onClick={ev => { ev.stopPropagation(); openPopup('qte', slot.item.qte ?? 1, slot.item.id); }}
-                        title="Modifier la quantité"
-                      >
-                        {slot.item.qte ?? 1}
-                      </span>
                     </div>
                   );
                 })()
@@ -5611,7 +6227,6 @@ function DetailInventaire({ char }) {
                         {[parentCategory?.nom, category?.parentId ? category?.nom : null].filter(Boolean).join(' · ') || 'Item'}
                       </em>
                       <span>{item.desc || item.description || 'Aucune description renseignée.'}</span>
-                      <ItemEffectSummary item={item} {...itemEffectOptions} mode="compact" />
                     </span>
                     <span className="inv-picker-item-add">Ajouter</span>
                   </button>

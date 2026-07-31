@@ -31,7 +31,7 @@ function StringListField({ label, hint, value = [], onChange, placeholder }) {
   return (
     <div className="comp-form-field">
       <label>{label}</label>
-      {hint && <span style={{ fontSize: '0.8em', opacity: 0.6 }}>{hint}</span>}
+      {hint && <span style={{ fontSize: 'calc(0.8em + 2px)', opacity: 0.6 }}>{hint}</span>}
       {rows.map((row, index) => (
         <div className="comp-form-row" key={index}>
           <div className="comp-form-field comp-form-field--grow">

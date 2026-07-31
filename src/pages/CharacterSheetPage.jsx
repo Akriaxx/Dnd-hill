@@ -194,10 +194,10 @@ function FicheTab({ char }) {
                 padding: '16px 20px',
                 minWidth: 140,
               }}>
-                <div style={{ fontFamily: 'var(--font-caps)', fontSize: 10, letterSpacing: 3, color: 'var(--dim)', marginBottom: 8 }}>{label}</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: 36, fontWeight: 900, color, lineHeight: 1 }}>
+                <div style={{ fontFamily: 'var(--font-caps)', fontSize: 12, letterSpacing: 3, color: 'var(--dim)', marginBottom: 8 }}>{label}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 38, fontWeight: 900, color, lineHeight: 1 }}>
                   {pool.actuel}
-                  <span style={{ fontSize: 16, color: 'var(--dim)', fontWeight: 400 }}> / {pool.max}</span>
+                  <span style={{ fontSize: 18, color: 'var(--dim)', fontWeight: 400 }}> / {pool.max}</span>
                 </div>
                 <div style={{ marginTop: 8, height: 3, background: '#2a2318', borderRadius: 2, overflow: 'hidden' }}>
                   <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 2, transition: 'width 0.3s' }} />
@@ -221,7 +221,7 @@ function FicheTab({ char }) {
                   </div>
                 </div>
                 <div className="resource-body">
-                  <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.5 }}>{c.desc}</p>
+                  <p style={{ fontSize: 15, color: 'var(--text)', lineHeight: 1.5 }}>{c.desc}</p>
                 </div>
               </div>
             ))}

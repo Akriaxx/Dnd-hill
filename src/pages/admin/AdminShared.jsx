@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { APT_CATEGORIES, APTITUDES } from '../../data/gameData';
 import SmartDescEditor from '../../components/admin/SmartDescEditor';
 import { useAdminStore } from '../../store/adminStore';
 import { clamp, isHexColor, hexToHsv, hsvToHex, asArray, RESOURCE_DICE_KEYS, normalizeResourceDice, slugifyKey, includesText, BLANK_KNOWLEDGE_CATEGORY_FORM } from './adminUtils';
 import { useGameplayEffectsPanel, useMatchedHeight } from './adminEffectsPanelHooks';
+import { BONUS_CHOICE_DOMAINS, findCatalogEntry, describeSlot, resolveDomainCatalog } from '../../domain/bonusChoiceDomains';
 
 export function ConfirmModal({ title, message, dangerLabel = 'Supprimer', onCancel, onConfirm }) {
   return (
@@ -279,6 +281,205 @@ export function MaitriseLockFields({ value = [], maitrises = [], onChange, label
   );
 }
 
+const BLANK_SLOT = (domain = BONUS_CHOICE_DOMAINS[0].key) => ({ mode: 'open', domain, valeur: 1, cible: null });
+const BLANK_BRANCH = () => ({ key: `branche-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, gain: BLANK_SLOT(), cost: null });
+const BLANK_CHOICE = () => ({ key: `choix-${Date.now()}`, label: '', branches: [BLANK_BRANCH()] });
+
+const isSlotValid = (slot) => {
+  if (!slot || !slot.domain || Number(slot.valeur) === 0) return false;
+  return slot.mode !== 'precise' || Boolean(slot.cible?.key);
+};
+const isChoiceValid = (choice) => (choice.label || '').trim().length > 0
+  && (choice.branches || []).length > 0
+  && choice.branches.every((b) => isSlotValid(b.gain) && (!b.cost || isSlotValid(b.cost)));
+
+// Un slot = une règle ("+1 en Aptitude au choix" ou "+2 en Force
+// précisément") — jamais une cible choisie par le MJ à la place du joueur en
+// mode 'open'. "Valeur" est TOUJOURS le montant accordé, dans les deux
+// modes : en 'open' le joueur pioche UNE cible libre dans le catalogue et
+// reçoit ce montant ; en 'precise' le MJ verrouille la cible et le montant
+// s'applique directement si le joueur retient cette branche.
+function SlotFields({ slot, domainCatalogs, onChange }) {
+  const catalog = resolveDomainCatalog(domainCatalogs, slot.domain);
+  const grouped = catalog.reduce((groups, entry) => {
+    const key = entry.group || '';
+    (groups[key] ??= []).push(entry);
+    return groups;
+  }, {});
+
+  return (
+    <div className="race-form-row">
+      <div className="race-form-field race-form-field--sm">
+        <label>Valeur</label>
+        <input type="number" className="bonus-choice-value-input" value={slot.valeur} onChange={(e) => onChange({ ...slot, valeur: Number(e.target.value) || 0 })} />
+      </div>
+      <div className="race-form-field race-form-field--grow">
+        <label>Variable</label>
+        <div className="bonus-choice-variable">
+          <select className="bonus-choice-variable-part" value={slot.domain} onChange={(e) => onChange({ ...slot, domain: e.target.value, cible: null })}>
+            {BONUS_CHOICE_DOMAINS.map((d) => <option key={d.key} value={d.key}>{d.label}</option>)}
+          </select>
+          <div className="race-resistance-toggle bonus-choice-mode-toggle">
+            <button type="button" className={slot.mode === 'open' ? 'active' : ''} onClick={() => onChange({ ...slot, mode: 'open', cible: null })}>Ouvert</button>
+            <button type="button" className={slot.mode === 'precise' ? 'active' : ''} onClick={() => onChange({ ...slot, mode: 'precise' })}>Précis</button>
+          </div>
+          {slot.mode === 'precise' && (
+            <select
+              className="bonus-choice-variable-part bonus-choice-variable-part--grow"
+              value={slot.cible?.key || ''}
+              onChange={(e) => {
+                const entry = findCatalogEntry(catalog, e.target.value);
+                onChange({ ...slot, cible: entry ? { key: entry.key, label: entry.label } : null });
+              }}
+            >
+              <option value="">— Choisir une cible —</option>
+              {Object.entries(grouped).map(([groupLabel, entries]) => (
+                groupLabel
+                  ? <optgroup key={groupLabel} label={groupLabel}>{entries.map((e) => <option key={e.key} value={e.key}>{e.label}</option>)}</optgroup>
+                  : entries.map((e) => <option key={e.key} value={e.key}>{e.label}</option>)
+              ))}
+            </select>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Panneau superposé : le MJ construit un Choix (une ou plusieurs branches en
+// OR, chacune avec un gain et un coût optionnel) sur un brouillon local —
+// rien n'est répercuté sur la race/ascendance/sous-classe tant que "Valider"
+// n'est pas cliqué.
+function BonusChoiceBuilderPanel({ choice, domainCatalogs, onCancel, onSave }) {
+  const [draft, setDraft] = useState(() => (
+    choice ? { ...choice, branches: choice.branches.map((b) => ({ ...b })) } : BLANK_CHOICE()
+  ));
+
+  const updateBranch = (index, patch) => setDraft((d) => ({ ...d, branches: d.branches.map((b, i) => (i === index ? { ...b, ...patch } : b)) }));
+  const addBranch = () => setDraft((d) => ({ ...d, branches: [...d.branches, BLANK_BRANCH()] }));
+  const removeBranch = (index) => setDraft((d) => ({ ...d, branches: d.branches.filter((_, i) => i !== index) }));
+  const toggleCondition = (index, enabled) => updateBranch(index, { cost: enabled ? BLANK_SLOT() : null });
+
+  // Portail direct dans <body> : ce panneau peut s'ouvrir depuis un
+  // ancêtre (le panneau "Choix du joueur" de RacesPanel.jsx) dont
+  // l'animation d'entrée anime `transform` — ça crée un nouveau contexte
+  // de positionnement pour les descendants, ce qui piège position:fixed
+  // à l'intérieur de cette boîte au lieu de couvrir tout l'écran. Le
+  // portail sort complètement de cette hiérarchie DOM.
+  return createPortal(
+    <div className="race-resistance-panel-backdrop bonus-choice-builder-backdrop">
+      <div className="race-resistance-panel bonus-choice-builder">
+        <div className="race-resistance-panel-head">
+          <div>
+            <h4>{choice ? 'Modifier le choix' : 'Nouveau choix'}</h4>
+            <p>Le joueur retiendra UNE branche parmi celles ci-dessous, à la création de son personnage.</p>
+          </div>
+          <button className="admin-btn" onClick={onCancel}>✕ Fermer</button>
+        </div>
+        <div className="race-resistance-panel-body">
+          <div className="race-form-field">
+            <label>Libellé du choix</label>
+            <input value={draft.label} onChange={(e) => setDraft((d) => ({ ...d, label: e.target.value }))} placeholder="Ex: Bonus d'origine" />
+          </div>
+
+          {draft.branches.map((branch, index) => (
+            <div key={branch.key}>
+              {index > 0 && <div className="bonus-choice-or">OU</div>}
+              <div className="bonus-choice-branch">
+                <div className="race-form-row bonus-choice-head-row">
+                  <span className="bonus-choice-branch-title">Branche {index + 1}</span>
+                  <button type="button" className="admin-btn admin-btn--danger race-builder-remove" onClick={() => removeBranch(index)}>Retirer cette branche</button>
+                </div>
+
+                <SlotFields slot={branch.gain} domainCatalogs={domainCatalogs} onChange={(gain) => updateBranch(index, { gain })} />
+
+                <label className="race-replace-toggle">
+                  <input type="checkbox" checked={Boolean(branch.cost)} onChange={(e) => toggleCondition(index, e.target.checked)} />
+                  Condition (coût en contrepartie)
+                </label>
+                {branch.cost && (
+                  <SlotFields slot={branch.cost} domainCatalogs={domainCatalogs} onChange={(cost) => updateBranch(index, { cost })} />
+                )}
+              </div>
+            </div>
+          ))}
+
+          <button type="button" className="admin-btn" onClick={addBranch}>+ OU</button>
+        </div>
+        <div className="race-form-footer">
+          <button className="admin-btn" onClick={onCancel}>Annuler</button>
+          <button className="race-form-save-btn" disabled={!isChoiceValid(draft)} onClick={() => onSave(draft)}>Valider</button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+// Liste des "Choix du joueur" posés sur une race/ascendance/sous-classe — le
+// MJ ne fabrique ici QUE des règles (domaine + montant, ouvertes ou avec une
+// cible précise verrouillée), jamais les options elles-mêmes : c'est le
+// joueur qui pioche dans le catalogue vivant (customCaracteristiques/
+// customAptitudes/customResistanceEntries) à la création de son personnage
+// (voir CharacterListPage.jsx). `domainCatalogs` = {caracteristique,
+// aptitude, resistance} déjà normalisés (bonusChoiceDomains.js), fournis par
+// l'appelant (RacesPanel.jsx, AscendancesPanel.jsx, SousClassesPanel.jsx).
+export function BonusChoicesEditor({ value = [], onChange, domainCatalogs }) {
+  const groups = asArray(value);
+  const [builderIndex, setBuilderIndex] = useState(null); // null = fermé ; 'new' ; ou l'index en édition
+
+  const handleSave = (nextChoice) => {
+    onChange(builderIndex === 'new'
+      ? [...groups, nextChoice]
+      : groups.map((g, i) => (i === builderIndex ? nextChoice : g)));
+    setBuilderIndex(null);
+  };
+  const removeChoice = (index, e) => {
+    e.stopPropagation();
+    onChange(groups.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="race-lock-panel">
+      <div className="race-lock-head">
+        <span>Choix du joueur</span>
+        <small>{groups.length === 0 ? 'Aucun choix' : `${groups.length} choix`}</small>
+      </div>
+      <p className="race-form-hint">
+        Le MJ déclare une règle (ex: "+1 dans une aptitude au choix", ou "+2 en Force précisément") — c'est le joueur qui pioche
+        dans le catalogue vivant à la création de son personnage. Le MJ ne choisit jamais à sa place.
+      </p>
+
+      {groups.length === 0 ? (
+        <p className="race-form-empty">Aucun choix créé.</p>
+      ) : (
+        <div className="bonus-choice-list">
+          {groups.map((choice, index) => (
+            <div key={choice.key} className="bonus-choice-summary-card" onClick={() => setBuilderIndex(index)}>
+              <div className="bonus-choice-summary-main">
+                <strong>{choice.label || `Choix ${index + 1}`}</strong>
+                <span>{(choice.branches || []).map((b) => describeSlot(b.gain, resolveDomainCatalog(domainCatalogs, b.gain?.domain))).join(' · OU · ')}</span>
+              </div>
+              <button type="button" className="admin-btn admin-btn--danger race-builder-remove" onClick={(e) => removeChoice(index, e)}>✕</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button type="button" className="admin-btn admin-btn--add" onClick={() => setBuilderIndex('new')}>+ Créer un nouveau choix</button>
+
+      {builderIndex !== null && (
+        <BonusChoiceBuilderPanel
+          choice={builderIndex === 'new' ? null : groups[builderIndex]}
+          domainCatalogs={domainCatalogs}
+          onCancel={() => setBuilderIndex(null)}
+          onSave={handleSave}
+        />
+      )}
+    </div>
+  );
+}
+
 // Sélecteur groupé pour autoriser une classe de personnage à utiliser
 // certaines classes d'équipement (Lourde, Intermédiaire, Finesse…),
 // groupées par catégorie racine équipable (Armure, Arme…) — `groups` est
@@ -346,28 +547,22 @@ export function GameplayEffectsToggle({ open, onToggle, label = 'Effets gameplay
   );
 }
 
+// Récap toujours visible : chaque catégorie affiche son badge de compte
+// (voir ItemEffectsPanel/RacesPanel/AscendancesPanel) — masquer la liste
+// derrière un bouton "+ Ajouter un effet" donnait l'impression que rien
+// n'était configuré tant qu'on ne cliquait pas dessus.
 export function EffectsPanel({ categories = [] }) {
-  const [listingOpen, setListingOpen] = useState(false);
   return (
-    <>
-      <div className="admin-effects-panel-body">
-        {listingOpen && (
-          <div className="admin-effects-listing">
-            {categories.map((category) => (
-              <button key={category.key} type="button" className="admin-effects-listing-item" onClick={category.onOpen}>
-                <span>{category.label}</span>
-                {typeof category.count === 'number' && <b>{category.count}</b>}
-              </button>
-            ))}
-          </div>
-        )}
+    <div className="admin-effects-panel-body">
+      <div className="admin-effects-listing">
+        {categories.map((category) => (
+          <button key={category.key} type="button" className="admin-effects-listing-item" onClick={category.onOpen}>
+            <span>{category.label}</span>
+            {typeof category.count === 'number' && <b>{category.count}</b>}
+          </button>
+        ))}
       </div>
-      <div className="admin-effects-panel-actions">
-        <button type="button" className="admin-btn admin-btn--add" onClick={() => setListingOpen((v) => !v)}>
-          {listingOpen ? '✕ Fermer' : '+ Ajouter un effet'}
-        </button>
-      </div>
-    </>
+    </div>
   );
 }
 
